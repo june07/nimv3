@@ -8,8 +8,7 @@
     "commands": {
         "open-devtools": {
             "suggested_key": {
-                "default": "Alt +I",
-                "mac": "Alt+I"
+                "default": "Alt+I"
             },
             "description": "__MSG_keyCtrlI__"
         }
