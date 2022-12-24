@@ -17,38 +17,38 @@
     "devtools_page": "/dist/index.html#devtools",
     "action": {
         "default_icon": {
-            "16": "./icon/icon16.png",
-            "162": "./icon/icon16@2x.png",
-            "163": "./icon/icon16@3x.png",
-            "32": "./icon/icon32.png",
-            "322": "./icon/icon32@2x.png",
-            "323": "./icon/icon32@3x.png",
-            "48": "./icon/icon48.png",
-            "482": "./icon/icon48@2x.png",
-            "483": "./icon/icon48@3x.png",
-            "128": "./icon/icon128.png",
-            "1282": "./icon/icon128@2x.png",
-            "1283": "./icon/icon128@3x.png"
+            "16": "/dist/icon/icon16.png",
+            "162": "/dist/icon/icon16@2x.png",
+            "163": "/dist/icon/icon16@3x.png",
+            "32": "/dist/icon/icon32.png",
+            "322": "/dist/icon/icon32@2x.png",
+            "323": "/dist/icon/icon32@3x.png",
+            "48": "/dist/icon/icon48.png",
+            "482": "/dist/icon/icon48@2x.png",
+            "483": "/dist/icon/icon48@3x.png",
+            "128": "/dist/icon/icon128.png",
+            "1282": "/dist/icon/icon128@2x.png",
+            "1283": "/dist/icon/icon128@3x.png"
         },
         "default_title": "__MSG_appName__",
         "default_popup": "/dist/index.html"
     },
     "icons": {
-        "16": "./icon/icon16.png",
-        "162": "./icon/icon16@2x.png",
-        "163": "./icon/icon16@3x.png",
-        "32": "./icon/icon32.png",
-        "322": "./icon/icon32@2x.png",
-        "323": "./icon/icon32@3x.png",
-        "48": "./icon/icon48.png",
-        "482": "./icon/icon48@2x.png",
-        "483": "./icon/icon48@3x.png",
-        "128": "./icon/icon128.png",
-        "1282": "./icon/icon128@2x.png",
-        "1283": "./icon/icon128@3x.png"
+        "16": "/dist/icon/icon16.png",
+        "162": "/dist/icon/icon16@2x.png",
+        "163": "/dist/icon/icon16@3x.png",
+        "32": "/dist/icon/icon32.png",
+        "322": "/dist/icon/icon32@2x.png",
+        "323": "/dist/icon/icon32@3x.png",
+        "48": "/dist/icon/icon48.png",
+        "482": "/dist/icon/icon48@2x.png",
+        "483": "/dist/icon/icon48@3x.png",
+        "128": "/dist/icon/icon128.png",
+        "1282": "/dist/icon/icon128@2x.png",
+        "1283": "/dist/icon/icon128@3x.png"
     },
     "background": {
-        "service_worker": "src/background.js"
+        "service_worker": "/src/sw.js"
     },
     "options_page": "/dist/index.html#options",
     "permissions": [
