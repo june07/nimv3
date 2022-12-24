@@ -1,6 +1,6 @@
 {
     "donationModalHeader": {
-        "message": "Donations Appreciated",
+        "message": "donations are greatly appreciated",
         "description": "Donation modal header."
     },
     "noNotifications": {
@@ -286,5 +286,8 @@
     "autoSteppingLabel": {
         "message": "Auto Resume Stepping",
         "description": "autoResumeSwitch label"
+    },
+    "thankyou": {
+        "message": "thank you"
     }
 }

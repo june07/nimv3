@@ -14,7 +14,7 @@
             "description": "__MSG_keyCtrlI__"
         }
     },
-    "devtools_page": "devtools.html",
+    "devtools_page": "/dist/index.html#devtools",
     "action": {
         "default_icon": {
             "16": "./icon/icon16.png",
@@ -48,7 +48,7 @@
         "1283": "./icon/icon128@3x.png"
     },
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "src/background.js"
     },
     "options_page": "/dist/index.html#options",
     "permissions": [

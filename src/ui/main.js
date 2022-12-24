@@ -11,7 +11,7 @@ import './main.css'
 import App from './App.vue'
 
 // Composables
-import { createApp, ref } from 'vue'
+import { createApp, ref, reactive } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
@@ -20,7 +20,6 @@ import { registerPlugins } from '@/plugins'
 import VueSocialSharing from 'vue-social-sharing'
 import { createAuth0 } from "@auth0/auth0-vue";
 
-let settingsRef = ref({});
 const id = chrome?.runtime?.id || import.meta.env.VITE_EXTENSION_ID;
 const app = createApp(App)
 
@@ -33,6 +32,7 @@ const $auth = createAuth0({
 app.use($auth);
 app.use(VueSocialSharing)
 
+let settings;
 async function updateSetting(name, value) {
     // send update via messages
     chrome.runtime.sendMessage(
@@ -45,18 +45,14 @@ async function updateSetting(name, value) {
             value: typeof value === 'string' && value.match(/true|false/i) ? !!value : value
         },
         (response) => {
-            settingsRef = { ...settingsRef, ...response };
-            console.log({settingsRef})
+            settings = { ...settings, ...response };
+            console.log({settings})
         }
     );
 }
-chrome.runtime.sendMessage(id, { command: "getSettings" }, (settings) => {
-    settingsRef = settings
-    app.provide('settings', settingsRef);
-});
 if (!chrome?.i18n?.getMessage) {
     (async () => {
-        const i18n = await import('../_locales/en/messages.json');
+        const i18n = await import('/_locales/en/messages.json');
 
         app.provide('i18nString', (key) => i18n[key]?.message);
 
@@ -68,7 +64,33 @@ if (!chrome?.i18n?.getMessage) {
     completeSetup();
 }
 
-function completeSetup() {
+async function copy(text, tooltipId = text) {
+    if (this.debounce.value) return;
+    this.debounce.value = true;
+    this.tooltips[tooltipId] = true;
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (error) {
+        console.log({ error });
+        this.debounce.value = false;
+        this.tooltips[tooltipId] = false;
+    }
+    setTimeout(() => {
+        this.debounce.value = false;
+    }, 100);
+    setTimeout(() => {
+        this.tooltips[tooltipId] = false;
+    }, 1500);
+}
+app.provide('clipboard', {
+    copy,
+    debounce: ref(false),
+    tooltips: reactive({})
+})
+
+async function completeSetup() {
+    settings = reactive(await new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response))));
+    app.provide('settings', settings);
     app.provide('updateSetting', updateSetting);
 
     registerPlugins(app)

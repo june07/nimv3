@@ -129,17 +129,14 @@ import {
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
-import iconNode from "../../image/nodejs-icon.webp";
+import iconNode from "/image/nodejs-icon.webp";
 
+const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
-
-if (!chrome.runtime) {
-}
-
 const { getAccessTokenSilently } = useAuth0();
-const id = chrome?.runtime?.id || import.meta.env.VITE_EXTENSION_ID;
+const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const form = ref("form");
 const tab = ref("tab");
 const ml11 = ref("ml11");
@@ -157,23 +154,20 @@ const rules = {
             ) || i18nString("invalidPort"),
     ],
 };
-
+const settings = inject("settings");
 const tabs = ["home", "localhost"];
 const inits = {
     connectionErrorMessage: false,
 };
 let inputs = reactive({
     localTab: {},
-    auto: undefined,
-    host: undefined,
-    port: undefined,
-    autoResumeInspectBrk: undefined
+    auto: settings.auto,
+    host: settings.host,
+    port: settings.port,
+    autoResumeInspectBrk: settings.autoResumeInspectBrk
 });
+let workerPort = reactive({});
 let tooltips = reactive({});
-const { state: asyncSettings } = useAsyncState(
-    new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response)))
-);
-let settings = reactive(asyncSettings);
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => resolve(response)))
 );
@@ -198,13 +192,19 @@ let remoteSessions = computed(
                 ) !== -1
         )
 );
-watch(settings, (currentValue) => {
-    if (!currentValue) return;
-    inputs.auto = currentValue.auto;
-    inputs.host = currentValue.host;
-    inputs.port = currentValue.port;
-    inputs.autoResumeInspectBrk = currentValue.autoResumeInspectBrk;
-})
+if (chrome.runtime) {
+    workerPort = chrome.runtime.connect(id);
+
+    workerPort.onMessage.addListener((request) => {
+        const { command } = request;
+
+        switch(command) {
+            case 'update':
+                chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => sessions.value = reactive(response));
+                break;
+        }
+    });
+}
 watch(sessions, (currentValue) => {
     if (!currentValue) return;
     tooltips = Object.values(currentValue).reduce(
@@ -314,7 +314,6 @@ async function devtoolsButtonHandler(session) {
     console.log(response);
 }
 
-function clickHandlerOpenDevtools(url) {}
 function clickHandlerSessionUpdate(event, tabId) {
     const { name } = event.target;
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
