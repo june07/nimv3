@@ -192,7 +192,7 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
         if (cache.timeouts[key]) {
             return;
         }
-        /** 600 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
+        /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
          *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
          *  show up during the query stage... 
          */
@@ -201,7 +201,7 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
                 delete cache[key];
             };
             delete cache.timeouts[key];
-        }, 600);
+        }, 700);
     }
 }
 function createTabOrWindow(infoURL, url, info, socket) {
@@ -396,7 +396,7 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
 });
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
-    if (areaName.match(/session/)) {
+    if (areaName.match(/session/) && cache?.messagePort?.postMessage) {
         cache.messagePort.postMessage({ command: 'update' });
     }
 })
