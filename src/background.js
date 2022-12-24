@@ -43,11 +43,10 @@ async function hydrateState() {
      */
     state.sessions = await chrome.storage.session.get('sessions');
     if (settings.ENV !== 'production') {
-        const foreignTabs = await importForeignTabs();
-        const foreignSockets = foreignTabs.map((tab) => tab.url.match(/wss?=([^:]+):([0-9]+)/));
-        await chrome.tabs.remove(foreignTabs.map((tab) => tab.id));
-        foreignSockets.forEach((socket) => {
-            openTab(socket[1], socket[2]);
+        const foreignTabSessions = await importForeignTabs();
+        await chrome.tabs.remove(foreignTabSessions.map((tab) => tab.id));
+        foreignTabSessions.forEach((foreignTabSessions) => {
+            openTab(foreignTabSessions.socket.host, foreignTabSessions.socket.port);
         })
     }
 }
@@ -65,13 +64,12 @@ function resetInterval(func, timeout) {
     cache.checkInterval = resetInterval(() => {
         let home;
         Object.values(state.sessions).filter((session) => session.auto).map((session) => {
-            const match = session.infoURL.match(/https?:\/\/([^:]*):([0-9]+)/);
-            const sessionHost = match[1];
-            const sessionPort = match[2];
-            if (sessionHost === settings.host && sessionPort === settings.port) {
+            const { host, port } = session.socket;
+
+            if (host === settings.host && port === settings.port) {
                 home = true;
             }
-            openTab(sessionHost, sessionPort)
+            openTab(host, port)
         });
         // if the home tab socket hasn't been added to the sessions yet
         if (!home && settings.auto) {
@@ -125,7 +123,7 @@ async function queryForDevtoolTabs(host, port) {
     const tabs = await chrome.tabs.query({
         url: !host || !port ? [ ...devtoolsBasePatterns, ...devtoolsSpecificPatterns ] : devtoolsSpecificPatterns
     });
-    return tabs;
+    return tabs.map(tab => ({ tab, socket: { host, port } }));
 }
 async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) {
     let devtoolsURL;
@@ -149,7 +147,16 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
             return;
         }
         const info = await getInfo(host, port, remoteMetadata);
-        if (!info) return;
+        if (!info) {
+            // close autoClose sessions if they are dead
+            await Promise.all(Object.values(state.sessions).forEach(async (session) => {
+                if (session.autoClose && session.socket.host === host && session.socket.port === port) {
+                    return await chrome.tabs.remove(session.tabId);
+                }
+                return Promise.resolve()
+            }));
+            return;
+        }
         setDevtoolsURL(info);
         if (remoteMetadata) {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=(.*)\//, remoteMetadata.wsProto + '=' + host + '/ws/' + port + '/');
@@ -173,12 +180,12 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
         if (devtoolsURL.match(/chrome-devtools:\/\//)) {
             devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://');
         }
-        const tabToUpdate = await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info);
+        await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info, { host, port });
     } finally {
         delete cache[`openTab ${host}:${port}`];
     }
 }
-function createTabOrWindow(infoURL, url, info) {
+function createTabOrWindow(infoURL, url, info, socket) {
     return new Promise(async function (resolve) {
         let webSocketDebuggerURL;
         if (infoURL.match(brakecode.PADS_HOST)) {
@@ -198,11 +205,11 @@ function createTabOrWindow(infoURL, url, info) {
                     type: (settings.panelWindowType) ? 'panel' : 'normal',
                     state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : settings.windowFocused ? chrome.windows.WindowState.NORMAL : chrome.windows.WindowState.MINIMIZED
                 });
-                updateTabUI(window.tabs[0].id);
+                const tabId = window.tabs[0].id;
+                updateTabUI(tabId);
                 chrome.windows.update(currentWindow.id, { focused: true });
-                /* Is window.id going to cause id conflicts with tab.id?!  Should I be grabbing a tab.id here as well or instead of window.id? */
                 const dtpSocket = await dtpSocketPromise;
-                saveSession(url, infoURL, info.id, window.id, info, dtpSocket);
+                saveSession({ url, infoURL, tabId, info, dtpSocket, socket });
                 resolve(window);
                 amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` });
             });
@@ -213,7 +220,7 @@ function createTabOrWindow(infoURL, url, info) {
             });
             updateTabUI(tab.id);
             const dtpSocket = await dtpSocketPromise;
-            saveSession(url, infoURL, info.id, tab.id, info, dtpSocket);
+            saveSession({ url, infoURL, tabId: tab.id, info, dtpSocket, socket });
             // group tabs
             if (settings.group && state.sessions.length > 0) {
 
@@ -239,7 +246,8 @@ function updateTabUI(tabId) {
             }
     }); 
 }
-async function saveSession(url, infoURL, websocketId, tabId, info, dtpSocket) {
+async function saveSession(params) {
+    const { url, infoURL, tabId, info, dtpSocket, socket } = params;
     const existingSessions = Object.values(state.sessions).filter((session) => session.infoURL === infoURL);
 
     const session = {
@@ -249,9 +257,9 @@ async function saveSession(url, infoURL, websocketId, tabId, info, dtpSocket) {
         isWindow: existingSessions[0]?.isWindow || settings.isWindow,
         infoURL,
         tabId,
-        websocketId,
         info,
-        dtpSocket
+        dtpSocket,
+        socket
     }
     state.sessions[tabId] = session;
 
@@ -365,16 +373,6 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     delete state.sessions[tabId];
     await chrome.storage.session.set({ sessions: state.sessions });
     cache.removed[tabId] = Date.now();
-    /**
-    if (state.localSessions[tabId]) {
-        delete state.localSessions[tabId];
-        chrome.storage.session.set({ localSessions: state.localSessions });
-    }
-    if (state.remoteSessions[tabId]) {
-        delete state.remoteSessions[tabId];
-        chrome.storage.session.set({ remoteSessions: state.remoteSessions });
-    }
-    */
     amplitude.getInstance().logEvent('Program Event', { 'action': 'onRemoved' });
 });
 chrome.storage.onChanged.addListener((changes, areaName) => {
