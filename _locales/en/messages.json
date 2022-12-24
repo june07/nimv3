@@ -178,8 +178,8 @@
         "description": "Auto increment host and/or port."
     },
     "keyCtrlI": {
-        "message": "Open the DevTools Window.",
-        "description": "Open the DevTools window."
+        "message": "The shortcut opens DevTools for the home tab host and port.",
+        "description": "open-devtools command description"
     },
     "realtimeCollaboration": {
         "message": "Real-time collaboration",
@@ -289,5 +289,22 @@
     },
     "thankyou": {
         "message": "thank you"
+    },
+    "disableThisNotice": {
+        "message": "Disable this notice.",
+        "description": "notification message"
+    },
+    "changeTheShortcut": {
+        "message": "Change the shortcut.",
+        "description": "notification message"
+    },
+    "nimOwnsTheShortcut": {
+        "message": "NiM owns the $shortcut$ shortcut.",
+        "description": "Notification message informing user that the browser keyboard shortcut is owned by NiM.",
+        "placeholders": {
+            "shortcut": {
+                "content": "$1"
+            }
+        }
     }
 }
