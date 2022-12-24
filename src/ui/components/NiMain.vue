@@ -3,7 +3,7 @@
         <v-row>
             <v-col class="d-flex align-center">
                 <div>
-                    <v-img width="128" height="128" src="/icon/icon128@3x.png"></v-img>
+                    <v-img width="128" height="128" :src="iconNiM"></v-img>
                 </div>
                 <div style="font-size: 24px" class="font-weight-light">{{ i18nString('appName') }}</div>
             </v-col>
@@ -130,6 +130,7 @@ import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
 import iconNode from "/image/nodejs-icon.webp";
+import iconNiM from '/icon/icon128@3x.png';
 
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 const instance = getCurrentInstance();
