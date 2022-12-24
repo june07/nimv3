@@ -122,7 +122,7 @@ async function queryForDevtoolTabs(host, port) {
         `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
     ]
     const tabs = await chrome.tabs.query({
-        url: !host || !port ? [ ...devtoolsBasePatterns, ...devtoolsSpecificPatterns ] : devtoolsSpecificPatterns
+        url: !host || !port ? [...devtoolsBasePatterns, ...devtoolsSpecificPatterns] : devtoolsSpecificPatterns
     });
     return tabs.map(tab => ({ ...tab, socket: { host, port } }));
 }
@@ -144,14 +144,14 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
             }
         }).filter((session) => session);
         await Promise.all(sessionsWithClosedDebuggerProtocolSockets.map(async (session) => {
-                if (session.autoClose) {
-                    return await chrome.tabs.remove(session.tabId);
-                }
+            if (session.autoClose) {
+                return await chrome.tabs.remove(session.tabId);
+            }
         }));
         // Highlighting when auto is set causes the browser to lose focus and grab control every checkInterval period.
         if (tabs.length) {
             const tabIndexes = tabs.map(tab => tab.index);
-            
+
             // cache.highlighted so that highlighting is not interruptive as it only happens once per session instance
             if (manual || (!settings.auto && tabIndexes.filter((tabIndex) => !cache.highlighted[tabIndex])?.length)) {
                 const highlight = chrome.tabs.highlight({ tabs: tabIndexes, windowId: tabs[0].windowId });
@@ -254,16 +254,16 @@ function createTabOrWindow(infoURL, url, info, socket) {
 function updateTabUI(tabId) {
     chrome.scripting.executeScript(
         {
-            target: {tabId: tabId, allFrames: true},
+            target: { tabId: tabId, allFrames: true },
             func: scripting.updateTabUI,
-            args: [ tabId ]
+            args: [tabId]
         },
         (injectionResults) => {
             if (!injectionResults) return;
             for (const frameResult of injectionResults) {
                 console.log('Frame Title: ' + frameResult.result);
             }
-    }); 
+        });
 }
 async function saveSession(params) {
     const { url, infoURL, tabId, info, dtpSocket, socket } = params;
@@ -319,7 +319,7 @@ function setDevtoolsURL(debuggerMetadata) {
 }
 // This function can't be async... should according to the docs but ran into issues! Worked fine on the Vue side, but not in the popup window.
 function messageHandler(request, sender, reply) {
-    switch(request.command) {
+    switch (request.command) {
         case 'openDevtools':
             const { host, port, remoteMetadata, manual } = request;
             if (cache[`${host}:${port}`]) return;
@@ -361,7 +361,7 @@ function messageHandler(request, sender, reply) {
                 update = { [key]: value };
                 settings.update(update).then(() => reply(update));
             }
-        break;
+            break;
     }
     return true;
 }
@@ -399,4 +399,38 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName.match(/session/) && cache?.messagePort?.postMessage) {
         cache.messagePort.postMessage({ command: 'update' });
     }
-})
+});
+chrome.commands.onCommand.addListener((command) => {
+    switch (command) {
+        case "open-devtools":
+            openTab(settings.host, settings.port, undefined, true);
+            if (settings.chromeNotifications) {
+                chrome.commands.getAll(async (commands) => {
+                    const { shortcut, description } = commands[0];
+
+                    chrome.notifications.create('', {
+                        type: 'basic',
+                        iconUrl: '/dist/icon/icon128.png',
+                        title: chrome.i18n.getMessage('nimOwnsTheShortcut', [ shortcut ]),
+                        message: description,
+                        buttons: [
+                            { title: chrome.i18n.getMessage('disableThisNotice') },
+                            { title: chrome.i18n.getMessage('changeTheShortcut') }
+                        ]
+                    });
+                });
+            }
+            amplitude.getInstance().logEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' });
+            break;
+    }
+});
+chrome.notifications.onButtonClicked.addListener(async (_notificationId, buttonIndex) => {
+    if (buttonIndex === 0) {
+        const update = { chromeNotifications: false };
+        await settings.update(update);
+        amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
+    } else if (buttonIndex === 1) {
+        chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
+        amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
+    }
+});
