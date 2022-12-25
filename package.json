@@ -14,18 +14,15 @@
     "amplitude-js": "^8.21.3",
     "animejs": "^3.2.1",
     "async": "^3.2.4",
-    "dd-trace": "^3.9.3",
     "jwt-decode": "^3.1.2",
     "pubnub": "^7.2.2",
-    "roboto-fontface": "*",
     "socket.io-client": "^4.5.4",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
     "uuid": "^9.0.0",
     "vue": "^3.2.38",
     "vue-social-sharing": "^4.0.0-alpha4",
-    "vuetify": "^3.0.0",
-    "webfontloader": "^1.0.0"
+    "vuetify": "^3.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^3.0.3",
