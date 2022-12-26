@@ -5,6 +5,7 @@
     "dev": "vite --host",
     "dev:extension": "vite build -w --base /dist/ --sourcemap --minify false",
     "build": "vite build",
+    "build:deps": "rollup node_modules/uuid/dist/esm-browser/v5.js --format iife --file ./dist/uuidv5.js --name uuidv5",
     "preview": "vite preview"
   },
   "dependencies": {

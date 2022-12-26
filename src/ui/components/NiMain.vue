@@ -132,12 +132,12 @@ import { useAuth0 } from "@auth0/auth0-vue";
 import iconNode from "/image/nodejs-icon.webp";
 import iconNiM from '/icon/icon128@3x.png';
 
-const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
+const { VITE_ENV } = import.meta.env;
 const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
+const id = inject('id');
 const { getAccessTokenSilently } = useAuth0();
-const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const form = ref("form");
 const tab = ref("tab");
 const ml11 = ref("ml11");

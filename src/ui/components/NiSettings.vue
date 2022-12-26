@@ -228,21 +228,11 @@ import { useAuth0 } from "@auth0/auth0-vue";
 
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env 
 const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
-const { user } = useAuth0();
 const settings = inject("settings");
 const i18nString = inject("i18nString");
 const updateSetting = inject("updateSetting");
+const apikey = inject('apikey');
 const tab = ref();
-const apikey = computed(
-    () =>
-        user?.value?.[
-            `${
-                VITE_ENV !== "production"
-                    ? "http://localhost/apikey"
-                    : "https://brakecode.com/apikey"
-            }`
-        ] || i18nString('brakeCODELoginRequired')
-);
 const form = ref("form");
 
 let inputs = ref({

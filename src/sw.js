@@ -5,10 +5,12 @@ importScripts(
     './analytics.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
+    '../dist/uuidv5.js',
     '../node_modules/tweetnacl/nacl-fast.min.js',
     '../node_modules/tweetnacl-util/nacl-util.min.js',
     '../node_modules/amplitude-js/amplitude.umd.min.js',
     '../node_modules/async/dist/async.min.js',
+    '../node_modules/socket.io-client/dist/socket.io.min.js'
 );
 
 amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
@@ -361,6 +363,12 @@ function messageHandler(request, sender, reply) {
                 update = { [key]: value };
                 settings.update(update).then(() => reply(update));
             }
+            break;
+        case 'apikey':
+            chrome.storage.local.set(request.value).then(() => reply());
+            break;
+        case 'signout':
+            chrome.storage.local.remove('apikey').then(() => reply());
             break;
     }
     return true;

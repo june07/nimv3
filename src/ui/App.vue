@@ -45,7 +45,9 @@
 }
 </style>
 <script setup>
-import { ref, reactive } from "vue";
+const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
+
+import { ref, inject, reactive, computed, provide, onBeforeUnmount } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
 
 import ShareMenu from "./components/ShareMenu.vue";
@@ -53,10 +55,12 @@ import NiMain from "./components/NiMain.vue";
 import NiSettings from "./components/NiSettings.vue";
 import NiDonationOverlay from "./components/NiDonationOverlay.vue";
 
-const route = ref('main');
-const theme = ref('light');
+const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
+const i18nString = inject("i18nString");
+const route = ref("main");
+const theme = ref("light");
 const overlays = ref({
-    donation: false
+    donation: false,
 });
 const {
     user,
@@ -74,11 +78,35 @@ function themeHandler() {
 async function login() {
     try {
         loading.login = true;
-        await loginWithPopup();
+        if (!isAuthenticated.value) {
+            await loginWithPopup();
+            await chrome.runtime.sendMessage(id, {
+                command: "apikey",
+                value: { apikey: apikey.value }
+            });
+        } else {
+            await chrome.runtime.sendMessage(id, { command: "signout" });
+            await logout({
+                localOnly: true
+            });
+        }
     } catch (error) {
         console.error(error);
     } finally {
         loading.login = false;
     }
 }
+const apikey = computed(
+    () =>
+        user?.value?.[
+            `${
+                VITE_ENV !== "production"
+                    ? "http://localhost/apikey"
+                    : "https://brakecode.com/apikey"
+            }`
+        ] || i18nString("brakeCODELoginRequired")
+);
+
+provide("apikey", apikey);
+provide("id", id);
 </script>
