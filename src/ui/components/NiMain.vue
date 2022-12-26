@@ -156,10 +156,11 @@ const rules = {
     ],
 };
 const settings = inject("settings");
-const tabs = ["home", "localhost"];
 const inits = {
     connectionErrorMessage: false,
 };
+let remoteTabs = reactive([]);
+const tabs = computed(() => [ ...["home", "localhost"], ...remoteTabs.value]);
 let inputs = reactive({
     localTab: {},
     auto: settings.auto,
@@ -173,6 +174,17 @@ let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => resolve(response)))
 );
 let sessions = reactive(asyncSessions);
+let { state: asyncRemotes } = useAsyncState(
+    new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) => resolve(response)))
+);
+watch(asyncRemotes, (currentValue) => {
+    console.log('asyncRemotes', currentValue);
+})
+remoteTabs = computed(() => {
+    if (!sessions.value) return [];
+    const hostTabs = Object.values(sessions.value).reduce((tabs, session) => !session.host || tabs.includes(session.host) ? tabs : [ ...tabs, session.host ], []);
+    return hostTabs;
+});
 let localSessions = computed(
     () =>
         sessions.value &&

@@ -336,6 +336,7 @@ function messageHandler(request, sender, reply) {
             break;
         case 'getSettings': settings.get().then(reply); break;
         case 'getSessions': reply(state.sessions); break;
+        case 'getRemotes': reply(state.remotes); break;
         case 'commit':
             const { store, obj, key, value } = request;
             let update;

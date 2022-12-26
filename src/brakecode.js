@@ -1,5 +1,5 @@
 const NAMESPACE_APIKEY_NAME = settings.ENV !== 'production' ? 'namespace-apikey-dev.brakecode.com' : 'namespace-apikey.brakecode.com';
-const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.com' : 'publickey.brakecode.com'; 
+const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.com' : 'publickey.brakecode.com';
 const PADS_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pads.brakecode.com';
 const REGEXPS = {
     INSPECTOR_WS_URL: new RegExp(/wss=.*\/ws\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/)
@@ -25,9 +25,9 @@ function remoteTabTimeout(received) {
     return received === undefined ? true : Date.now() - received <= settings.remoteTabTimeout;
 }
 
-(async function(brakecode) {
+(async function (brakecode) {
     brakecode.settings = {
-        remoteTabTimeout: settings.ENV !== 'production' ? 7*24*60*60000 : 7*24*60*60000,
+        remoteTabTimeout: settings.ENV !== 'production' ? 7 * 24 * 60 * 60000 : 7 * 24 * 60 * 60000,
         START_PADS_SOCKET_RETRY_INTERVAL: settings.ENV !== 'production' ? 10000 : 60000
     }
     brakecode.timeouts = {
@@ -44,30 +44,19 @@ function remoteTabTimeout(received) {
                 return;
             }
 
-            let namespace = uuidv5(apikey, namespaceUUID);
+            const namespace = uuidv5(apikey, namespaceUUID);
             brakecode.io = io(`https://${PADS_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: await encryptMessage(apikey, publicKey) } })
-            .on('connect_error', (error) => {
-                console.log('CALLBACK ERROR: ' + error);
-                //if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
-            })
-            .on('metadata', async (data) => {
-                const { remoteTabs } = await chrome.storage.session.get('remoteTabs');
-                const found = remoteTabs.findIndex((element, i, elements) => {
-                    if (element.uuid === data.uuid) {
-                        if (! angular.equals(element, data)) {
-                            data.received = Date.now();
-                            elements[i] = data;
-                        } else {
-                            if (settings.debugVerbosity >= 6) console.log('skipping remoteTabs update.  No change detected.');
-                        }
-                        return true;
+                .on('connect_error', (error) => {
+                    console.log('CALLBACK ERROR: ' + error);
+                    //if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
+                })
+                .on('metadata', async (data) => {
+                    const remotes = { ...state.remotes, ...data };
+                    if (JSON.stringify(remotes) !== JSON.stringify(state.remotes)) {
+                        state.remotes = remotes;
+                        chrome.storage.session.set({ remotes });
                     }
-                });
-                if (found === -1) remoteTabs.push(data);
-                const updatedRemoteTabs = remoteTabs.filter((tab, index) => index === 0 || remoteTabTimeout(tab.received));
-                chrome.storage.session.set({ updatedRemoteTabs });
-                chrome.runtime.sendMessage({ event: 'updatedRemoteTabs' });
-            })
+                })
         } catch (error) {
             console.log(error);
         }
