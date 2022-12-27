@@ -120,17 +120,23 @@
                                 </v-container>
                             </v-tooltip>
                         </v-col>
-                        <v-col v-else>
-                            {{ session.connection.description }} ({{ session.connection.ppid }})
+                        <v-col v-else cols="6" class="d-flex">
+                            <div>
+                                ({{ session.connection.pid }})
+                            </div>
+                            <div class="ml-2 text-no-wrap text-truncate">
+                                {{ session.connection.cmd }}
+                            </div>
                         </v-col>
                         <v-spacer></v-spacer>
-                        <v-col class="d-flex align-center py-0">
+                        <v-col cols="4" class="d-flex align-center py-0">
                             <v-switch :disabled="!session.id" name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
-                            <v-btn :disabled="!session.id" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                            {{ session.tunnelSocket }}
+                            <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
                             <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
@@ -226,12 +232,12 @@ watch(asyncRemotes, (currentValue) => {
         ...remoteSessions,
         ...Object.values(remote.connections).reduce((sessionsPerHost, connection) => ({
             ...sessionsPerHost,
-            [`${remote.uuid}:${connection.ppid}`]: {
+            [`${remote.uuid}:${connection.pid}`]: {
                 remote: true,
                 host: remote.host,
                 title: remote.title,
                 uuid: remote.uuid,
-                tunnelSocket: remote.tunnelSockets?.[connection.ppid],
+                tunnelSocket: remote.tunnelSockets?.[connection.pid],
                 connection
             }
         }), {})
@@ -403,10 +409,13 @@ function clickHandlerSessionUpdate(event, tabId) {
         }
     );
 }
-function getSessions(sessions, uuid) {
+function getSessions(sessions, uuid, sort = (kva) => kva[1].tunnelSocket ? -1 : 0) {
+    let entries = Object.entries(sessions);
+
+    entries.sort(sort);
     return !uuid
-        ? Object.entries(sessions).reduce((localSessions, kv) => !kv[1].remote ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
-        : Object.entries(sessions).reduce((localSessions, kv) => kv[1].remote && kv[1].uuid === uuid ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
+        ? entries.reduce((localSessions, kv) => !kv[1].remote ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
+        : entries.reduce((remoteSessions, kv) => kv[1].remote && kv[1].uuid === uuid ? { ...remoteSessions, [kv[0]]: kv[1] } : remoteSessions, {})
 }
 function update(event) {
     const { name } = event.target;
