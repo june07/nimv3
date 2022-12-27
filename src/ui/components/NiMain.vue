@@ -9,7 +9,7 @@
             </v-col>
         </v-row>
         <v-tabs v-model="tab" grow class="mt-8" color="green-darken-1">
-            <v-tab v-for="tab in tabs" :key="tab" :value="tab" class="text-uppercase px-0" :class="roundedClass(tab)">{{ tab }}</v-tab>
+            <v-tab v-for="tab of tabs" :key="tab.id" :value="tab.id" class="text-uppercase px-0" :class="roundedClass(tab.id)">{{ tab.name }}</v-tab>
         </v-tabs>
         <v-window v-model="tab">
             <v-window-item value="home">
@@ -45,7 +45,7 @@
             </v-window-item>
 
             <v-window-item value="localhost">
-                <div class="row no-connections-detected pt-16" v-if="!Object.values(sessions).filter(session => session.infoURL?.search(/\/\/pads(-dev)?\.brakecode.com\/json\//) === -1)?.length">
+                <div class="row no-connections-detected pt-16" v-if="!Object.values(sessions).filter((session) => !session.remote).length">
                     <h1 ref="ml11" class="ml11">
                         <span class="text-wrapper">
                             <span class="line line1"></span>
@@ -54,10 +54,10 @@
                     </h1>
                 </div>
                 <v-container v-else>
-                    <v-row v-for="session of localSessions" :key="session.tabId" class="d-flex align-center">
+                    <v-row v-for="(session, id) in getSessions(sessions)" :key="id" class="d-flex align-center">
                         <v-col class="d-flex align-center py-0">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session.info.nodeExeRunner ? iconNode : iconNode" />
+                                <v-img width="16" height="16" :src="session.info?.nodeExeRunner ? iconNode : iconNode" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -93,8 +93,48 @@
                 </v-container>
             </v-window-item>
 
-            <v-window-item value="three">
-                Three
+            <v-window-item v-for="tab in tabs.filter((tab) => !tab.id.match(/home|localhost/))" :key="tab.id" :value="tab.id">
+                <v-container>
+                    <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
+                        <v-col class="d-flex align-center py-0" v-if="session.id">
+                            <div class="mr-2">
+                                <v-img width="16" height="16" :src="session.info?.nodeExeRunner ? iconNode : iconNode" />
+                            </div>
+                            <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
+                                <template v-slot:activator="{ props }">
+                                    <div v-bind="props" @dblclick="tooltips[`${session.tabId}`] = 60000">
+                                        <span class="mr-auto text-h6">{{ session.info.title }}</span>
+                                        <span class="ml-2">({{ session.infoURL.match(/https?:\/\/([^:]*:[0-9]+)/)[1] }})</span>
+                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ session.tabId }}</span>
+                                    </div>
+                                </template>
+                                <v-container v-click-outside="() => tooltips[`${session.tabId}`] = 0">
+                                    <v-row>
+                                        <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
+                                        <v-col class="pa-0">{{ session.info.url }}</v-col>
+                                    </v-row>
+                                    <v-row>
+                                        <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
+                                        <v-col class="pa-0">{{ session.url }}</v-col>
+                                    </v-row>
+                                </v-container>
+                            </v-tooltip>
+                        </v-col>
+                        <v-col v-else>
+                            {{ session.connection.description }} ({{ session.connection.ppid }})
+                        </v-col>
+                        <v-spacer></v-spacer>
+                        <v-col class="d-flex align-center py-0">
+                            <v-switch :disabled="!session.id" name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
+                                <template v-slot:label>
+                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
+                                </template>
+                            </v-switch>
+                            <v-btn :disabled="!session.id" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                        </v-col>
+                    </v-row>
+                </v-container>
             </v-window-item>
         </v-window>
     </v-container>
@@ -159,8 +199,10 @@ const settings = inject("settings");
 const inits = {
     connectionErrorMessage: false,
 };
-let remoteTabs = reactive([]);
-const tabs = computed(() => [ ...["home", "localhost"], ...remoteTabs.value]);
+let tabs = reactive([
+    { name: "home", id: 'home' },
+    { name: "localhost", id: 'localhost' }
+]);
 let inputs = reactive({
     localTab: {},
     auto: settings.auto,
@@ -173,38 +215,34 @@ let tooltips = reactive({});
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => resolve(response)))
 );
-let sessions = reactive(asyncSessions);
+let sessions = reactive({});
 let { state: asyncRemotes } = useAsyncState(
     new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) => resolve(response)))
 );
+watch(asyncSessions, (currentValue) => sessions = currentValue);
 watch(asyncRemotes, (currentValue) => {
     console.log('asyncRemotes', currentValue);
-})
-remoteTabs = computed(() => {
-    if (!sessions.value) return [];
-    const hostTabs = Object.values(sessions.value).reduce((tabs, session) => !session.host || tabs.includes(session.host) ? tabs : [ ...tabs, session.host ], []);
-    return hostTabs;
+    const remoteSessions = Object.values(currentValue).reduce((remoteSessions, remote) => ({
+        ...remoteSessions,
+        ...Object.values(remote.connections).reduce((sessionsPerHost, connection) => ({
+            ...sessionsPerHost,
+            [`${remote.uuid}:${connection.ppid}`]: {
+                remote: true,
+                host: remote.host,
+                title: remote.title,
+                uuid: remote.uuid,
+                tunnelSocket: remote.tunnelSockets?.[connection.ppid],
+                connection
+            }
+        }), {})
+    }), {});
+    Object.values(currentValue).forEach((value) => tabs.push({
+        name: value.host,
+        id: value.uuid
+    }));
+    sessions = { ...sessions, ...remoteSessions };
+    updateUI(sessions);
 });
-let localSessions = computed(
-    () =>
-        sessions.value &&
-        Object.values(sessions.value).filter(
-            (session) =>
-                session.infoURL?.search(
-                    /\/\/pads(-dev)?\.brakecode.com\/json\//
-                ) === -1
-        )
-);
-let remoteSessions = computed(
-    () =>
-        sessions.value &&
-        Object.values(sessions.value).filter(
-            (session) =>
-                session.infoURL?.search(
-                    /\/\/pads(-dev)?\.brakecode.com\/json\//
-                ) !== -1
-        )
-);
 if (chrome.runtime) {
     workerPort = chrome.runtime.connect(id);
 
@@ -213,25 +251,26 @@ if (chrome.runtime) {
 
         switch(command) {
             case 'update':
-                chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => sessions.value = reactive(response));
+                chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => sessions = { ...sessions, ...response });
                 break;
         }
     });
 }
-watch(sessions, (currentValue) => {
-    if (!currentValue) return;
-    tooltips = Object.values(currentValue).reduce(
-        (acc, session) => ({ [session.tabId]: 0 }),
-        {}
+function updateUI(sessions) {
+    tooltips = Object.values(sessions).reduce(
+        (acc, session) => {
+            return session.tabId ? { ...acc, [session.tabId]: 0 } : acc
+        }, {}
     );
-    inputs.localTab.auto = Object.values(currentValue).reduce(
-        (formInputModel, session) => ({
-            ...formInputModel,
-            [session.tabId]: session.auto,
-        }),
-        {}
+    inputs.localTab.auto = Object.values(sessions).reduce(
+        (formInputModel, session) => {
+            return session.tabId ? {
+                ...formInputModel,
+                [session.tabId]: session.auto
+            } : formInputModel;
+        }, {}
     );
-});
+}
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
         initConnectionErrorMessage();
@@ -244,9 +283,9 @@ watch(ml11, (currentValue, oldValue) => {
     chrome.storage.local.set({ token });
 })();
 
-function roundedClass(tab) {
-    if (tab === "home") return "rounded-te-lg";
-    if (tab === tabs[tabs.length - 1]) return "rounded-ts-lg";
+function roundedClass(tabId) {
+    if (tabId === "home") return "rounded-te-lg";
+    if (tabId === tabs[tabs.length - 1].id) return "rounded-ts-lg";
     return "rounded-t-lg";
 }
 function initConnectionErrorMessage() {
@@ -336,7 +375,7 @@ function clickHandlerSessionUpdate(event, tabId) {
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
      */
-    if (name.match(/auto|remove/) && re.test(sessions.value[tabId].infoURL)) {
+    if (name.match(/auto|remove/) && re.test(sessions[tabId].infoURL)) {
         inputs.auto = name.match(/remove/)
             ? false
             : inputs.localTab.auto[tabId];
@@ -356,13 +395,18 @@ function clickHandlerSessionUpdate(event, tabId) {
         },
         (response) => {
             if (!value && !response) {
-                delete sessions.value[tabId];
+                delete sessions[tabId];
                 instance?.proxy?.$forceUpdate();
             } else {
-                sessions.value[tabId] = response;
+                sessions[tabId] = response;
             }
         }
     );
+}
+function getSessions(sessions, uuid) {
+    return !uuid
+        ? Object.entries(sessions).reduce((localSessions, kv) => !kv[1].remote ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
+        : Object.entries(sessions).reduce((localSessions, kv) => kv[1].remote && kv[1].uuid === uuid ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
 }
 function update(event) {
     const { name } = event.target;

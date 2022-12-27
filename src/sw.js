@@ -29,6 +29,7 @@ const HIGH_WATER_MARK_MAX = 3;
 const DRAIN_INTERVAL = 5000;
 
 let cache = {
+    age: {},
     timeouts: {},
     forceRemoveSession: {},
     highlighted: {},

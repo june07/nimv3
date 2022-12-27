@@ -4,6 +4,7 @@ const PADS_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pa
 const REGEXPS = {
     INSPECTOR_WS_URL: new RegExp(/wss=.*\/ws\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/)
 }
+const STALE_REMOTE_TIMEOUT = 10000;
 
 async function lookup(record) {
     const response = await fetch(`https://cloudflare-dns.com/dns-query?name=${record}&type=TXT`, {
@@ -48,14 +49,21 @@ function remoteTabTimeout(received) {
             brakecode.io = io(`https://${PADS_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: await encryptMessage(apikey, publicKey) } })
                 .on('connect_error', (error) => {
                     console.log('CALLBACK ERROR: ' + error);
-                    //if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
+                    // if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
                 })
                 .on('metadata', async (data) => {
-                    const remotes = { ...state.remotes, ...data };
+                    const remotes = { ...state.remotes, [data.uuid]: data };
                     if (JSON.stringify(remotes) !== JSON.stringify(state.remotes)) {
                         state.remotes = remotes;
                         chrome.storage.session.set({ remotes });
                     }
+                    // prune remotes
+                    cache.age[data.uuid] = Date.now();
+                    Object.entries(cache.age).map((kv) => {
+                        if (kv[1] > Date.now() + STALE_REMOTE_TIMEOUT) {
+                            delete state.remotes[kv[0]];
+                        }
+                    })
                 })
         } catch (error) {
             console.log(error);
