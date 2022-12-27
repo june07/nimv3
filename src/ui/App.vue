@@ -67,7 +67,6 @@ const {
     isAuthenticated,
     loginWithPopup,
     logout,
-    getAccessTokenSilently,
 } = useAuth0();
 let loading = reactive({
     login: false,
@@ -82,12 +81,12 @@ async function login() {
             await loginWithPopup();
             await chrome.runtime.sendMessage(id, {
                 command: "apikey",
-                value: { apikey: apikey.value }
+                value: { apikey: apikey.value },
             });
         } else {
             await chrome.runtime.sendMessage(id, { command: "signout" });
             await logout({
-                localOnly: true
+                localOnly: true,
             });
         }
     } catch (error) {
