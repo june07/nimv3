@@ -34,7 +34,8 @@ let cache = {
     forceRemoveSession: {},
     highlighted: {},
     removed: {},
-    messagePort: undefined
+    messagePort: undefined,
+    info: {}
 };
 let state = {};
 
@@ -45,6 +46,7 @@ async function hydrateState() {
     /** this function will generally not be useful during testing because the session is restarted every time a reload is done
      *  So as a workaround use importForeignTabs() during development... might be useful to just keep period?!
      */
+    state.token = chrome.storage.session.get('token').then((token) => state.token = token);
     state.sessions = await chrome.storage.session.get('sessions');
     if (settings.ENV !== 'production') {
         const foreignTabSessions = await importForeignTabs();
@@ -84,8 +86,10 @@ function resetInterval(func, timeout) {
     cache.drainInterval = setInterval(() => cache.highWaterMark > 0 && (cache.highWaterMark -= 1), DRAIN_INTERVAL);
 })();
 
-async function getInfo(host, port, remoteMetadata) {
-    const url = remoteMetadata ? `` : `http://${host}:${port}/json`;
+async function getInfo(host, port) {
+    const remoteMetadata = typeof host === 'object' ? host : undefined;
+    const cacheId = remoteMetadata?.cid || `${host}:${port}`;
+    const url = remoteMetadata?.cid ? `https://${brakecode.PADS_HOST}/json/${remoteMetadata.cid}` : `http://${host}:${port}/json`;
     const defaultOptions = {
         headers: {
             'Content-Type': 'application/json'
@@ -95,18 +99,26 @@ async function getInfo(host, port, remoteMetadata) {
         ...defaultOptions,
         headers: {
             ...defaultOptions.headers,
-            'Authorization': 'Bearer ' + token
+            'Authorization': 'Bearer ' + state.token
         },
     } : defaultOptions
     try {
         const response = await (await fetch(url, options)).json();
         // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
-        return browserAgnosticFix(response[0]);
+        cache.info[cacheId] = browserAgnosticFix(response[0]);
+        return cache.info[cacheId];
     } catch (error) {
         if (!error?.message?.match(/Failed to fetch/i)) {
-            return new Error(error);
+            console.error(error);
         }
     }
+}
+async function getInfoCache(remoteMetadata) {
+    const cacheId = remoteMetadata.cid
+    if (cache.info[cacheId]) {
+        return cache.info[cacheId];
+    }
+    return await getInfo(remoteMetadata);
 }
 async function queryForDevtoolTabs(host, port) {
     const devtoolsBasePatterns = [
@@ -129,7 +141,8 @@ async function queryForDevtoolTabs(host, port) {
     });
     return tabs.map(tab => ({ ...tab, socket: { host, port } }));
 }
-async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) {
+async function openTab(host = 'localhost', port = 9229, manual) {
+    const remoteMetadata = typeof host === 'object' ? host : undefined;
     let devtoolsURL;
 
     try {
@@ -162,7 +175,7 @@ async function openTab(host = 'localhost', port = 9229, remoteMetadata, manual) 
             }
             return;
         }
-        const info = await getInfo(host, port, remoteMetadata);
+        const info = await getInfo(remoteMetadata || host, port);
         if (!info) {
             return;
         }
@@ -324,11 +337,11 @@ function setDevtoolsURL(debuggerMetadata) {
 function messageHandler(request, sender, reply) {
     switch (request.command) {
         case 'openDevtools':
-            const { host, port, remoteMetadata, manual } = request;
+            const { host, port, manual } = request;
             if (cache[`${host}:${port}`]) return;
             try {
                 cache[`${host}:${port}`] = Date.now();
-                openTab(host, port, remoteMetadata, manual);
+                openTab(host, port, manual);
             } catch (error) {
                 console.log(error);
             } finally {
@@ -372,6 +385,15 @@ function messageHandler(request, sender, reply) {
         case 'signout':
             chrome.storage.local.remove('apikey').then(() => reply());
             break;
+        case 'getInfo':
+            getInfoCache(request.remoteMetadata).then((info) => reply(info));
+            break;
+        case 'token':
+            const { token } = request;
+            if (token !== state.token) {
+                chrome.storage.session.set({ token }).then(() => state.token = token);
+            }
+            break;
     }
     return true;
 }
@@ -413,7 +435,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 chrome.commands.onCommand.addListener((command) => {
     switch (command) {
         case "open-devtools":
-            openTab(settings.host, settings.port, undefined, true);
+            openTab(settings.host, settings.port, true);
             if (settings.chromeNotifications) {
                 chrome.commands.getAll(async (commands) => {
                     const { shortcut, description } = commands[0];

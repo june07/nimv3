@@ -80,7 +80,7 @@
                             </v-tooltip>
                         </v-col>
                         <v-spacer></v-spacer>
-                        <v-col class="d-flex align-center py-0">
+                        <v-col cols="4" class="d-flex align-center py-0">
                             <v-switch name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
@@ -96,22 +96,22 @@
             <v-window-item v-for="tab in tabs.filter((tab) => !tab.id.match(/home|localhost/))" :key="tab.id" :value="tab.id">
                 <v-container>
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
-                        <v-col class="d-flex align-center py-0" v-if="session.id">
+                        <v-col class="d-flex align-center py-0" v-if="session.tunnelSocket">
+                            {{ session?.info }}
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session.info?.nodeExeRunner ? iconNode : iconNode" />
+                                <v-img width="16" height="16" :src="session?.info?.nodeExeRunner ? iconNode : iconNode" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
                                 <template v-slot:activator="{ props }">
                                     <div v-bind="props" @dblclick="tooltips[`${session.tabId}`] = 60000">
-                                        <span class="mr-auto text-h6">{{ session.info.title }}</span>
-                                        <span class="ml-2">({{ session.infoURL.match(/https?:\/\/([^:]*:[0-9]+)/)[1] }})</span>
+                                        <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
                                         <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ session.tabId }}</span>
                                     </div>
                                 </template>
                                 <v-container v-click-outside="() => tooltips[`${session.tabId}`] = 0">
                                     <v-row>
                                         <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
-                                        <v-col class="pa-0">{{ session.info.url }}</v-col>
+                                        <v-col class="pa-0">{{ session?.info?.url }}</v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
@@ -135,7 +135,6 @@
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
-                            {{ session.tunnelSocket }}
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
                             <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
@@ -225,8 +224,13 @@ let sessions = reactive({});
 let { state: asyncRemotes } = useAsyncState(
     new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) => resolve(response)))
 );
-watch(asyncSessions, (currentValue) => sessions = currentValue);
+watch(asyncSessions, (currentValue) => {
+    if (!currentValue) return;
+    sessions = currentValue;
+    updateUI(sessions);
+});
 watch(asyncRemotes, (currentValue) => {
+    if (!currentValue) return;
     console.log('asyncRemotes', currentValue);
     const remoteSessions = Object.values(currentValue).reduce((remoteSessions, remote) => ({
         ...remoteSessions,
@@ -242,6 +246,7 @@ watch(asyncRemotes, (currentValue) => {
             }
         }), {})
     }), {});
+    console.log('remoteSessions', remoteSessions);
     Object.values(currentValue).forEach((value) => tabs.push({
         name: value.host,
         id: value.uuid
@@ -262,7 +267,11 @@ if (chrome.runtime) {
         }
     });
 }
+async function setInfo(session) {
+    chrome.runtime.sendMessage(id, { command: "getInfo", remoteMetadata: session.tunnelSocket }, (info) => sessions[`${session.uuid}:${session.connection.pid}`].info = info);
+}
 function updateUI(sessions) {
+    /** combine all these reduce functions */
     tooltips = Object.values(sessions).reduce(
         (acc, session) => {
             return session.tabId ? { ...acc, [session.tabId]: 0 } : acc
@@ -276,6 +285,7 @@ function updateUI(sessions) {
             } : formInputModel;
         }, {}
     );
+    Object.values(sessions).filter((session) => session.tunnelSocket).map((session) => setInfo(session));
 }
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
@@ -286,7 +296,7 @@ watch(ml11, (currentValue, oldValue) => {
     const token = await getAccessTokenSilently({
         redirect_uri: `chrome-extension://${chrome.runtime.id}`,
     });
-    chrome.storage.local.set({ token });
+    chrome.runtime.sendMessage(id, { command: "token", token });
 })();
 
 function roundedClass(tabId) {
