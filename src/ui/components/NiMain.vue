@@ -98,7 +98,7 @@
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
                         <v-col class="d-flex align-center py-0" v-if="session.tunnelSocket">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session?.info?.nodeExeRunner ? iconNode : iconNode" />
+                                <v-img width="16" height="16" :src="getIcon(session.info)" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -130,7 +130,7 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.id" name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
+                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
@@ -168,8 +168,9 @@ import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
 import NiInfo from "./NiInfo.vue";
-import iconNode from "/image/nodejs-icon.webp";
 import iconNiM from "/icon/icon128@3x.png";
+import iconDeno from '/deno-favicon.ico';
+import iconNode from "/node-favicon.ico";
 
 const { VITE_ENV } = import.meta.env;
 const instance = getCurrentInstance();
@@ -385,16 +386,8 @@ function initConnectionErrorMessage() {
         }
     });
 }
-function socketData(session) {
-    const socket = session.infoURL.match(/https?:\/\/([^:]*):([0-9]+)/);
-    return {
-        socket,
-        host: socket[1],
-        port: socket[2],
-    };
-}
 async function devtoolsButtonHandler(session) {
-    const { host, port } = session ? socketData(session) : settings;
+    const { host, port } = session || settings;
     const response = await chrome.runtime.sendMessage(id, {
         command: "openDevtools",
         host,
@@ -474,6 +467,9 @@ function update(event) {
     ) {
         updateSetting(name, inputs[name]);
     }
+}
+function getIcon(info) {
+    return JSON.stringify(info).match(/[\W](deno)[\W]/) ? iconDeno : iconNode
 }
 </script>
 
