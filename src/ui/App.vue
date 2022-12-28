@@ -47,7 +47,7 @@
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 
-import { ref, inject, reactive, computed, provide, onBeforeUnmount } from "vue";
+import { ref, inject, reactive, computed, provide } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
 
 import ShareMenu from "./components/ShareMenu.vue";

@@ -103,9 +103,11 @@ async function getInfo(host, port) {
         },
     } : defaultOptions
     try {
-        const response = await (await fetch(url, options)).json();
+        const response = await fetch(url, options);
+        if (!`${response.status}`.match(/2[0-9]{2}/)) return;
+        const info = await response.json();
         // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
-        cache.info[cacheId] = browserAgnosticFix(response[0]);
+        cache.info[cacheId] = browserAgnosticFix(info[0]);
         return cache.info[cacheId];
     } catch (error) {
         if (!error?.message?.match(/Failed to fetch/i)) {
@@ -429,7 +431,13 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
     if (areaName.match(/session/) && cache?.messagePort?.postMessage) {
-        cache.messagePort.postMessage({ command: 'update' });
+        try {
+            cache.messagePort.postMessage({ command: 'update' });
+        } catch (error) {
+            if (error.message.match(/disconnected port/)) {
+                delete cache.messagePort;
+            }
+        }
     }
 });
 chrome.commands.onCommand.addListener((command) => {

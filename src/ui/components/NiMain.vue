@@ -169,19 +169,18 @@ import {
     watch,
     reactive,
     getCurrentInstance,
-    computed,
 } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
 import iconNode from "/image/nodejs-icon.webp";
-import iconNiM from '/icon/icon128@3x.png';
+import iconNiM from "/icon/icon128@3x.png";
 
 const { VITE_ENV } = import.meta.env;
 const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
-const id = inject('id');
+const id = inject("id");
 const { getAccessTokenSilently } = useAuth0();
 const form = ref("form");
 const tab = ref("tab");
@@ -205,24 +204,32 @@ const inits = {
     connectionErrorMessage: false,
 };
 let tabs = reactive([
-    { name: "home", id: 'home' },
-    { name: "localhost", id: 'localhost' }
+    { name: "home", id: "home" },
+    { name: "localhost", id: "localhost" },
 ]);
 let inputs = reactive({
     localTab: {},
     auto: settings.auto,
     host: settings.host,
     port: settings.port,
-    autoResumeInspectBrk: settings.autoResumeInspectBrk
+    autoResumeInspectBrk: settings.autoResumeInspectBrk,
 });
 let workerPort = reactive({});
 let tooltips = reactive({});
 let { state: asyncSessions } = useAsyncState(
-    new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => resolve(response)))
+    new Promise((resolve) =>
+        chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) =>
+            resolve(response)
+        )
+    )
 );
 let sessions = reactive({});
 let { state: asyncRemotes } = useAsyncState(
-    new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) => resolve(response)))
+    new Promise((resolve) =>
+        chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) =>
+            resolve(response)
+        )
+    )
 );
 watch(asyncSessions, (currentValue) => {
     if (!currentValue) return;
@@ -231,26 +238,34 @@ watch(asyncSessions, (currentValue) => {
 });
 watch(asyncRemotes, (currentValue) => {
     if (!currentValue) return;
-    console.log('asyncRemotes', currentValue);
-    const remoteSessions = Object.values(currentValue).reduce((remoteSessions, remote) => ({
-        ...remoteSessions,
-        ...Object.values(remote.connections).reduce((sessionsPerHost, connection) => ({
-            ...sessionsPerHost,
-            [`${remote.uuid}:${connection.pid}`]: {
-                remote: true,
-                host: remote.host,
-                title: remote.title,
-                uuid: remote.uuid,
-                tunnelSocket: remote.tunnelSockets?.[connection.pid],
-                connection
-            }
-        }), {})
-    }), {});
-    console.log('remoteSessions', remoteSessions);
-    Object.values(currentValue).forEach((value) => tabs.push({
-        name: value.host,
-        id: value.uuid
-    }));
+    console.log("asyncRemotes", currentValue);
+    const remoteSessions = Object.values(currentValue).reduce(
+        (remoteSessions, remote) => ({
+            ...remoteSessions,
+            ...Object.values(remote.connections).reduce(
+                (sessionsPerHost, connection) => ({
+                    ...sessionsPerHost,
+                    [`${remote.uuid}:${connection.pid}`]: {
+                        remote: true,
+                        host: remote.host,
+                        title: remote.title,
+                        uuid: remote.uuid,
+                        tunnelSocket: remote.tunnelSockets?.[connection.pid],
+                        connection,
+                    },
+                }),
+                {}
+            ),
+        }),
+        {}
+    );
+    console.log("remoteSessions", remoteSessions);
+    Object.values(currentValue).forEach((value) =>
+        tabs.push({
+            name: value.host,
+            id: value.uuid,
+        })
+    );
     sessions = { ...sessions, ...remoteSessions };
     updateUI(sessions);
 });
@@ -260,32 +275,44 @@ if (chrome.runtime) {
     workerPort.onMessage.addListener((request) => {
         const { command } = request;
 
-        switch(command) {
-            case 'update':
-                chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) => sessions = { ...sessions, ...response });
+        switch (command) {
+            case "update":
+                chrome.runtime.sendMessage(
+                    id,
+                    { command: "getSessions" },
+                    (response) => (sessions = { ...sessions, ...response })
+                );
                 break;
         }
     });
 }
 async function setInfo(session) {
-    chrome.runtime.sendMessage(id, { command: "getInfo", remoteMetadata: session.tunnelSocket }, (info) => sessions[`${session.uuid}:${session.connection.pid}`].info = info);
+    chrome.runtime.sendMessage(
+        id,
+        { command: "getInfo", remoteMetadata: session.tunnelSocket },
+        (info) =>
+            (sessions[`${session.uuid}:${session.connection.pid}`].info = info)
+    );
 }
 function updateUI(sessions) {
     /** combine all these reduce functions */
-    tooltips = Object.values(sessions).reduce(
-        (acc, session) => {
-            return session.tabId ? { ...acc, [session.tabId]: 0 } : acc
-        }, {}
-    );
+    tooltips = Object.values(sessions).reduce((acc, session) => {
+        return session.tabId ? { ...acc, [session.tabId]: 0 } : acc;
+    }, {});
     inputs.localTab.auto = Object.values(sessions).reduce(
         (formInputModel, session) => {
-            return session.tabId ? {
-                ...formInputModel,
-                [session.tabId]: session.auto
-            } : formInputModel;
-        }, {}
+            return session.tabId
+                ? {
+                      ...formInputModel,
+                      [session.tabId]: session.auto,
+                  }
+                : formInputModel;
+        },
+        {}
     );
-    Object.values(sessions).filter((session) => session.tunnelSocket).map((session) => setInfo(session));
+    Object.values(sessions)
+        .filter((session) => session.tunnelSocket)
+        .map((session) => setInfo(session));
 }
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
@@ -368,8 +395,8 @@ function socketData(session) {
     return {
         socket,
         host: socket[1],
-        port: socket[2]
-    }
+        port: socket[2],
+    };
 }
 async function devtoolsButtonHandler(session) {
     const { host, port } = session ? socketData(session) : settings;
@@ -377,7 +404,7 @@ async function devtoolsButtonHandler(session) {
         command: "openDevtools",
         host,
         port,
-        manual: true
+        manual: true,
     });
     console.log(response);
 }
@@ -419,13 +446,29 @@ function clickHandlerSessionUpdate(event, tabId) {
         }
     );
 }
-function getSessions(sessions, uuid, sort = (kva) => kva[1].tunnelSocket ? -1 : 0) {
+function getSessions(
+    sessions,
+    uuid,
+    sort = (kva) => (kva[1].tunnelSocket ? -1 : 0)
+) {
     let entries = Object.entries(sessions);
 
     entries.sort(sort);
     return !uuid
-        ? entries.reduce((localSessions, kv) => !kv[1].remote ? { ...localSessions, [kv[0]]: kv[1] } : localSessions, {})
-        : entries.reduce((remoteSessions, kv) => kv[1].remote && kv[1].uuid === uuid ? { ...remoteSessions, [kv[0]]: kv[1] } : remoteSessions, {})
+        ? entries.reduce(
+              (localSessions, kv) =>
+                  !kv[1].remote
+                      ? { ...localSessions, [kv[0]]: kv[1] }
+                      : localSessions,
+              {}
+          )
+        : entries.reduce(
+              (remoteSessions, kv) =>
+                  kv[1].remote && kv[1].uuid === uuid
+                      ? { ...remoteSessions, [kv[0]]: kv[1] }
+                      : remoteSessions,
+              {}
+          );
 }
 function update(event) {
     const { name } = event.target;
