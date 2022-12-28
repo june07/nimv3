@@ -183,7 +183,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         setDevtoolsURL(info);
         if (remoteMetadata) {
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=(.*)\//, remoteMetadata.wsProto + '=' + host + '/ws/' + port + '/');
+            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=(.*)\//, 'wss=' + host + '/ws/' + port + '/');
             if (info.type === 'deno' || (info.webSocketDebuggerUrl && info.webSocketDebuggerUrl.match(/wss?:\/\/[^:]*:[0-9]+(\/ws\/)/))) {
                 const id = info.webSocketDebuggerUrl.match(/wss?:\/\/[^:]*:[0-9]+(\/ws\/(.*))/)[2];
                 devtoolsURL = devtoolsURL.replace(id, `${id}?runtime=deno`);
@@ -340,14 +340,17 @@ function messageHandler(request, sender, reply) {
     switch (request.command) {
         case 'openDevtools':
             const { host, port, manual } = request;
-            if (cache[`${host}:${port}`]) return;
+            const remoteMetadata = typeof host === 'object' ? host : undefined;
+            const cacheId = remoteMetadata?.cid || `${host}:${port}`;
+
+            if (cache[cacheId]) return;
             try {
-                cache[`${host}:${port}`] = Date.now();
+                cache[cacheId] = Date.now();
                 openTab(host, port, manual);
             } catch (error) {
                 console.log(error);
             } finally {
-                delete cache[`${host}:${port}`];
+                delete cache[cacheId];
             }
             break;
         case 'getSettings': settings.get().then(reply); break;
