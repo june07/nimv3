@@ -97,7 +97,6 @@
                 <v-container>
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
                         <v-col class="d-flex align-center py-0" v-if="session.tunnelSocket">
-                            {{ session?.info }}
                             <div class="mr-2">
                                 <v-img width="16" height="16" :src="session?.info?.nodeExeRunner ? iconNode : iconNode" />
                             </div>
@@ -109,13 +108,14 @@
                                     </div>
                                 </template>
                                 <v-container v-click-outside="() => tooltips[`${session.tabId}`] = 0">
-                                    <v-row>
-                                        <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
-                                        <v-col class="pa-0">{{ session?.info?.url }}</v-col>
-                                    </v-row>
-                                    <v-row>
+                                    <v-row v-if="session.url">
                                         <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
                                         <v-col class="pa-0">{{ session.url }}</v-col>
+                                    </v-row>
+                                    <v-row v-if="session.info">
+                                        <v-col class="pa-0">
+                                            <ni-info :info="session.info" :expanded="!session.url"></ni-info>
+                                        </v-col>
                                     </v-row>
                                 </v-container>
                             </v-tooltip>
@@ -146,7 +146,7 @@
 </template>
 <style scoped>
 .v-tab--selected {
-    font-size: larger;
+    font-size: x-large;
 }
 :deep() input#hostname,
 :deep() input#port,
@@ -163,16 +163,11 @@
 }
 </style>
 <script setup>
-import {
-    ref,
-    inject,
-    watch,
-    reactive,
-    getCurrentInstance,
-} from "vue";
+import { ref, inject, watch, reactive, getCurrentInstance } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
+import NiInfo from "./NiInfo.vue";
 import iconNode from "/image/nodejs-icon.webp";
 import iconNiM from "/icon/icon128@3x.png";
 
