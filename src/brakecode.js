@@ -37,8 +37,9 @@ function remoteTabTimeout(received) {
     brakecode.start = async () => {
         try {
             const { apikey } = await chrome.storage.local.get('apikey'),
-                namespaceUUID = await lookup(NAMESPACE_APIKEY_NAME),
-                publicKey = await lookup(PUBLIC_KEY_NAME);
+                namespaceUUID = await lookup(NAMESPACE_APIKEY_NAME);
+            
+            cache.dns.publicKey = await lookup(PUBLIC_KEY_NAME);
 
             if (!apikey) {
                 brakecode.timeouts.START_PADS_SOCKET_RETRY_INTERVAL = setTimeout(brakecode.startPADSSocket.bind(brakecode), brakecode.settings.START_PADS_SOCKET_RETRY_INTERVAL);
@@ -46,7 +47,7 @@ function remoteTabTimeout(received) {
             }
 
             const namespace = uuidv5(apikey, namespaceUUID);
-            brakecode.io = io(`https://${PADS_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: await encryptMessage(apikey, publicKey) } })
+            brakecode.io = io(`https://${PADS_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: await encryptMessage(apikey, cache.dns.publicKey) } })
                 .on('connect_error', (error) => {
                     console.log('CALLBACK ERROR: ' + error);
                     // if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
