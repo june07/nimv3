@@ -66,6 +66,7 @@ const {
     user,
     isAuthenticated,
     loginWithPopup,
+    getAccessTokenSilently,
     logout,
 } = useAuth0();
 let loading = reactive({
@@ -74,15 +75,24 @@ let loading = reactive({
 function themeHandler() {
     theme.value = theme.value === "light" ? "dark" : "light";
 }
+async function getAccessTokenSilentlyWrapper() {
+    const token = await getAccessTokenSilently({
+        redirect_uri: `chrome-extension://${chrome.runtime.id}`,
+    });
+    debugger
+    chrome.runtime.sendMessage(id, { command: "auth", credentials: {
+        uid: user.value.sub,
+        token,
+        apikey: apikey.value
+    }});
+}
+getAccessTokenSilentlyWrapper();
 async function login() {
     try {
         loading.login = true;
         if (!isAuthenticated.value) {
             await loginWithPopup();
-            await chrome.runtime.sendMessage(id, {
-                command: "apikey",
-                value: { apikey: apikey.value },
-            });
+            getAccessTokenSilentlyWrapper();
         } else {
             await chrome.runtime.sendMessage(id, { command: "signout" });
             await logout({

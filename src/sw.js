@@ -29,6 +29,8 @@ const HIGH_WATER_MARK_MAX = 3;
 const DRAIN_INTERVAL = 5000;
 
 let cache = {
+    dns: {},
+    tabs: {},
     age: {},
     timeouts: {},
     forceRemoveSession: {},
@@ -46,8 +48,6 @@ async function hydrateState() {
     /** this function will generally not be useful during testing because the session is restarted every time a reload is done
      *  So as a workaround use importForeignTabs() during development... might be useful to just keep period?!
      */
-    state.token = chrome.storage.session.get('token').then((token) => state.token = token);
-    state.sessions = await chrome.storage.session.get('sessions');
     if (settings.ENV !== 'production') {
         const foreignTabSessions = await importForeignTabs();
         await chrome.tabs.remove(foreignTabSessions.map((tab) => tab.id));
@@ -55,6 +55,10 @@ async function hydrateState() {
             openTab(foreignTabSessions.socket.host, foreignTabSessions.socket.port);
         })
     }
+    state.sessions = await chrome.storage.session.get('sessions');
+    state.token = chrome.storage.session.get('token').then((token) => state.token = token);
+    state.apikey = chrome.storage.session.get('apikey').then((apikey) => state.apikey = apikey);
+    state.sapikey = chrome.storage.session.get('sapikey').then((sapikey) => state.sapikey = sapikey);
 }
 function resetInterval(func, timeout) {
     if (timeout) {
@@ -66,6 +70,10 @@ function resetInterval(func, timeout) {
     }
 }
 (async function init() {
+    await async.until(
+        (cb) => cb(null, settings.DEVTOOLS_SCHEME),
+        (next) => setTimeout(next, 500)
+    );
     await hydrateState();
     cache.checkInterval = resetInterval(() => {
         let home;
@@ -95,7 +103,7 @@ async function getInfo(host, port) {
             'Content-Type': 'application/json'
         }
     }
-    const options = remoteMetadata ? {
+    const options = remoteMetadata?.cid ? {
         ...defaultOptions,
         headers: {
             ...defaultOptions.headers,
@@ -145,6 +153,7 @@ async function queryForDevtoolTabs(host, port) {
 }
 async function openTab(host = 'localhost', port = 9229, manual) {
     const remoteMetadata = typeof host === 'object' ? host : undefined;
+    const cacheId = (manual ? '(manual) ' : ' ') + remoteMetadata?.cid || `${host}:${port}`;
     let devtoolsURL;
 
     try {
@@ -152,7 +161,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         if ((!manual && cache[`openTab_${host}:${port}`]) || !settings?.DEVTOOLS_SCHEME) {
             return;
         }
-        cache[`openTab_${manual ? '(manual)' : ''}${host}:${port}`] = Date.now();
+        cache.tabs[cacheId] = Date.now();
         const tabs = await queryForDevtoolTabs(host, port);
         // close autoClose sessions if they are dead
         const sessionsWithClosedDebuggerProtocolSockets = tabs.map(tab => {
@@ -183,11 +192,12 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         setDevtoolsURL(info);
         if (remoteMetadata) {
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=(.*)\//, 'wss=' + host + '/ws/' + port + '/');
-            if (info.type === 'deno' || (info.webSocketDebuggerUrl && info.webSocketDebuggerUrl.match(/wss?:\/\/[^:]*:[0-9]+(\/ws\/)/))) {
-                const id = info.webSocketDebuggerUrl.match(/wss?:\/\/[^:]*:[0-9]+(\/ws\/(.*))/)[2];
-                devtoolsURL = devtoolsURL.replace(id, `${id}?runtime=deno`);
+            // fix deno info
+            if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
+                info.type = 'deno'
             }
+            const wsQuery = encodeURIComponent(`uid=${state.uid}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
+            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${remoteMetadata.uuid}?${wsQuery}`);
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
             var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1];
@@ -206,19 +216,18 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info, { host, port });
     } finally {
-        const key = `openTab_${host}:${port}`;
-        if (cache.timeouts[key]) {
+        if (cache.timeouts[cacheId]) {
             return;
         }
         /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
          *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
          *  show up during the query stage... 
          */
-        cache.timeouts[key] = setTimeout(() => {
-            if (cache[key]) {
-                delete cache[key];
+        cache.timeouts[cacheId] = setTimeout(() => {
+            if (cache.tabs[cacheId]) {
+                delete cache.tabs[cacheId];
             };
-            delete cache.timeouts[key];
+            delete cache.timeouts[cacheId];
         }, 700);
     }
 }
@@ -384,19 +393,29 @@ function messageHandler(request, sender, reply) {
                 settings.update(update).then(() => reply(update));
             }
             break;
-        case 'apikey':
-            chrome.storage.local.set(request.value).then(() => reply());
-            break;
         case 'signout':
-            chrome.storage.local.remove('apikey').then(() => reply());
+            chrome.storage.session.remove('apikey').then(() => reply());
             break;
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
             break;
-        case 'token':
-            const { token } = request;
+        case 'auth':
+            const { uid, token, apikey } = request.credentials;
+
+            if (uid !== state.uid) {
+                chrome.storage.session.set({ uid }).then(() => state.uid = uid);
+            }
             if (token !== state.token) {
                 chrome.storage.session.set({ token }).then(() => state.token = token);
+            }
+            if (apikey !== state.apikey) {
+                encryptMessage(apikey, cache.dns.publicKey).then((sapikey) => {
+                    chrome.storage.session.set({ apikey, sapikey }).then(() => {
+                        state.apikey = apikey;
+                        state.sapikey = sapikey;
+                        reply()
+                    });
+                });
             }
             break;
     }
@@ -416,6 +435,11 @@ chrome.runtime.onMessage.addListener(messageHandler);
 chrome.runtime.onMessageExternal.addListener(messageHandler);
 chrome.runtime.onSuspend.addListener(() => {
     clearInterval(cache.checkInterval);
+    chrome.storage.session.set({
+        token: state.token,
+        apikey: state.token,
+        sapikey: state.sapikey
+    });
 });
 chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     cache.highWaterMark = cache.highWaterMark ? cache.highWaterMark += 1 : 1;
@@ -454,7 +478,7 @@ chrome.commands.onCommand.addListener((command) => {
                     chrome.notifications.create('', {
                         type: 'basic',
                         iconUrl: '/dist/icon/icon128.png',
-                        title: chrome.i18n.getMessage('nimOwnsTheShortcut', [ shortcut ]),
+                        title: chrome.i18n.getMessage('nimOwnsTheShortcut', [shortcut]),
                         message: description,
                         buttons: [
                             { title: chrome.i18n.getMessage('disableThisNotice') },
