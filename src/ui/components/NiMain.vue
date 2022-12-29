@@ -57,7 +57,7 @@
                     <v-row v-for="(session, id) in getSessions(sessions)" :key="id" class="d-flex align-center">
                         <v-col class="d-flex align-center py-0">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session.info?.nodeExeRunner ? iconNode : iconNode" />
+                                <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -98,7 +98,7 @@
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
                         <v-col class="d-flex align-center py-0" v-if="session.tunnelSocket">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="getIcon(session.info)" />
+                                <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -286,8 +286,13 @@ async function setInfo(session) {
     chrome.runtime.sendMessage(
         id,
         { command: "getInfo", remoteMetadata: session.tunnelSocket },
-        (info) =>
-            (sessions[`${session.uuid}:${session.connection.pid}`].info = info)
+        (info) => {
+            // deno info fix
+            if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
+                info.type = 'deno';
+            }
+            sessions[`${session.uuid}:${session.connection.pid}`].info = info;
+        }
     );
 }
 function updateUI(sessions) {
@@ -315,12 +320,6 @@ watch(ml11, (currentValue, oldValue) => {
         initConnectionErrorMessage();
     }
 });
-(async function getTokenSilently() {
-    const token = await getAccessTokenSilently({
-        redirect_uri: `chrome-extension://${chrome.runtime.id}`,
-    });
-    chrome.runtime.sendMessage(id, { command: "token", token });
-})();
 
 function roundedClass(tabId) {
     if (tabId === "home") return "rounded-te-lg";
@@ -387,10 +386,14 @@ function initConnectionErrorMessage() {
     });
 }
 async function devtoolsButtonHandler(session) {
-    const { host, port } = session || settings;
+    const { host, port } = settings;
+    const remoteMetadata = session.remote ? {
+        cid: session.tunnelSocket.cid,
+        uuid: session.uuid,
+    } : undefined
     const response = await chrome.runtime.sendMessage(id, {
         command: "openDevtools",
-        host,
+        host: remoteMetadata || host,
         port,
         manual: true,
     });
@@ -467,9 +470,6 @@ function update(event) {
     ) {
         updateSetting(name, inputs[name]);
     }
-}
-function getIcon(info) {
-    return JSON.stringify(info).match(/[\W](deno)[\W]/) ? iconDeno : iconNode
 }
 </script>
 
