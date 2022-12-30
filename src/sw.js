@@ -56,9 +56,11 @@ async function hydrateState() {
         })
     }
     state.sessions = await chrome.storage.session.get('sessions');
-    state.token = chrome.storage.session.get('token').then((token) => state.token = token);
-    state.apikey = chrome.storage.session.get('apikey').then((apikey) => state.apikey = apikey);
-    state.sapikey = chrome.storage.session.get('sapikey').then((sapikey) => state.sapikey = sapikey);
+    await Promise.all([
+        chrome.storage.local.get('token').then((obj) => state.token = obj.token),
+        chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
+        chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey)
+    ]);
 }
 function resetInterval(func, timeout) {
     if (timeout) {
@@ -394,7 +396,7 @@ function messageHandler(request, sender, reply) {
             }
             break;
         case 'signout':
-            chrome.storage.session.remove('apikey').then(() => reply());
+            chrome.storage.local.remove(['sapikey', 'apikey', 'token', 'uid']).then(() => reply());
             break;
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
@@ -403,14 +405,14 @@ function messageHandler(request, sender, reply) {
             const { uid, token, apikey } = request.credentials;
 
             if (uid !== state.uid) {
-                chrome.storage.session.set({ uid }).then(() => state.uid = uid);
+                chrome.storage.local.set({ uid }).then(() => state.uid = uid);
             }
             if (token !== state.token) {
-                chrome.storage.session.set({ token }).then(() => state.token = token);
+                chrome.storage.local.set({ token }).then(() => state.token = token);
             }
             if (apikey !== state.apikey) {
                 encryptMessage(apikey, cache.dns.publicKey).then((sapikey) => {
-                    chrome.storage.session.set({ apikey, sapikey }).then(() => {
+                    chrome.storage.local.set({ apikey, sapikey }).then(() => {
                         state.apikey = apikey;
                         state.sapikey = sapikey;
                         reply()
@@ -435,7 +437,7 @@ chrome.runtime.onMessage.addListener(messageHandler);
 chrome.runtime.onMessageExternal.addListener(messageHandler);
 chrome.runtime.onSuspend.addListener(() => {
     clearInterval(cache.checkInterval);
-    chrome.storage.session.set({
+    chrome.storage.local.set({
         token: state.token,
         apikey: state.token,
         sapikey: state.sapikey
