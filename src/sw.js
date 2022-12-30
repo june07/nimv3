@@ -158,7 +158,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
 
     try {
         // settings.DEVTOOLS_SCHEME can be null on initial startup
-        if ((!manual && cache[`openTab_${host}:${port}`]) || !settings?.DEVTOOLS_SCHEME) {
+        if ((!manual && cache.tabs[cacheId]) || !settings?.DEVTOOLS_SCHEME) {
             return;
         }
         cache.tabs[cacheId] = Date.now();
@@ -197,7 +197,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
                 info.type = 'deno'
             }
             const wsQuery = encodeURIComponent(`uid=${state.uid}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${remoteMetadata.uuid}?${wsQuery}`);
+            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`);
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
             var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1];
