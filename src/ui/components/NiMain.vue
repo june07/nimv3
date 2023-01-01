@@ -59,15 +59,15 @@
                             <div class="mr-2">
                                 <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
                             </div>
-                            <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
+                            <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
                                 <template v-slot:activator="{ props }">
-                                    <div v-bind="props" @dblclick="tooltips[`${session.tabId}`] = 60000">
+                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000">
                                         <span class="mr-auto text-h6">{{ session.info.title }}</span>
                                         <span class="ml-2">({{ session.infoURL.match(/https?:\/\/([^:]*:[0-9]+)/)[1] }})</span>
-                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ session.tabId }}</span>
+                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id }}</span>
                                     </div>
                                 </template>
-                                <v-container v-click-outside="() => tooltips[`${session.tabId}`] = 0">
+                                <v-container v-click-outside="() => tooltips[`${id}`] = 0">
                                     <v-row>
                                         <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
                                         <v-col class="pa-0">{{ session.info.url }}</v-col>
@@ -81,13 +81,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
+                            <v-switch name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -100,14 +100,14 @@
                             <div class="mr-2">
                                 <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
                             </div>
-                            <v-tooltip :close-delay="tooltips[`${session.tabId}`]" location="top">
+                            <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
                                 <template v-slot:activator="{ props }">
-                                    <div v-bind="props" @dblclick="tooltips[`${session.tabId}`] = 60000">
+                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
                                         <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
-                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ session.tabId }}</span>
+                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id.split(':')[1] }}</span>
                                     </div>
                                 </template>
-                                <v-container v-click-outside="() => tooltips[`${session.tabId}`] = 0">
+                                <v-container v-click-outside="() => tooltips[`${id}`] = 0">
                                     <v-row v-if="session.url">
                                         <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
                                         <v-col class="pa-0">{{ session.url }}</v-col>
@@ -130,13 +130,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.localTab.auto[`${session.tabId}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId)">
+                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -203,7 +203,7 @@ let tabs = reactive([
     { name: "localhost", id: "localhost" },
 ]);
 let inputs = reactive({
-    localTab: {},
+    session: {},
     auto: settings.auto,
     host: settings.host,
     port: settings.port,
@@ -296,15 +296,18 @@ async function setInfo(session) {
 }
 function updateUI(sessions) {
     /** combine all these reduce functions */
-    tooltips = Object.values(sessions).reduce((acc, session) => {
-        return session.tabId ? { ...acc, [session.tabId]: 0 } : acc;
+    tooltips = Object.keys(sessions).reduce((acc, sessionId) => {
+        return sessionId ? { ...acc, [sessionId]: 0 } : acc;
     }, {});
-    inputs.localTab.auto = Object.values(sessions).reduce(
-        (formInputModel, session) => {
-            return session.tabId
+    inputs.session.auto = Object.entries(sessions).reduce(
+        (formInputModel, kv) => {
+            const sessionId = kv[0],
+                session = kv[1];
+
+            return sessionId
                 ? {
                       ...formInputModel,
-                      [session.tabId]: session.auto,
+                      [sessionId]: !!session.auto,
                   }
                 : formInputModel;
         },
@@ -399,7 +402,7 @@ async function devtoolsButtonHandler(session) {
     console.log(response);
 }
 
-function clickHandlerSessionUpdate(event, tabId) {
+function clickHandlerSessionUpdate(event, sessionId) {
     const { name } = event.target;
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
     let value;
@@ -408,14 +411,14 @@ function clickHandlerSessionUpdate(event, tabId) {
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
      */
-    if (name.match(/auto|remove/) && re.test(sessions[tabId].infoURL)) {
+    if (name.match(/auto|remove/) && re.test(sessions[sessionId].infoURL)) {
         inputs.auto = name.match(/remove/)
             ? false
-            : inputs.localTab.auto[tabId];
+            : inputs.session.auto[sessionId];
         update({ target: { name: "auto" } });
     }
     if (name.match(/auto/)) {
-        value = { [name]: inputs.localTab.auto[tabId] };
+        value = { [name]: inputs.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
         id,
@@ -423,15 +426,15 @@ function clickHandlerSessionUpdate(event, tabId) {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
             obj: "sessions",
-            key: tabId,
+            key: sessionId,
             value,
         },
         (response) => {
             if (!value && !response) {
-                delete sessions[tabId];
+                delete sessions[sessionId];
                 instance?.proxy?.$forceUpdate();
             } else {
-                sessions[tabId] = response;
+                sessions[sessionId] = response;
             }
         }
     );
