@@ -79,7 +79,6 @@ async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
         redirect_uri: `chrome-extension://${chrome.runtime.id}`,
     });
-    debugger
     chrome.runtime.sendMessage(id, { command: "auth", credentials: {
         uid: user.value.sub,
         token,

@@ -45,7 +45,7 @@
             </v-window-item>
 
             <v-window-item value="localhost">
-                <div class="row no-connections-detected pt-16" v-if="!Object.values(sessions).filter((session) => !session.remote).length">
+                <div class="row no-connections-detected pt-16" v-if="!Object.values(getSessions(sessions)).length">
                     <h1 ref="ml11" class="ml11">
                         <span class="text-wrapper">
                             <span class="line line1"></span>
@@ -177,7 +177,6 @@ const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
 const id = inject("id");
-const { getAccessTokenSilently } = useAuth0();
 const form = ref("form");
 const tab = ref("tab");
 const ml11 = ref("ml11");
@@ -448,7 +447,7 @@ function getSessions(
     return !uuid
         ? entries.reduce(
               (localSessions, kv) =>
-                  !kv[1].remote
+                  !kv[1].remote && !kv[1]?.socket?.host?.cid // local sessions will have a string host value
                       ? { ...localSessions, [kv[0]]: kv[1] }
                       : localSessions,
               {}
