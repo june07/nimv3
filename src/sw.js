@@ -72,6 +72,7 @@ function resetInterval(func, timeout) {
     }
 }
 (async function init() {
+    cache.ip = await (await fetch('https://ip-cfworkers.brakecode.com', { method: 'head' })).headers.get('cf-connecting-ip');
     await async.until(
         (cb) => cb(null, settings.DEVTOOLS_SCHEME),
         (next) => setTimeout(next, 500)
@@ -95,25 +96,26 @@ function resetInterval(func, timeout) {
     }, settings.checkInterval || 60000);
     cache.drainInterval = setInterval(() => cache.highWaterMark > 0 && (cache.highWaterMark -= 1), DRAIN_INTERVAL);
 })();
-
 async function getInfo(host, port) {
     const remoteMetadata = typeof host === 'object' ? host : undefined;
     const cacheId = remoteMetadata?.cid || `${host}:${port}`;
     const url = remoteMetadata?.cid ? `https://${brakecode.PADS_HOST}/json/${remoteMetadata.cid}` : `http://${host}:${port}/json`;
     const defaultOptions = {
         headers: {
-            'Content-Type': 'application/json'
+            'content-type': 'application/json',
+            'x-forwarded-for': cache.ip
         }
     }
     const options = remoteMetadata?.cid ? {
         ...defaultOptions,
         headers: {
             ...defaultOptions.headers,
-            'Authorization': 'Bearer ' + state.token
+            'authorization': 'Bearer ' + state.token
         },
     } : defaultOptions
     try {
         const response = await fetch(url, options);
+        console.log('response status: ', response.status);
         if (!`${response.status}`.match(/2[0-9]{2}/)) return;
         const info = await response.json();
         // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
@@ -133,23 +135,36 @@ async function getInfoCache(remoteMetadata) {
     return await getInfo(remoteMetadata);
 }
 async function queryForDevtoolTabs(host, port) {
+    const remoteMetadata = typeof host === 'object' ? host : undefined;
     const devtoolsBasePatterns = [
         `${settings.DEVTOOLS_SCHEME}*/*`,
         `https://chrome-devtools-frontend.june07.com/*:*`,
         `https://chrome-devtools-frontend.appspot.com/*:*`,
     ];
-    const devtoolsSpecificPatterns = [
-        `${settings.DEVTOOLS_SCHEME}*/*${host}:${port}*`,
-        `${settings.DEVTOOLS_SCHEME}*/*${host}/ws/${port}*`,
+    let devtoolsLocalPatterns = [],
+        devtoolsRemotePatterns = [];
 
-        `https://chrome-devtools-frontend.june07.com/*${host}:${port}*`,
-        `https://chrome-devtools-frontend.june07.com/*${host}/ws/${port}*`,
+    if (!remoteMetadata) {
+        devtoolsLocalPatterns = [
+            `${settings.DEVTOOLS_SCHEME}*/*${host}:${port}*`,
+            `${settings.DEVTOOLS_SCHEME}*/*${host}/ws/${port}*`,
 
-        `https://chrome-devtools-frontend.appspot.com/*${host}:${port}*`,
-        `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
-    ]
+            `https://chrome-devtools-frontend.june07.com/*${host}:${port}*`,
+            `https://chrome-devtools-frontend.june07.com/*${host}/ws/${port}*`,
+
+            `https://chrome-devtools-frontend.appspot.com/*${host}:${port}*`,
+            `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
+        ]
+    } else {
+        const { cid } = remoteMetadata;
+        devtoolsRemotePatterns = [
+            `${settings.DEVTOOLS_SCHEME}*/*/${cid}/*`,
+            `https://chrome-devtools-frontend.june07.com/*/${cid}/*`,
+            `https://chrome-devtools-frontend.appspot.com/*/${cid}/*`,
+        ]
+    }
     const tabs = await chrome.tabs.query({
-        url: !host || !port ? [...devtoolsBasePatterns, ...devtoolsSpecificPatterns] : devtoolsSpecificPatterns
+        url: !remoteMetadata ? devtoolsLocalPatterns : devtoolsRemotePatterns
     });
     return tabs.map(tab => ({ ...tab, socket: { host, port } }));
 }
@@ -166,7 +181,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         cache.tabs[cacheId] = Date.now();
         const tabs = await queryForDevtoolTabs(host, port);
         // close autoClose sessions if they are dead
-        const sessionsWithClosedDebuggerProtocolSockets = tabs.map(tab => {
+        const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => !state.sessions?.[tab.id]?.socket?.host?.cid).map(tab => {
             const sessionForTab = state.sessions[tab.id];
             if (sessionForTab?.dtpSocket?.ws?.readyState === 3) {
                 return sessionForTab;
