@@ -81,13 +81,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, id)">
+                            <v-switch name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -130,13 +130,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, id)">
+                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -237,7 +237,10 @@ watch(asyncRemotes, (currentValue) => {
     const remoteSessions = Object.values(currentValue).reduce(
         (remoteSessions, remote) => ({
             ...remoteSessions,
-            ...Object.values(remote.connections).reduce(
+            ...Object.values(remote.connections)
+                // filter out session for which we are already tracking
+                .filter(remoteConnection => !sessions[`${remote.uuid}:${remoteConnection.pid}`])
+                .reduce(
                 (sessionsPerHost, connection) => ({
                     ...sessionsPerHost,
                     [`${remote.uuid}:${connection.pid}`]: {
@@ -402,7 +405,7 @@ async function devtoolsButtonHandler(session) {
     console.log(response);
 }
 
-function clickHandlerSessionUpdate(event, sessionId) {
+function clickHandlerSessionUpdate(event, tabId, sessionId) {
     const { name } = event.target;
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
     let value;
@@ -411,14 +414,14 @@ function clickHandlerSessionUpdate(event, sessionId) {
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
      */
-    if (name.match(/auto|remove/) && re.test(sessions[sessionId].infoURL)) {
+    if (tabId && name.match(/auto|remove/) && re.test(sessions[tabId].infoURL)) {
         inputs.auto = name.match(/remove/)
             ? false
             : inputs.session.auto[sessionId];
         update({ target: { name: "auto" } });
     }
     if (name.match(/auto/)) {
-        value = { [name]: inputs.session.auto[sessionId] };
+        value = { ...sessions[tabId || sessionId], [name]: inputs.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
         id,
@@ -426,28 +429,28 @@ function clickHandlerSessionUpdate(event, sessionId) {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
             obj: "sessions",
-            key: sessionId,
+            key: tabId || sessionId,
             value,
         },
         (response) => {
             if (!value && !response) {
-                delete sessions[sessionId];
+                delete sessions[tabId];
                 instance?.proxy?.$forceUpdate();
             } else {
-                sessions[sessionId] = response;
+                sessions[tabId || sessionId] = response;
             }
         }
     );
 }
 function getSessions(
     sessions,
-    uuid,
+    UITabId,
     sort = (kva) => (kva[1].tunnelSocket ? -1 : 0)
 ) {
     let entries = Object.entries(sessions);
 
     entries.sort(sort);
-    return !uuid
+    return !UITabId
         ? entries.reduce(
               (localSessions, kv) =>
                   !kv[1].remote && !kv[1]?.socket?.host?.cid // local sessions will have a string host value
@@ -457,7 +460,7 @@ function getSessions(
           )
         : entries.reduce(
               (remoteSessions, kv) =>
-                  kv[1].remote && kv[1].uuid === uuid
+                  kv[1].remote && kv[1].uuid === UITabId
                       ? { ...remoteSessions, [kv[0]]: kv[1] }
                       : remoteSessions,
               {}

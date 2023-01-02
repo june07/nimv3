@@ -80,7 +80,7 @@ function resetInterval(func, timeout) {
     await hydrateState();
     cache.checkInterval = resetInterval(() => {
         let home;
-        Object.values(state.sessions).filter((session) => session.auto).map((session) => {
+        Object.values(state.sessions).filter((session) => session.auto && session.socket).map((session) => {
             const { host, port } = session.socket;
 
             if (host === settings.host && port === settings.port) {
