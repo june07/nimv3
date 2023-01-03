@@ -198,19 +198,19 @@ const settings = inject("settings");
 const inits = {
     connectionErrorMessage: false,
 };
-let tabs = reactive([
+let workerPort;
+let tabs = ref([
     { name: "home", id: "home" },
     { name: "localhost", id: "localhost" },
 ]);
-let inputs = reactive({
+let inputs = ref({
     session: {},
     auto: settings.auto,
     host: settings.host,
     port: settings.port,
     autoResumeInspectBrk: settings.autoResumeInspectBrk,
 });
-let workerPort = reactive({});
-let tooltips = reactive({});
+let tooltips = ref({});
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) =>
         chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, (response) =>
@@ -218,7 +218,7 @@ let { state: asyncSessions } = useAsyncState(
         )
     )
 );
-let sessions = reactive({});
+let sessions = ref({});
 let { state: asyncRemotes } = useAsyncState(
     new Promise((resolve) =>
         chrome.runtime.sendMessage(extensionId, { command: "getRemotes" }, (response) =>
@@ -226,10 +226,15 @@ let { state: asyncRemotes } = useAsyncState(
         )
     )
 );
+watch(sessions, (currentValue) => {
+    if (!currentValue) return;
+    sessions.value = currentValue;
+    updateUI(sessions.value);
+});
 watch(asyncSessions, (currentValue) => {
     if (!currentValue) return;
-    sessions = currentValue;
-    updateUI(sessions);
+    sessions.value = currentValue;
+    //updateUI(sessions.value);
 });
 watch(asyncRemotes, (currentValue) => {
     if (!currentValue) return;
@@ -239,7 +244,7 @@ watch(asyncRemotes, (currentValue) => {
             ...remoteSessions,
             ...Object.values(remote.connections)
                 // filter out session for which we are already tracking
-                .filter(remoteConnection => !sessions[`${remote.uuid}:${remoteConnection.pid}`])
+                .filter(remoteConnection => !sessions.value[`${remote.uuid}:${remoteConnection.pid}`])
                 .reduce(
                 (sessionsPerHost, connection) => ({
                     ...sessionsPerHost,
@@ -259,13 +264,13 @@ watch(asyncRemotes, (currentValue) => {
     );
     console.log("remoteSessions", remoteSessions);
     Object.values(currentValue).forEach((value) =>
-        tabs.push({
+        tabs.value.push({
             name: value.host,
             id: value.uuid,
         })
     );
-    sessions = { ...sessions, ...remoteSessions };
-    updateUI(sessions);
+    sessions.value = { ...sessions.value, ...remoteSessions };
+    //updateUI(sessions.value);
 });
 if (chrome.runtime) {
     workerPort = chrome.runtime.connect(extensionId);
@@ -278,7 +283,7 @@ if (chrome.runtime) {
                 const sessionsUpdate = await new Promise((resolve) =>
                     chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, response => resolve(response))
                 )
-                sessions = { ...sessions, ...sessionsUpdate };
+                sessions.value = { ...sessions.value, ...sessionsUpdate };
                 break;
         }
     });
@@ -292,16 +297,16 @@ async function setInfo(session) {
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
                 info.type = 'deno';
             }
-            sessions[`${session.uuid}:${session.connection.pid}`].info = info;
+            sessions.value[`${session.uuid}:${session.connection.pid}`].info = info;
         }
     );
 }
 function updateUI(sessions) {
     /** combine all these reduce functions */
-    tooltips = Object.keys(sessions).reduce((acc, sessionId) => {
+    tooltips.value = Object.keys(sessions).reduce((acc, sessionId) => {
         return sessionId ? { ...acc, [sessionId]: 0 } : acc;
     }, {});
-    inputs.session.auto = Object.entries(sessions).reduce(
+    inputs.value.session.auto = Object.entries(sessions).reduce(
         (formInputModel, kv) => {
             const sessionId = kv[0],
                 session = kv[1];
@@ -327,7 +332,7 @@ watch(ml11, (currentValue, oldValue) => {
 
 function roundedClass(tabId) {
     if (tabId === "home") return "rounded-te-lg";
-    if (tabId === tabs[tabs.length - 1].id) return "rounded-ts-lg";
+    if (tabId === tabs.value[tabs.value.length - 1].id) return "rounded-ts-lg";
     return "rounded-t-lg";
 }
 function initConnectionErrorMessage() {
@@ -414,14 +419,14 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
      *  as the session will just be recreated automatically.
      */
     const match = id.match(/(auto)-.*?|(remove)-.*/);
-    if (tabId && match && re.test(sessions[tabId]?.infoURL)) {
-        inputs.auto = id.match(/remove/)
+    if (tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
+        inputs.value.auto = id.match(/remove/)
             ? false
-            : inputs.session.auto[sessionId];
-        updateSetting('auto', inputs.auto);
+            : inputs.value.session.auto[sessionId];
+        updateSetting('auto', inputs.value.auto);
     }
     if (id.match(/auto/)) {
-        value = { ...sessions[tabId || sessionId], [match[1]]: inputs.session.auto[sessionId] };
+        value = { ...sessions.value[tabId || sessionId], [match[1]]: inputs.value.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
         extensionId,
@@ -434,11 +439,11 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
         },
         (response) => {
             if (!value && !response) {
-                delete sessions[tabId];
+                delete sessions.value[tabId];
                 instance?.proxy?.$forceUpdate();
-                console.log(sessions);
+                console.log(sessions.value);
             } else {
-                sessions[tabId || sessionId] = response;
+                sessions.value[tabId || sessionId] = response;
             }
         }
     );
@@ -450,7 +455,7 @@ function update(event) {
         !id.match(/host|port/) ||
         !form.value.errors.find((e) => e.id === id)?.errorMessages.length
     ) {
-        updateSetting(id, inputs[id]);
+        updateSetting(id, inputs.value[id]);
     }
 }
 function getSessions(
