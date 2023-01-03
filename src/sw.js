@@ -32,7 +32,6 @@ let cache = {
     dns: {},
     tabs: {},
     age: {},
-    timeouts: {},
     forceRemoveSession: {},
     highlighted: {},
     removed: {},
@@ -233,19 +232,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info, { host, port });
     } finally {
-        if (cache.timeouts[cacheId]) {
-            return;
-        }
-        /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
-         *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
-         *  show up during the query stage... 
-         */
-        cache.timeouts[cacheId] = setTimeout(() => {
-            if (cache.tabs[cacheId]) {
-                delete cache.tabs[cacheId];
-            };
-            delete cache.timeouts[cacheId];
-        }, 700);
+        delete cache.tabs[cacheId];
     }
 }
 function createTabOrWindow(infoURL, url, info, socket) {
