@@ -170,7 +170,7 @@ async function queryForDevtoolTabs(host, port) {
 }
 async function openTab(host = 'localhost', port = 9229, manual) {
     const remoteMetadata = typeof host === 'object' ? host : undefined;
-    const cacheId = (manual ? '(manual) ' : ' ') + remoteMetadata?.cid || `${host}:${port}`;
+    const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || `${host}:${port}`);
     let devtoolsURL;
 
     try {
