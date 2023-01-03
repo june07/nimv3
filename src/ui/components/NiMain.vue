@@ -130,13 +130,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
+                            <v-switch :id="`auto-remote-${id}`" :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!session.id" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>

@@ -24,7 +24,7 @@ module.exports = {
                     width: 1200,
                     height: 1600
                 },
-                slowMo: 3000
+                slowMo: 500
             });
             await use(context);
             await context.close();
