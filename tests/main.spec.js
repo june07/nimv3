@@ -56,7 +56,9 @@ module.exports = (async () => {
             await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
 
             // first check that the auto function is working on the default host/port.
-            await context.waitForEvent('page');
+
+            // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
+            await new Promise(resolve => setTimeout(resolve, 3000));
             expect(context.pages().filter(page => page.url().match('localhost:9229')).length).toBe(1);
 
             await page.bringToFront();
