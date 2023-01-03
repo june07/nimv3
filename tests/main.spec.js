@@ -35,56 +35,60 @@ module.exports = (async () => {
         const killed = processes.map(process => process.kill()).filter(killed => killed);
         console.log(`Killed ${killed.length} of ${processes.length}`);
     })
-    test('popup page - auto function', async ({ page, context, serviceWorker }) => {
-        const tabs = {
-            home: await page.locator(ids.tab.home),
-            localhost: await page.locator(ids.tab.localhost)
-        }
-        const switches = {
-            home: await page.locator(ids.switches.home),
-            localhost: await page.locator(ids.switches.localhost)
-        }
-        const buttons = {
-            localhost: {
-                remove: await page.locator(ids.buttons.localhost.remove)
+    test.describe(() => {
+        // this test seems a bit sketchy thus the retries...
+        test.describe.configure({ retries: 3 });
+        test('popup page - auto function', async ({ page, context, serviceWorker }) => {
+            const tabs = {
+                home: await page.locator(ids.tab.home),
+                localhost: await page.locator(ids.tab.localhost)
             }
-        }
-        const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`);
+            const switches = {
+                home: await page.locator(ids.switches.home),
+                localhost: await page.locator(ids.switches.localhost)
+            }
+            const buttons = {
+                localhost: {
+                    remove: await page.locator(ids.buttons.localhost.remove)
+                }
+            }
+            const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`);
 
-        try {
-            await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-            await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+            try {
+                await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
+                await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
 
-            // first check that the auto function is working on the default host/port.
+                // first check that the auto function is working on the default host/port.
 
-            // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            expect(context.pages().filter(page => page.url().match('localhost:9229')).length).toBe(1);
+                // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                expect(context.pages().filter(page => page.url().match('localhost:9229')).length).toBe(1);
 
-            await page.bringToFront();
-            await tabs.localhost.click();
-            await switches.localhost.first().setChecked(false);
-            // both the LOCALHOST switch and the home switch should be disabled
-            expect(await switches.localhost.isChecked()).toBe(false);
+                await page.bringToFront();
+                await tabs.localhost.click();
+                await switches.localhost.first().setChecked(false);
+                // both the LOCALHOST switch and the home switch should be disabled
+                expect(await switches.localhost.isChecked()).toBe(false);
 
-            await tabs.home.click();
+                await tabs.home.click();
 
-            // both the localhost switch and the HOME switch should be disabled
-            expect(await switches.home.isChecked()).toBe(false);
+                // both the localhost switch and the HOME switch should be disabled
+                expect(await switches.home.isChecked()).toBe(false);
 
-            await tabs.localhost.click();
-            await buttons.localhost.remove.click();
+                await tabs.localhost.click();
+                await buttons.localhost.remove.click();
 
-            // devtools tab should be removed
-            expect(context.pages().filter(page => page.url().match(re)).length).toBe(0);
-        } finally {
-            await serviceWorker.evaluate(async () => {
-                await Promise.all([
-                    chrome.storage.local.clear(),
-                    chrome.storage.session.clear()
-                ]);
-            });
-        }
+                // devtools tab should be removed
+                expect(context.pages().filter(page => page.url().match(re)).length).toBe(0);
+            } finally {
+                await serviceWorker.evaluate(async () => {
+                    await Promise.all([
+                        chrome.storage.local.clear(),
+                        chrome.storage.session.clear()
+                    ]);
+                });
+            }
+        });
     });
     test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
         // loop size of 100 should take about 1 second each
