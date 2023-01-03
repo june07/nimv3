@@ -4,9 +4,9 @@
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
-    "build:dev": "vite build -w --base ./dist/ --sourcemap --minify false",
+    "build:dev": "vite build -w --base /dist/ --sourcemap --minify false",
     "build": "npm-run-all --serial build:prod build:deps",
-    "build:prod": "vite build -w --base ./dist/ --sourcemap --minify true",
+    "build:prod": "vite build -w --base /dist/ --sourcemap --minify true",
     "build:deps": "rollup -i node_modules/uuid/dist/esm-browser/v5.js --format iife --name uuidv5 --compact --file ./dist/uuidv5.min.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
