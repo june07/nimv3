@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
-const cert = fs.readFileSync('./localdev.crt');
-const key = fs.readFileSync('./localdev.key');
+const cert = fs.existsSync('./localdev.crt') ? fs.readFileSync('./localdev.crt') : undefined;
+const key = fs.existsSync('./localdev.key') ? fs.readFileSync('./localdev.key') : undefined;
 
 // Plugins
 import vue from '@vitejs/plugin-vue'
