@@ -9,7 +9,7 @@
             </v-col>
         </v-row>
         <v-tabs v-model="tab" grow class="mt-8" color="green-darken-1">
-            <v-tab v-for="tab of tabs" :key="tab.id" :value="tab.id" class="text-uppercase px-0" :class="roundedClass(tab.id)">{{ tab.name }}</v-tab>
+            <v-tab v-for="tab of tabs" :key="tab.id" :value="tab.id" class="text-uppercase px-0" :id="`tab-${tab.id}`" :class="roundedClass(tab.id)">{{ tab.name }}</v-tab>
         </v-tabs>
         <v-window v-model="tab">
             <v-window-item value="home">
@@ -25,7 +25,7 @@
                     <v-row>
                         <v-col class="d-flex align-center justify-center">
                             <div class="ml-auto">
-                                <v-switch name="auto" hide-details v-model="inputs.auto" :color="inputs.auto ? 'green' : ''" @change="update">
+                                <v-switch id="auto" name="auto" hide-details v-model="inputs.auto" :color="inputs.auto ? 'green' : ''" @change="update">
                                     <template v-slot:label>
                                         <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                     </template>
@@ -81,13 +81,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
+                            <v-switch :id="`auto-localhost-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
-                            <v-btn size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn size="x-small" :id="`devtools-localhost-${id}`" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                            <v-btn size="x-small" :id="`remove-localhost-${id}`" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -136,7 +136,7 @@
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate({ target: { name: 'remove' }}, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!session.id" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -176,7 +176,7 @@ const { VITE_ENV } = import.meta.env;
 const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
-const id = inject("id");
+const extensionId = inject("id");
 const form = ref("form");
 const tab = ref("tab");
 const ml11 = ref("ml11");
@@ -213,7 +213,7 @@ let workerPort = reactive({});
 let tooltips = reactive({});
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) =>
-        chrome.runtime.sendMessage(id, { command: "getSessions" }, (response) =>
+        chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, (response) =>
             resolve(response)
         )
     )
@@ -221,7 +221,7 @@ let { state: asyncSessions } = useAsyncState(
 let sessions = reactive({});
 let { state: asyncRemotes } = useAsyncState(
     new Promise((resolve) =>
-        chrome.runtime.sendMessage(id, { command: "getRemotes" }, (response) =>
+        chrome.runtime.sendMessage(extensionId, { command: "getRemotes" }, (response) =>
             resolve(response)
         )
     )
@@ -268,25 +268,24 @@ watch(asyncRemotes, (currentValue) => {
     updateUI(sessions);
 });
 if (chrome.runtime) {
-    workerPort = chrome.runtime.connect(id);
+    workerPort = chrome.runtime.connect(extensionId);
 
-    workerPort.onMessage.addListener((request) => {
+    workerPort.onMessage.addListener(async (request) => {
         const { command } = request;
 
         switch (command) {
             case "update":
-                chrome.runtime.sendMessage(
-                    id,
-                    { command: "getSessions" },
-                    (response) => (sessions = { ...sessions, ...response })
-                );
+                const sessionsUpdate = await new Promise((resolve) =>
+                    chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, response => resolve(response))
+                )
+                sessions = { ...sessions, ...sessionsUpdate };
                 break;
         }
     });
 }
 async function setInfo(session) {
     chrome.runtime.sendMessage(
-        id,
+        extensionId,
         { command: "getInfo", remoteMetadata: session.tunnelSocket },
         (info) => {
             // deno info fix
@@ -396,7 +395,7 @@ async function devtoolsButtonHandler(session) {
         cid: session.tunnelSocket.cid,
         uuid: session.uuid,
     } : undefined
-    const response = await chrome.runtime.sendMessage(id, {
+    const response = await chrome.runtime.sendMessage(extensionId, {
         command: "openDevtools",
         host: remoteMetadata || host,
         port,
@@ -406,7 +405,7 @@ async function devtoolsButtonHandler(session) {
 }
 
 function clickHandlerSessionUpdate(event, tabId, sessionId) {
-    const { name } = event.target;
+    const { id } = event.target;
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
     let value;
 
@@ -414,17 +413,18 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
      */
-    if (tabId && name.match(/auto|remove/) && re.test(sessions[tabId].infoURL)) {
-        inputs.auto = name.match(/remove/)
+    const match = id.match(/(auto)-.*?|(remove)-.*/);
+    if (tabId && match && re.test(sessions[tabId]?.infoURL)) {
+        inputs.auto = id.match(/remove/)
             ? false
             : inputs.session.auto[sessionId];
-        update({ target: { name: "auto" } });
+        updateSetting('auto', inputs.auto);
     }
-    if (name.match(/auto/)) {
-        value = { ...sessions[tabId || sessionId], [name]: inputs.session.auto[sessionId] };
+    if (id.match(/auto/)) {
+        value = { ...sessions[tabId || sessionId], [match[1]]: inputs.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
-        id,
+        extensionId,
         {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
@@ -436,11 +436,22 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
             if (!value && !response) {
                 delete sessions[tabId];
                 instance?.proxy?.$forceUpdate();
+                console.log(sessions);
             } else {
                 sessions[tabId || sessionId] = response;
             }
         }
     );
+}
+function update(event) {
+    const { id } = event.target;
+
+    if (
+        !id.match(/host|port/) ||
+        !form.value.errors.find((e) => e.id === id)?.errorMessages.length
+    ) {
+        updateSetting(id, inputs[id]);
+    }
 }
 function getSessions(
     sessions,
@@ -465,16 +476,6 @@ function getSessions(
                       : remoteSessions,
               {}
           );
-}
-function update(event) {
-    const { name } = event.target;
-
-    if (
-        !name.match(/host|port/) ||
-        !form.value.errors.find((e) => e.id === name)?.errorMessages.length
-    ) {
-        updateSetting(name, inputs[name]);
-    }
 }
 </script>
 
