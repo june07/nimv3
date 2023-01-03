@@ -459,11 +459,11 @@ function update(event) {
 function getSessions(
     sessions,
     UITabId,
-    sort = (kva) => (kva[1].tunnelSocket ? -1 : 0)
+    sort = (a, b) => (a[1]?.info?.title < b[1]?.info?.title ? -1 : 0)
 ) {
-    let entries = Object.entries(sessions);
+    let entries = UITabId ? Object.entries(sessions).filter(e => e[0].match(new RegExp(`${UITabId}`))) : Object.entries(sessions);
 
-    entries.sort(sort);
+    entries = [ ...entries.filter(kv => kv[1].tunnelSocket).sort(sort), ...entries.filter(kv => !kv[1].tunnelSocket).sort(sort) ]
     return !UITabId
         ? entries.reduce(
               (localSessions, kv) =>
