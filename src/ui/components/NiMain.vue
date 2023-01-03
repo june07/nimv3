@@ -163,7 +163,7 @@
 }
 </style>
 <script setup>
-import { ref, inject, watch, reactive, getCurrentInstance } from "vue";
+import { ref, inject, watch, reactive } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
@@ -173,7 +173,6 @@ import iconDeno from '/deno-favicon.ico';
 import iconNode from "/node-favicon.ico";
 
 const { VITE_ENV } = import.meta.env;
-const instance = getCurrentInstance();
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
 const extensionId = inject("id");
@@ -440,7 +439,6 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
         (response) => {
             if (!value && !response) {
                 delete sessions.value[tabId];
-                instance?.proxy?.$forceUpdate();
                 console.log(sessions.value);
             } else {
                 sessions.value[tabId || sessionId] = response;
