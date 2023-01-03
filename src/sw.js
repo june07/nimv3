@@ -5,7 +5,7 @@ importScripts(
     './analytics.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
-    '../dist/uuidv5.js',
+    '../dist/uuidv5.min.js',
     '../node_modules/tweetnacl/nacl-fast.min.js',
     '../node_modules/tweetnacl-util/nacl-util.min.js',
     '../node_modules/amplitude-js/amplitude.umd.min.js',

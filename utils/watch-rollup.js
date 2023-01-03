@@ -6,7 +6,7 @@ const watchDir = 'dist';
 const deps = [
     {
         input: 'node_modules/uuid/dist/esm-browser/v5.js',
-        watch: `${watchDir}/uuidv5.js`,
+        watch: `${watchDir}/uuidv5.min.js`,
         name: 'uuidv5'
     }
 ]
@@ -38,6 +38,7 @@ async function build() {
                     input: dep.input,
                 });
                 const { output } = await bundle.generate({
+                    compact: true,
                     format: 'iife',
                     file: dep.watch,
                     name: dep.name,
