@@ -26,7 +26,10 @@ module.exports = (async () => {
 
     test.beforeAll(() => {
         console.log('Spawning node processes with --inspect...');
-        processes = ports.map(port => spawn('node', [`--inspect=${port}`, 'tests/hello.js']));
+        processes = [
+            spawn('node', [`--inspect=9229`, 'tests/hello.js']),
+            ...ports.map(port => spawn('node', [`--inspect=${port}`, 'tests/hello.js']))
+        ]
         console.log(processes.map(process => process.pid + ' ' + process.spawnargs))
         console.log(`Spawned ${processes.length} processes`, processes.map(process => process.pid));
     });
