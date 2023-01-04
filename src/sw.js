@@ -78,14 +78,38 @@ function resetInterval(func, timeout) {
     );
     await hydrateState();
     cache.checkInterval = resetInterval(() => {
-        let home;
-        Object.values(state.sessions).filter((session) => session.auto && session.socket).map((session) => {
-            const { host, port } = session.socket;
+        let home,
+            openedRemoteTabSessions = {};
 
-            if (host === settings.host && port === settings.port) {
-                home = true;
+        // first handle tab sessions
+        Object.entries(state.sessions).filter(kv => !kv[0].match(':')).forEach((kv) => {
+            const tabSession = kv[1];
+
+            if (tabSession.auto && tabSession.socket) {
+                const { host, port } = tabSession.socket;
+
+                if (host === settings.host && port === settings.port) {
+                    home = true;
+                }
+                // if it's a remote session then track it for the next loop
+                if (tabSession.socket?.uuid) {
+                    openedRemoteTabSessions[tabSession.socket.uuid] = tabSession;
+                }
+                openTab(host, port);
             }
-            openTab(host, port)
+        });
+        // then handle remote sessions that have not yet been opened thus there is no tab session
+        Object.entries(state.sessions).filter(kv => kv[0].match(':')).forEach((kv) => {
+            const remoteSessionId = kv[0],
+                remoteSession = kv[1];
+
+            if (!openedRemoteTabSessions[remoteSessionId.split(':')[0]] && remoteSession.auto && remoteSession?.tunnelSocket?.socket) {
+                const remoteMetadata = {
+                    cid: remoteSession.tunnelSocket.cid,
+                    uuid: remoteSession.uuid,
+                }
+                openTab(remoteMetadata);
+            }
         });
         // if the home tab socket hasn't been added to the sessions yet
         if (!home && settings.auto) {

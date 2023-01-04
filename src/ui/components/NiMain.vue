@@ -301,7 +301,10 @@ async function setInfo(session) {
     );
 }
 function updateUI(sessions) {
-    /** combine all these reduce functions */
+    /** 1. combine all these reduce functions
+     *  2. there are tab sessions and non-tab sessions. I think here is where tab sessions should take precedence.
+     *     So tab session data should be copied over to the non-tab (remote sessions) in this function.
+    */
     tooltips.value = Object.keys(sessions).reduce((acc, sessionId) => {
         return sessionId ? { ...acc, [sessionId]: 0 } : acc;
     }, {});
@@ -319,6 +322,8 @@ function updateUI(sessions) {
         },
         {}
     );
+    // copy the tab session data to non-tab sessions (auto, ...)
+    
     Object.values(sessions)
         .filter((session) => session.tunnelSocket)
         .map((session) => setInfo(session));
