@@ -113,7 +113,6 @@ module.exports = (async () => {
             await inputs.port.clear();
             await inputs.port.type(`${ports[0]}`);
             await inputs.host.press('Enter');
-            console.log('outside loop ', loop);
             for (let loop in Object.keys(Array.from(new Array(100)))) {
                 console.log('loop ', loop);
                 await context.waitForEvent('page');
