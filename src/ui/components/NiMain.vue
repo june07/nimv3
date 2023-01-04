@@ -136,7 +136,7 @@
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!session.id" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!!session.tabSession" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabSession.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -254,6 +254,7 @@ watch(asyncRemotes, (currentValue) => {
                         uuid: remote.uuid,
                         tunnelSocket: remote.tunnelSockets?.[connection.pid],
                         connection,
+                        tabSession: Object.values(sessions.value).find(session => session?.socket?.host?.uuid === connection.uuid)
                     },
                 }),
                 {}
@@ -422,9 +423,11 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
     /** if the session matches the home tabs current auto setting, then change it as well...
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
+     * 
+     *  !sessionId to ensure it's only for local sessions.
      */
     const match = id.match(/(auto)-.*?|(remove)-.*/);
-    if (tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
+    if (!sessionId && tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
         inputs.value.auto = id.match(/remove/)
             ? false
             : inputs.value.session.auto[sessionId];
