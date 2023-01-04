@@ -106,7 +106,9 @@ module.exports = (async () => {
             let successes = 0;
 
             await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-            await context.waitForEvent('page');
+            // await context.waitForEvent('page');
+            // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
+            await new Promise(resolve => setTimeout(resolve, 3000));
             await page.bringToFront();
             await inputs.port.clear();
             await inputs.port.type(`${ports[0]}`);
