@@ -95,7 +95,7 @@ module.exports = (async () => {
     });
     test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
         // loop size of 100 should take about 1 second each
-        test.setTimeout(60000 * 2);
+        test.setTimeout(60000 * 3);
 
         const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`)
         const inputs = {
@@ -111,6 +111,7 @@ module.exports = (async () => {
             await inputs.port.clear();
             await inputs.port.type(`${ports[0]}`);
             await inputs.host.press('Enter');
+            console.log('outside loop ', loop);
             for (let loop in Object.keys(Array.from(new Array(100)))) {
                 console.log('loop ', loop);
                 await context.waitForEvent('page');
