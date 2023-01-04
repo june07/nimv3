@@ -93,7 +93,7 @@ module.exports = (async () => {
             }
         });
     });
-    test.only('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
+    test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
         // loop size of 100 should take about 1 second each
         test.setTimeout(60000 * 2);
 
@@ -114,7 +114,6 @@ module.exports = (async () => {
             await inputs.port.type(`${ports[0]}`);
             await inputs.host.press('Enter');
             for (let loop in Object.keys(Array.from(new Array(100)))) {
-                console.log('loop ', loop);
                 await context.waitForEvent('page');
                 const pages = context.pages().filter(page => page.url().match(re));
                 expect(pages.length).toBe(1);
