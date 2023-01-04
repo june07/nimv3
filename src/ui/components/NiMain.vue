@@ -268,6 +268,7 @@ watch(asyncRemotes, (currentValue) => {
             id: value.uuid,
         })
     );
+    tabs.value.sort((a, b) => a.name < b.name ? -1 : 0);
     sessions.value = { ...sessions.value, ...remoteSessions };
     //updateUI(sessions.value);
 });
