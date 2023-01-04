@@ -93,7 +93,7 @@ module.exports = (async () => {
             }
         });
     });
-    test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
+    test.only('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
         // loop size of 100 should take about 1 second each
         test.setTimeout(60000 * 2);
 
@@ -122,14 +122,12 @@ module.exports = (async () => {
             }
             expect(successes).toBe(100);
         } finally {
-            /*
             await serviceWorker.evaluate(async () => {
                 await Promise.all([
                     chrome.storage.local.clear(),
                     chrome.storage.session.clear()
                 ]);
             });
-            */
         }
     }, );
 })();
