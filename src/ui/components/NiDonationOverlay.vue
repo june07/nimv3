@@ -1,9 +1,9 @@
 <template>
     <v-overlay class="d-flex justify-center align-center">
         <v-card color="rgba(255,255,255,0.95)" width="790" class="pt-4 px-4">
-            <v-card-title class="text-uppercase font-weight-bold">{{ i18nString('donationModalHeader') }}!</v-card-title>
-            <v-card-subtitle>Help make my open source career possible.</v-card-subtitle>
-            <v-card-text class="text-body-1">
+            <v-card-title class="text-uppercase font-weight-bold" :class="theme === 'dark' ? 'text-black' : ''">{{ i18nString('donationModalHeader') }}!</v-card-title>
+            <v-card-subtitle :class="theme === 'dark' ? 'text-black' : ''">Help make my open source career possible.</v-card-subtitle>
+            <v-card-text class="text-body-1" :class="theme === 'dark' ? 'text-black' : ''">
                 You can help and directly support this project using the methods below.
             </v-card-text>
             <v-row class="d-flex align-center">
@@ -69,11 +69,11 @@
             </v-row>
             <v-row>
                 <v-col cols="6">
-                    <div class="text-h5 text-center text-uppercase">{{ i18nString('thankyou') }}🙏</div>
+                    <div class="text-h5 text-center text-uppercase" :class="theme === 'dark' ? 'text-black' : ''">{{ i18nString('thankyou') }}🙏</div>
                 </v-col>
             </v-row>
             <v-card-actions class="d-flex justify-end pb-0">
-                <v-btn variant="plain" density="compact" @click="$emit('close')">close</v-btn>
+                <v-btn variant="plain" density="compact" @click="$emit('close')" >close</v-btn>
             </v-card-actions>
         </v-card>
     </v-overlay>
@@ -93,6 +93,10 @@ import { inject } from "vue";
 import imageGithub from '/image/GitHub_Logo.png';
 import imagePaypalSmall from '/image/PP_logo_h_100x26.png';
 import imagePaypalLarge from '/image/PP_logo_h_150x38.png';
+
+const props = defineProps({
+    theme: String
+});
 
 function clickHandler(event) {
     const { name } = event.target;

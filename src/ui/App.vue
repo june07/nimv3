@@ -31,7 +31,7 @@
                 </share-menu>
             </div>
         </v-footer>
-        <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false">overlay</ni-donation-overlay>
+        <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false" :theme="theme">overlay</ni-donation-overlay>
     </v-app>
 </template>
 <style scoped>
