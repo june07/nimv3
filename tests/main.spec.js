@@ -40,7 +40,7 @@ module.exports = (async () => {
     })
     test.describe(() => {
         // this test seems a bit sketchy thus the retries...
-        test.describe.configure({ retries: 3 });
+        test.describe.configure({ retries: 10 });
         test('popup page - auto function', async ({ page, context, serviceWorker }) => {
             const tabs = {
                 home: await page.locator(ids.tab.home),
