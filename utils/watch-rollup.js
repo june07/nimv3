@@ -14,43 +14,44 @@ const watchFiles = deps.map(dep => dep.watch);
 
 console.log({watchFiles});
 
-const watcher = chokidar.watch(watchFiles, {
-    persistent: true
-});
+try {
+    const watcher = chokidar.watch(watchFiles, {
+        persistent: true
+    });
 
-watcher.on('ready', async () => {
-    build();
-});
+    watcher.on('ready', async () => {
+        build();
+    });
 
-watcher.on('unlink', async () => {
-    build();
-});
+    watcher.on('unlink', async () => {
+        build();
+    });
+} catch (error) {
+    console.error(error);
+}
 
 async function build() {
-    try {
-        watchFiles.map(async (path) => {
-            if (!fs.existsSync(path)) {
-                const dep = deps.find((dep) => dep.watch === path);
+    watchFiles.map(async (path) => {
+        if (!fs.existsSync(path)) {
+            const dep = deps.find((dep) => dep.watch === path);
 
-                console.log(`rolling up ${path}...`);
-                
-                try {
-                    const bundle = await rollup({
-                        input: dep.input,
-                    });
-                    const { output } = await bundle.generate({
-                        compact: true,
-                        format: 'iife',
-                        file: dep.watch,
-                        name: dep.name,
-                    });
-                    fs.writeFileSync(dep.watch, output[0].code);
-                } catch (error) {
-                    console.error(error);
-                }
+            console.log(`rolling up ${path}...`);
+            
+            try {
+                const bundle = await rollup({
+                    input: dep.input,
+                });
+                const { output } = await bundle.generate({
+                    compact: true,
+                    format: 'iife',
+                    file: dep.watch,
+                    name: dep.name,
+                });
+                fs.writeFileSync(dep.watch, output[0].code);
+            } catch (error) {
+                console.error(error);
             }
-        });
-    } catch (error) {
-        console.error(error);
-    }
+        }
+    });
+    
 }

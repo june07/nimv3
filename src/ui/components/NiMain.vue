@@ -81,13 +81,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :id="`auto-localhost-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
+                            <v-switch small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-localhost-${id}`, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn size="x-small" :id="`devtools-localhost-${id}`" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" :id="`remove-localhost-${id}`" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-localhost-${id}`, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -130,13 +130,13 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :id="`auto-remote-${id}`" :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="event => clickHandlerSessionUpdate(event, session.tabId, id)">
+                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, session.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="session?.tabSession" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -233,7 +233,6 @@ watch(sessions, (currentValue) => {
 watch(asyncSessions, (currentValue) => {
     if (!currentValue) return;
     sessions.value = currentValue;
-    //updateUI(sessions.value);
 });
 watch(asyncRemotes, (currentValue) => {
     if (!currentValue) return;
@@ -270,7 +269,6 @@ watch(asyncRemotes, (currentValue) => {
     );
     tabs.value.sort((a, b) => a.name < b.name ? -1 : 0);
     sessions.value = { ...sessions.value, ...remoteSessions };
-    //updateUI(sessions.value);
 });
 if (chrome.runtime) {
     workerPort = chrome.runtime.connect(extensionId);
@@ -329,7 +327,14 @@ function updateUI(sessions) {
         .filter((session) => session.tunnelSocket)
         .map((session) => setInfo(session));
 
-    Object.entries(sessions.value).filter(kv => !kv[0].match(/:/)).forEach(kvLocal => sessions[kvLocal[0]].tabSession = Object.entries(sessions.value).filter(kvRemote => kvRemote[0].match(/:/)).find(kvRemote => kvLocal.info === kvRemote.info))
+    Object.entries(sessions).filter(kv => !kv[0].match(/:/) && kv[1]?.socket?.host && typeof kv[1].socket.host === 'object').forEach(kvLocal => {
+        const remoteSessions = Object.entries(sessions).filter(kvRemote => kvRemote[0].match(/:/));
+        const remoteSessionId = remoteSessions.find(kvRemote => kvLocal.info === kvRemote.info)?.[0];
+        if (remoteSessionId) {
+            sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
+            console.log(sessions[remoteSessionId])
+        }
+    })
 }
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
@@ -416,8 +421,7 @@ async function devtoolsButtonHandler(session) {
     console.log(response);
 }
 
-function clickHandlerSessionUpdate(event, tabId, sessionId) {
-    const { id } = event.target;
+function clickHandlerSessionUpdate(action, tabId, sessionId) {
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
     let value;
 
@@ -427,14 +431,21 @@ function clickHandlerSessionUpdate(event, tabId, sessionId) {
      * 
      *  !sessionId to ensure it's only for local sessions.
      */
-    const match = id.match(/(auto)-.*?|(remove)-.*/);
+    const match = action.match(/(auto)-.*?|(remove)-.*/);
     if (!sessionId && tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
-        inputs.value.auto = id.match(/remove/)
+        // update auto setting in localhost tab
+        inputs.value.auto = action.match(/remove/)
             ? false
             : inputs.value.session.auto[sessionId];
         updateSetting('auto', inputs.value.auto);
+    } else if (sessionId && tabId && match) {
+        // update auto setting in remote tabs
+        if (action.match(/remove/)) {
+            inputs.value.session.auto[tabId] = false;
+            inputs.value.session.auto[sessionId] = false;
+        }
     }
-    if (id.match(/auto/)) {
+    if (action.match(/auto/)) {
         value = { ...sessions.value[tabId || sessionId], [match[1]]: inputs.value.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
