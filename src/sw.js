@@ -36,7 +36,7 @@ let cache = {
     highlighted: {},
     removed: {},
     messagePort: undefined,
-    info: {}
+    info: {},
 };
 let state = {};
 
@@ -138,7 +138,7 @@ async function getInfo(host, port) {
     } : defaultOptions
     try {
         const response = await fetch(url, options);
-        console.log('response status: ', response.status);
+        // console.log('response status: ', response.status);
         if (!`${response.status}`.match(/2[0-9]{2}/)) return;
         const info = await response.json();
         // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
@@ -316,7 +316,7 @@ function updateTabUI(tabId) {
         (injectionResults) => {
             if (!injectionResults) return;
             for (const frameResult of injectionResults) {
-                console.log('Frame Title: ' + frameResult.result);
+                // console.log('Frame Title: ' + frameResult.result);
             }
         });
 }
@@ -372,6 +372,13 @@ function setDevtoolsURL(debuggerMetadata) {
     /** Deno is still using the legacy chrome-devtools:// scheme.  See https://github.com/denoland/deno/pull/7659 */
     settings.localDevtoolsOptions[0].url = settings.localDevtoolsOptions[0].url.replace(/chrome-devtools:\/\//, 'devtools://');
 }
+function getRemoteSessionIdFromTabSessionId(tabSessionId) {
+    const tabSession = state.sessions[tabSessionId];
+    const remoteSessions = Object.entries(state.sessions).filter(kv => kv[0].match(/:/));
+    
+    // thought about comparing the socket data but that may be more ephemeral
+    return remoteSessions.find(kv => JSON.stringify(tabSession.info) === JSON.stringify(kv[1].info))?.[0];
+}
 // This function can't be async... should according to the docs but ran into issues! Worked fine on the Vue side, but not in the popup window.
 function messageHandler(request, sender, reply) {
     switch (request.command) {
@@ -394,30 +401,46 @@ function messageHandler(request, sender, reply) {
         case 'getSessions': reply(state.sessions); break;
         case 'getRemotes': reply(state.remotes); break;
         case 'commit':
-            const { store, obj, key, value } = request;
-            let update;
+            const { store, obj, key, keys, value, values } = request;
 
             // pay attention to the fact that "sessions" below is different from the chrome "session" store!
             if (obj === 'sessions') {
-                update = value ? { ...state[obj][key], ...value } : undefined;
-                if (!update) {
+                let updates = keys && values
+                    ? keys.map(key => ({
+                        key,
+                        value: { ...state[obj][key], ...values[key] }
+                    }))
+                    : undefined;
+                if (!updates) {
+                    const tabId = keys[0],
+                        remoteSessionId = keys[1];
                     // delete state[obj][key];
-                    cache.forceRemoveSession[key] = true;
-                    chrome.tabs.remove(key).then(() => {
+                    // tabId key must always be first and is only needed for this cache because it's only for tabs
+                    // must turn these off immediately since the sessions themselves may linger.
+                    state.sessions[tabId].auto = false;
+                    state.sessions[remoteSessionId].auto = false;
+                    cache.forceRemoveSession[tabId] = true;
+                    chrome.tabs.remove(tabId).then(() => {
                         async.until(
-                            (cb) => cb(null, cache.removed[key]),
+                            (cb) => cb(null, cache.removed[tabId]),
                             (next) => setTimeout(next, 500),
                             reply
                         );
                     }).catch(error => {
-                        debugger
+                        console.error(error);
                     });
                 } else {
-                    state[obj][key] = update;
-                    chrome.storage[store].set({ [obj]: state[obj] }).then(() => reply(update));
+                    Promise.all(updates.map(update => {
+                        state[obj][update.key] = update.value;
+                        const p = new Promise(resolve => chrome.storage[store].set({ [obj]: state[obj] }).then(() => resolve({ id: update.key, value: update })));
+                        return p;
+                    })).then((updates) => {
+                        updates
+                        reply(updates)
+                    });
                 }
             } else if (obj === 'settings') {
-                update = { [key]: value };
+                let update = { [key]: value };
                 settings.update(update).then(() => reply(update));
             }
             break;
@@ -449,7 +472,17 @@ function messageHandler(request, sender, reply) {
     }
     return true;
 }
-
+function sendMessage(message) {
+    if (cache?.messagePort?.postMessage) {
+        try {
+            cache.messagePort.postMessage(message);
+        } catch (error) {
+            if (error.message.match(/disconnected port/)) {
+                delete cache.messagePort;
+            }
+        }
+    }
+}
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason === 'install') {
         chrome.tabs.create({ url: INSTALL_URL });
@@ -476,7 +509,12 @@ chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     }
 });
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
-    if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) return;
+    if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
+        // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession;
+        // set this so the close button knows the state
+        state.sessions[tabId].closed = true;
+        return;
+    }
     delete cache.forceRemoveSession[tabId];
     delete state.sessions[tabId];
     await chrome.storage.session.set({ sessions: state.sessions });
@@ -485,14 +523,8 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
 });
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
-    if (areaName.match(/session/) && cache?.messagePort?.postMessage) {
-        try {
-            cache.messagePort.postMessage({ command: 'update' });
-        } catch (error) {
-            if (error.message.match(/disconnected port/)) {
-                delete cache.messagePort;
-            }
-        }
+    if (areaName.match(/session/)) {
+        sendMessage({ command: 'update' });
     }
 });
 chrome.commands.onCommand.addListener((command) => {

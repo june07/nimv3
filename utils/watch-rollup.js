@@ -14,21 +14,17 @@ const watchFiles = deps.map(dep => dep.watch);
 
 console.log({watchFiles});
 
-try {
-    const watcher = chokidar.watch(watchFiles, {
-        persistent: true
-    });
+const watcher = chokidar.watch(watchFiles, {
+    persistent: true
+});
 
-    watcher.on('ready', async () => {
-        build();
-    });
+watcher.on('ready', async () => {
+    build();
+});
 
-    watcher.on('unlink', async () => {
-        build();
-    });
-} catch (error) {
-    console.error(error);
-}
+watcher.on('unlink', async () => {
+    build();
+});
 
 async function build() {
     watchFiles.map(async (path) => {

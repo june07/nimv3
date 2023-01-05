@@ -130,7 +130,7 @@
                         </v-col>
                         <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, session.tabId, id)">
+                            <v-switch :disabled="!session.tunnelSocket" name="auto" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, sessions[session.tabSession]?.tabId, id)">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
@@ -198,6 +198,9 @@ const inits = {
     connectionErrorMessage: false,
 };
 let workerPort;
+let cache = {
+    remove: {}
+};
 let tabs = ref([
     { name: "home", id: "home" },
     { name: "localhost", id: "localhost" },
@@ -315,24 +318,21 @@ function updateUI(sessions) {
             return sessionId
                 ? {
                       ...formInputModel,
-                      [sessionId]: !!session.auto,
+                      [sessionId]: cache.remove[sessionId] ? false : !!sessions?.[sessionId]?.auto,
                   }
                 : formInputModel;
         },
         {}
     );
-    // copy the tab session data to non-tab sessions (auto, ...)
-
     Object.values(sessions)
         .filter((session) => session.tunnelSocket)
         .map((session) => setInfo(session));
-
     Object.entries(sessions).filter(kv => !kv[0].match(/:/) && kv[1]?.socket?.host && typeof kv[1].socket.host === 'object').forEach(kvLocal => {
         const remoteSessions = Object.entries(sessions).filter(kvRemote => kvRemote[0].match(/:/));
         const remoteSessionId = remoteSessions.find(kvRemote => kvLocal.info === kvRemote.info)?.[0];
-        if (remoteSessionId) {
+        if (remoteSessionId && !cache.remove[remoteSessionId] && !kvLocal[1].closed) {
             sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
-            console.log(sessions[remoteSessionId])
+            console.log(sessions[remoteSessionId].remove)
         }
     })
 }
@@ -341,7 +341,6 @@ watch(ml11, (currentValue, oldValue) => {
         initConnectionErrorMessage();
     }
 });
-
 function roundedClass(tabId) {
     if (tabId === "home") return "rounded-te-lg";
     if (tabId === tabs.value[tabs.value.length - 1].id) return "rounded-ts-lg";
@@ -423,7 +422,7 @@ async function devtoolsButtonHandler(session) {
 
 function clickHandlerSessionUpdate(action, tabId, sessionId) {
     const re = new RegExp(`https?:\/\/${settings.host}:${settings.port}`);
-    let value;
+    let values;
 
     /** if the session matches the home tabs current auto setting, then change it as well...
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
@@ -433,20 +432,24 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
      */
     const match = action.match(/(auto)-.*?|(remove)-.*/);
     if (!sessionId && tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
-        // update auto setting in localhost tab
-        inputs.value.auto = action.match(/remove/)
-            ? false
-            : inputs.value.session.auto[sessionId];
+        // update auto session and setting in localhost tab
+        values = {
+            [tabId]: { ...sessions.value[tabId], [match[1]]: action.match(/remove/) ? false : inputs.value.session.auto[sessionId] }
+        };
         updateSetting('auto', inputs.value.auto);
-    } else if (sessionId && tabId && match) {
-        // update auto setting in remote tabs
-        if (action.match(/remove/)) {
-            inputs.value.session.auto[tabId] = false;
-            inputs.value.session.auto[sessionId] = false;
+    } else if (sessionId && match) {
+        // update auto session and setting in remote tabs
+        if (tabId && action.match(/remove/)) {
+            cache.remove[tabId] = true;
+            cache.remove[sessionId] = true;
+        } else if (action.match(/auto/)) {
+            values = {
+                [sessionId]: { ...sessions.value[tabId || sessionId], [match[1]]: inputs.value.session[match[1]][sessionId] }
+            };
+            if (tabId) {
+                values[tabId] = { ...sessions.value[sessionId], [match[1]]: inputs.value.session[match[1]][sessionId] }
+            }
         }
-    }
-    if (action.match(/auto/)) {
-        value = { ...sessions.value[tabId || sessionId], [match[1]]: inputs.value.session.auto[sessionId] };
     }
     chrome.runtime.sendMessage(
         extensionId,
@@ -454,15 +457,17 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
             obj: "sessions",
-            key: tabId || sessionId,
-            value,
+            keys: [tabId, sessionId].filter(i => i),
+            values,
         },
-        (response) => {
-            if (!value && !response) {
+        (responses) => {
+            if (!values?.length && !responses?.length) {
                 delete sessions.value[tabId];
+                delete cache.remove[tabId];
+                delete cache.remove[sessionId];
                 console.log(sessions.value);
             } else {
-                sessions.value[tabId || sessionId] = response;
+                responses.forEach((response) => sessions.value[response.id] = response.value);
             }
         }
     );
