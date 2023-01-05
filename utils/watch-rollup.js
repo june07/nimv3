@@ -27,26 +27,30 @@ watcher.on('unlink', async () => {
 });
 
 async function build() {
-    watchFiles.map(async (path) => {
-        if (!fs.existsSync(path)) {
-            const dep = deps.find((dep) => dep.watch === path);
+    try {
+        watchFiles.map(async (path) => {
+            if (!fs.existsSync(path)) {
+                const dep = deps.find((dep) => dep.watch === path);
 
-            console.log(`rolling up ${path}...`);
-            
-            try {
-                const bundle = await rollup({
-                    input: dep.input,
-                });
-                const { output } = await bundle.generate({
-                    compact: true,
-                    format: 'iife',
-                    file: dep.watch,
-                    name: dep.name,
-                });
-                fs.writeFileSync(dep.watch, output[0].code);
-            } catch (error) {
-                console.error(error);
+                console.log(`rolling up ${path}...`);
+                
+                try {
+                    const bundle = await rollup({
+                        input: dep.input,
+                    });
+                    const { output } = await bundle.generate({
+                        compact: true,
+                        format: 'iife',
+                        file: dep.watch,
+                        name: dep.name,
+                    });
+                    fs.writeFileSync(dep.watch, output[0].code);
+                } catch (error) {
+                    console.error(error);
+                }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error(error);
+    }
 }
