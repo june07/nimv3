@@ -73,7 +73,7 @@
                 </v-col>
             </v-row>
             <v-card-actions class="d-flex justify-end pb-0">
-                <v-btn variant="plain" density="compact" @click="$emit('close')" >close</v-btn>
+                <v-btn variant="plain" density="compact" @click="$emit('close')" :class="theme === 'dark' ? 'text-black' : ''">close</v-btn>
             </v-card-actions>
         </v-card>
     </v-overlay>
