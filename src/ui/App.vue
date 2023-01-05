@@ -76,7 +76,7 @@ let loading = reactive({
 });
 function themeHandler() {
     theme.value = theme.value === "light" ? "dark" : "light";
-    updateSetting(theme, theme.value);
+    updateSetting('theme', theme.value);
 }
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
