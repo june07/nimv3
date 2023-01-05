@@ -136,7 +136,7 @@
                                 </template>
                             </v-switch>
                             <v-btn :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :disabled="!!session.tabSession" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session.tabSession.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :disabled="session?.tabSession" :id="`remove-remote-${id}`" size="x-small" color="red" @click="event => clickHandlerSessionUpdate(event, session, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -254,7 +254,6 @@ watch(asyncRemotes, (currentValue) => {
                         uuid: remote.uuid,
                         tunnelSocket: remote.tunnelSockets?.[connection.pid],
                         connection,
-                        tabSession: Object.values(sessions.value).find(session => session?.socket?.host?.uuid === connection.uuid)
                     },
                 }),
                 {}
@@ -325,10 +324,12 @@ function updateUI(sessions) {
         {}
     );
     // copy the tab session data to non-tab sessions (auto, ...)
-    
+
     Object.values(sessions)
         .filter((session) => session.tunnelSocket)
         .map((session) => setInfo(session));
+
+    Object.entries(sessions.value).filter(kv => !kv[0].match(/:/)).forEach(kvLocal => sessions[kvLocal[0]].tabSession = Object.entries(sessions.value).filter(kvRemote => kvRemote[0].match(/:/)).find(kvRemote => kvLocal.info === kvRemote.info))
 }
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
