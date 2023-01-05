@@ -57,8 +57,10 @@ import NiDonationOverlay from "./components/NiDonationOverlay.vue";
 
 const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const i18nString = inject("i18nString");
+const settings = inject("settings");
+const updateSetting = inject("updateSetting");
 const route = ref("main");
-const theme = ref("light");
+const theme = ref(settings.theme || "light");
 const overlays = ref({
     donation: false,
 });
@@ -74,6 +76,7 @@ let loading = reactive({
 });
 function themeHandler() {
     theme.value = theme.value === "light" ? "dark" : "light";
+    updateSetting(theme, theme.value);
 }
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
