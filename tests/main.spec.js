@@ -26,22 +26,26 @@ module.exports = (async () => {
     let processes = [];
 
     test.beforeAll(() => {
-        console.log('Spawning node processes with --inspect...');
-        processes = [
-            spawn('node', [`--inspect=9229`, 'tests/hello.js']),
-            ...ports.map(port => spawn('node', [`--inspect=${port}`, 'tests/hello.js']))
-        ]
-        console.log(processes.map(process => process.pid + ' ' + process.spawnargs))
-        console.log(`Spawned ${processes.length} processes`, processes.map(process => process.pid));
+        function startAllNodeProcesses() {
+            console.log('Spawning node processes with --inspect...');
+            processes = [
+                spawn('node', [`--inspect=9229`, 'tests/hello.js']),
+                ...ports.map(port => spawn('node', [`--inspect=${port}`, 'tests/hello.js']))
+            ]
+            console.log(processes.map(process => process.pid + ' ' + process.spawnargs))
+            console.log(`Spawned ${processes.length} processes`, processes.map(process => process.pid));
+        }
     });
     test.afterAll(() => {
-        console.log('Killing node processes...');
-        const killed = processes.map(process => process.kill()).filter(killed => killed);
-        console.log(`Killed ${killed.length} of ${processes.length}`);
+        function stopAllNodeProcesses() {
+            console.log('Killing node processes...');
+            const killed = processes.map(process => process.kill()).filter(killed => killed);
+            console.log(`Killed ${killed.length} of ${processes.length}`);
+        }
     })
     test.describe(() => {
         // this test seems a bit sketchy thus the retries...
-        test.describe.configure({ retries: 7 });
+        test.describe.configure({ retries: 3 });
         test('popup page - auto function', async ({ page, context, serviceWorker }) => {
             const tabs = {
                 home: await page.locator(ids.tab.home),
@@ -57,10 +61,13 @@ module.exports = (async () => {
                 }
             }
             const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`);
+            let process;
 
             try {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+
+                process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
 
                 // first check that the auto function is working on the default host/port.
                 await Promise.race([
@@ -90,6 +97,7 @@ module.exports = (async () => {
                 // devtools tab should be removed
                 expect(context.pages().filter(page => page.url().match(re)).length).toBe(0);
             } finally {
+                process.kill();
                 await serviceWorker.evaluate(async () => {
                     await Promise.all([
                         chrome.storage.local.clear(),
@@ -106,19 +114,14 @@ module.exports = (async () => {
                 port: await page.locator(ids.inputs.port),
                 host: await page.locator(ids.inputs.host)
             }
+            let process;
+
             try {
                 let successes = 0;
     
-                await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                
-                await Promise.race([
-                    new Promise(resolve => setTimeout(resolve, 7000)),
-                    await until(
-                        async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
-                        async () => await new Promise(resolve => setTimeout(resolve, 50))
-                    )
-                ]);
+                process = spawn('node', [`--inspect=${ports[0]}`, 'tests/hello.js']);
 
+                await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 await page.bringToFront();
                 await inputs.port.clear();
                 await inputs.port.type(`${ports[0]}`);
@@ -132,6 +135,7 @@ module.exports = (async () => {
                 }
                 expect(successes).toBe(10);
             } finally {
+                process.kill();
                 await serviceWorker.evaluate(async () => {
                     await Promise.all([
                         chrome.storage.local.clear(),
