@@ -63,10 +63,13 @@ module.exports = (async () => {
                 await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
 
                 // first check that the auto function is working on the default host/port.
-                await until(
-                    async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
-                    async () => await new Promise(resolve => setTimeout(resolve, 500))
-                );
+                await Promise.race([
+                    new Promise(resolve => setTimeout(resolve, 7000)),
+                    until(
+                        async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
+                        async () => await new Promise(resolve => setTimeout(resolve, 50))
+                    )
+                ]);
 
                 expect(await context.pages().filter(page => page.url().match('localhost:9229'))?.length).toBe(1);
 
@@ -108,10 +111,13 @@ module.exports = (async () => {
     
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 
-                await until(
-                    async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
-                    async () => await new Promise(resolve => setTimeout(resolve, 500))
-                );
+                await Promise.race([
+                    new Promise(resolve => setTimeout(resolve, 7000)),
+                    await until(
+                        async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
+                        async () => await new Promise(resolve => setTimeout(resolve, 50))
+                    )
+                ]);
 
                 await page.bringToFront();
                 await inputs.port.clear();
