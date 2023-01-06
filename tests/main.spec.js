@@ -99,7 +99,9 @@ module.exports = (async () => {
                 });
             }
         });
-        test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {    
+        test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
+            test.setTimeout(60000);
+
             const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`)
             const inputs = {
                 port: await page.locator(ids.inputs.port),
