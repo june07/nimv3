@@ -63,13 +63,9 @@ module.exports = (async () => {
                 await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
 
                 // first check that the auto function is working on the default host/port.
-
-                // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
-                // await new Promise(resolve => setTimeout(resolve, 5000));
-
                 await until(
                     async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
-                    async () => await new Promise(resolve => setTimeout(resolve, 50))
+                    async () => await new Promise(resolve => setTimeout(resolve, 500))
                 );
 
                 expect(await context.pages().filter(page => page.url().match('localhost:9229'))?.length).toBe(1);
@@ -111,11 +107,10 @@ module.exports = (async () => {
                 let successes = 0;
     
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
                 
                 await until(
                     async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
-                    async () => await new Promise(resolve => setTimeout(resolve, 50))
+                    async () => await new Promise(resolve => setTimeout(resolve, 500))
                 );
 
                 await page.bringToFront();
