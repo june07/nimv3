@@ -1,10 +1,10 @@
 const os = require('os');
-const { join } = require('path');
+const { join, basename } = require('path');
 const { test, expect, chromium } = require('@playwright/test');
-const ports = [...new Array(100)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229));
 
 module.exports = {
     expect,
+    basename,
     test: test.extend({
         context: async ({}, use, testInfo) => {
             const pathToExtension = join(__dirname, '../');
@@ -38,7 +38,7 @@ module.exports = {
             await use(background);
         }
     }),
-    randomPort: (number = 1) => ports.splice(0, number),
+    randomPort: (number = 1) => [...new Array(100)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229)).splice(0, number),
     ids: {
         tab: {
             home: 'button[id="tab-home"]',

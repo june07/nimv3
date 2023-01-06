@@ -1,12 +1,12 @@
 const { spawn } = require('child_process');
-const { test, expect, ids, port } = require('./fixtures');
+const { test, expect, ids, basename } = require('./fixtures');
 const { until } = require('async');
 
 module.exports = (async () => {
     test.describe(() => {
         // this test seems a bit sketchy thus the retries...
         test.describe.configure({ retries: 3 });
-        test('popup page - auto function', async ({ page, context, serviceWorker }) => {
+        test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const tabs = {
                 home: await page.locator(ids.tab.home),
                 localhost: await page.locator(ids.tab.localhost)

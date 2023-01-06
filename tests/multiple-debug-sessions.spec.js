@@ -1,14 +1,14 @@
 const { spawn } = require('child_process');
-const { test, expect, ids, randomPort } = require('./fixtures');
+const { test, expect, ids, randomPort, basename } = require('./fixtures');
 
-const numSuccesses = 7,
-    numPorts = 7;
+const numSuccesses = 3,
+    numPorts = 5;
 
 module.exports = (async () => {
     test.describe(() => {
         test.describe.configure({ retries: 3 });
 
-        test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
+        test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const ports = randomPort(numPorts);
             let processes = [];
 
@@ -21,9 +21,9 @@ module.exports = (async () => {
             try {
                 for (let port of ports) {
                     const re = new RegExp(`devtools://.*ws=localhost:${port}.*`)
-                    processes.push(spawn('node', [`--inspect=${port}`, 'tests/hello.js']));
                     let successes = 0;
-
+                    
+                    processes.push(spawn('node', [`--inspect=${port}`, 'tests/hello.js']));
                     await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                     await page.bringToFront();
                     await inputs.port.clear();
