@@ -434,11 +434,16 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
     const match = action.match(/(auto)(-.*)?|(remove)(-.*)?/);
     if (tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
         // update auto session and setting in localhost tab
-        values = {
-            [tabId]: { ...sessions.value[tabId], [match[1]]: action.match(/remove/) ? false : inputs.value.session.auto[sessionId] }
-        };
-        updateSetting('auto', inputs.value.session.auto[sessionId]);
-        // inputs.value.auto = inputs.value.session.auto[sessionId];
+        if (match[1] === 'auto') {
+            values = {
+                [tabId]: { ...sessions.value[tabId], [match[1]]: inputs.value.session.auto[sessionId] }
+            };
+            updateSetting('auto', inputs.value.session.auto[sessionId]);
+        } else {
+            cache.remove[tabId] = true;
+            cache.remove[sessionId] = true;
+            updateSetting('auto', false);
+        }
     } else {
         // update auto session and setting in remote tabs
         if (tabId && action.match(/remove/)) {
