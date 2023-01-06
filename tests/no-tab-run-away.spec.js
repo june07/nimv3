@@ -5,7 +5,7 @@ module.exports = (async () => {
     test.describe(() => {
         test.describe.configure({ retries: 3 });
         const port = randomPort();
-        
+
         test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
             test.setTimeout(60000);
 

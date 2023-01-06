@@ -1,7 +1,7 @@
 const os = require('os');
 const { join } = require('path');
 const { test, expect, chromium } = require('@playwright/test');
-const ports = [...new Array(1)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229));
+const ports = [...new Array(100)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229));
 
 module.exports = {
     expect,
@@ -38,7 +38,7 @@ module.exports = {
             await use(background);
         }
     }),
-    randomPort: () => ports.pop(),
+    randomPort: (number = 1) => ports.splice(0, number),
     ids: {
         tab: {
             home: 'button[id="tab-home"]',
