@@ -237,26 +237,26 @@ const form = ref("form");
 
 let inputs = ref({
     mask: true,
-    newWindow: settings.newWindow,
-    windowFocused: settings.windowFocused,
-    panelWindowType: settings.panelWindowType,
-    windowStateMaximized: settings.windowStateMaximized,
-    tabActive: settings.tabActive,
-    focusOnBreakpoint: settings.focusOnBreakpoint,
-    autoClose: settings.autoClose,
-    group: settings.group,
-    localDevTools: settings.localDevTools,
-    devToolsCompat: settings.devToolsCompat,
+    newWindow: settings.value.newWindow,
+    windowFocused: settings.value.windowFocused,
+    panelWindowType: settings.value.panelWindowType,
+    windowStateMaximized: settings.value.windowStateMaximized,
+    tabActive: settings.value.tabActive,
+    focusOnBreakpoint: settings.value.focusOnBreakpoint,
+    autoClose: settings.value.autoClose,
+    group: settings.value.group,
+    localDevTools: settings.value.localDevTools,
+    devToolsCompat: settings.value.devToolsCompat,
     localDevtoolsOptionsSelectedIndex:
-        settings.localDevtoolsOptionsSelectedIndex,
+        settings.value.localDevtoolsOptionsSelectedIndex,
     localDevtoolsOptionsSelected:
-        settings.localDevtoolsOptions[
-            settings.localDevtoolsOptionsSelectedIndex
+        settings.value.localDevtoolsOptions[
+            settings.value.localDevtoolsOptionsSelectedIndex
         ],
-    notifications: settings.notifications,
-    checkInterval: settings.checkInterval,
-    debugVerbosity: settings.debugVerbosity,
-    maxMessages: settings.diagnosticReports.maxMessages
+    notifications: settings.value.notifications,
+    checkInterval: settings.value.checkInterval,
+    debugVerbosity: settings.value.debugVerbosity,
+    maxMessages: settings.value.diagnosticReports.maxMessages
 });
 const rules = {
     customDevtoolsURL: [
