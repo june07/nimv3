@@ -1,14 +1,14 @@
 const os = require('os');
 const { join } = require('path');
 const { test, expect, chromium } = require('@playwright/test');
-
+const ports = [...new Array(1)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229));
 
 module.exports = {
     expect,
     test: test.extend({
-        context: async ({}, use) => {
+        context: async ({}, use, testInfo) => {
             const pathToExtension = join(__dirname, '../');
-            const userDataDir = `${os.tmpdir()}/test-user-data-dir`;
+            const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
                 headless: false,
                 args: [
@@ -37,5 +37,25 @@ module.exports = {
 
             await use(background);
         }
-    })
+    }),
+    randomPort: () => ports.pop(),
+    ids: {
+        tab: {
+            home: 'button[id="tab-home"]',
+            localhost: 'button[id="tab-localhost"]'
+        },
+        switches: {
+            home: 'input[id="auto"]',
+            localhost: 'input[id^="auto-localhost-"]'
+        },
+        buttons: {
+            localhost: {
+                remove: 'button[id^="remove-localhost-"]'
+            }
+        },
+        inputs: {
+            port: 'input[id="port"]',
+            host: 'input[id="hostname"]'
+        }
+    }
 }

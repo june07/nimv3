@@ -10,7 +10,7 @@
     "build:deps": "rollup -i node_modules/uuid/dist/esm-browser/v5.js --format iife --name uuidv5 --compact --file ./dist/uuidv5.min.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
-    "test": "playwright test main.spec.js --project \"edge@latest@localhost\" \"chrome@latest@localhost\""
+    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\""
   },
   "dependencies": {
     "@auth0/auth0-vue": "^1.0.2",
