@@ -432,7 +432,7 @@ function messageHandler(request, sender, reply) {
                 } else {
                     Promise.all(updates.map(update => {
                         state[obj][update.key] = update.value;
-                        const p = new Promise(resolve => chrome.storage[store].set({ [obj]: state[obj] }).then(() => resolve({ id: update.key, value: update })));
+                        const p = new Promise(resolve => chrome.storage[store].set({ [obj]: state[obj] }).then(() => resolve({ key: update.key, value: update.value })));
                         return p;
                     })).then((updates) => {
                         updates
@@ -512,7 +512,9 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
         // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession;
         // set this so the close button knows the state
-        state.sessions[tabId].closed = true;
+        if (state.sessions[tabId]) {
+            state.sessions[tabId].closed = true;
+        }
         return;
     }
     delete cache.forceRemoveSession[tabId];
