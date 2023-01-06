@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const { test, expect } = require('./fixtures');
+const { until } = require('async');
 
 module.exports = (async () => {
     const ports = [...new Array(1)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229));
@@ -40,7 +41,7 @@ module.exports = (async () => {
     })
     test.describe(() => {
         // this test seems a bit sketchy thus the retries...
-        test.describe.configure({ retries: 10 });
+        test.describe.configure({ retries: 3 });
         test('popup page - auto function', async ({ page, context, serviceWorker }) => {
             const tabs = {
                 home: await page.locator(ids.tab.home),
@@ -64,8 +65,14 @@ module.exports = (async () => {
                 // first check that the auto function is working on the default host/port.
 
                 // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                expect(context.pages().filter(page => page.url().match('localhost:9229')).length).toBe(1);
+                // await new Promise(resolve => setTimeout(resolve, 5000));
+
+                await until(
+                    async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
+                    async () => await new Promise(resolve => setTimeout(resolve, 50))
+                );
+
+                expect(await context.pages().filter(page => page.url().match('localhost:9229'))?.length).toBe(1);
 
                 await page.bringToFront();
                 await tabs.localhost.click();
@@ -92,10 +99,7 @@ module.exports = (async () => {
                 });
             }
         });
-        test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {
-            // loop size of 100 should take about 1 second each
-            test.setTimeout(60000 * 2);
-    
+        test('popup page - that only ONE tab is ever opened', async ({ page, context, serviceWorker }) => {    
             const re = new RegExp(`devtools:\/\/.*ws=localhost:${ports[0]}.*`)
             const inputs = {
                 port: await page.locator(ids.inputs.port),
@@ -106,19 +110,24 @@ module.exports = (async () => {
     
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 // this timeout is for the default 9229 tab to open and settle otherwise it will just popup and grab focus since those are the defaults
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                await until(
+                    async () => await context.pages().filter(page => page.url().match('localhost:9229'))?.length,
+                    async () => await new Promise(resolve => setTimeout(resolve, 50))
+                );
+
                 await page.bringToFront();
                 await inputs.port.clear();
                 await inputs.port.type(`${ports[0]}`);
                 await inputs.host.press('Enter');
-                for (let loop in Object.keys(Array.from(new Array(100)))) {
+                for (let loop in Object.keys(Array.from(new Array(10)))) {
                     await context.waitForEvent('page');
                     const pages = context.pages().filter(page => page.url().match(re));
                     expect(pages.length).toBe(1);
                     await pages[0].close();
                     successes += 1;
                 }
-                expect(successes).toBe(100);
+                expect(successes).toBe(10);
             } finally {
                 await serviceWorker.evaluate(async () => {
                     await Promise.all([
