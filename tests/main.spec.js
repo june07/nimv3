@@ -4,7 +4,6 @@ const { until } = require('async');
 
 module.exports = (async () => {
     test.describe(() => {
-        // this test seems a bit sketchy thus the retries...
         test.describe.configure({ retries: 3 });
         test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const tabs = {
@@ -21,13 +20,11 @@ module.exports = (async () => {
                 }
             }
             const re = new RegExp(`devtools:\/\/.*ws=localhost:9229.*`);
-            let process;
-
             try {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
 
-                process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
+                const process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
 
                 // first check that the auto function is working on the default host/port.
                 await Promise.race([
@@ -56,8 +53,8 @@ module.exports = (async () => {
 
                 // devtools tab should be removed
                 expect(context.pages().filter(page => page.url().match(re)).length).toBe(0);
-            } finally {
                 process.kill();
+            } finally {
                 await serviceWorker.evaluate(async () => {
                     await Promise.all([
                         chrome.storage.local.clear(),
