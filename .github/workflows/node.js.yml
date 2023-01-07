@@ -110,5 +110,4 @@ jobs:
     - name: Upload zip artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ env.ZIP_NAME }}.zip
         path: ${{ env.ZIP_NAME }}.zip
