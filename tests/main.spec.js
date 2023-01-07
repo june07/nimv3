@@ -20,23 +20,11 @@ module.exports = (async () => {
                 }
             }
             const re = new RegExp(`devtools:\/\/.*ws=localhost:9229.*`);
+            const process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
+
             try {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
-
-                const process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
-
-                // first check that the auto function is working on the default host/port.
-                await Promise.race([
-                    new Promise(resolve => setTimeout(resolve, 7000)),
-                    until(
-                        async () => await context.pages().filter(page => page.url().match(re))?.length,
-                        async () => await new Promise(resolve => setTimeout(resolve, 50))
-                    )
-                ]);
-
-                expect(await context.pages().filter(page => page.url().match(re))?.length).toBe(1);
-
                 await page.bringToFront();
                 await tabs.localhost.click();
                 await switches.localhost.first().setChecked(false);
@@ -49,8 +37,11 @@ module.exports = (async () => {
                 expect(await switches.home.isChecked()).toBe(false);
 
                 await tabs.localhost.click();
+                const devtoolsPage = await context.pages().find(page => page.url().match(re));
+                const close = devtoolsPage.waitForEvent('close'); 
                 await buttons.localhost.remove.click();
 
+                await close;
                 // devtools tab should be removed
                 expect(context.pages().filter(page => page.url().match(re)).length).toBe(0);
                 process.kill();

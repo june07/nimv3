@@ -17,14 +17,13 @@ module.exports = {
                 ],
                 devtools: true,
                 screen: {
-                    width: 1200,
-                    height: 1600
+                    width: 800,
+                    height: 600
                 },
                 viewport: {
-                    width: 1200,
-                    height: 1600
+                    width: 800,
+                    height: 600
                 },
-                slowMo: 500
             });
             await use(context);
             await context.close();
