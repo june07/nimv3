@@ -39,6 +39,10 @@ module.exports = {
     }),
     randomPort: (number = 1) => [...new Array(100)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229)).splice(0, number),
     ids: {
+        theme: {
+            dark: '.v-application.v-theme--dark',
+            light: '.v-application.v-theme--light',
+        },
         tab: {
             home: 'button[id="tab-home"]',
             localhost: 'button[id="tab-localhost"]'
@@ -48,6 +52,7 @@ module.exports = {
             localhost: 'input[id^="auto-localhost-"]'
         },
         buttons: {
+            theme: 'button[id="theme"]',
             localhost: {
                 remove: 'button[id^="remove-localhost-"]'
             }
