@@ -1,9 +1,11 @@
 const os = require('os');
+const fs = require('fs');
 const { join, basename } = require('path');
 const { test, expect, chromium } = require('@playwright/test');
 
 module.exports = {
     expect,
+    appName: JSON.parse(fs.readFileSync(join(__dirname, '../_locales/en/messages.json'), 'utf-8')).appName.message,
     basename,
     test: test.extend({
         context: async ({}, use, testInfo) => {

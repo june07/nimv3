@@ -1,4 +1,4 @@
-const { test, expect, ids, basename } = require('./fixtures');
+const { test, expect, ids, basename, appName } = require('./fixtures');
 
 module.exports = (async () => {
     test.describe(() => {
@@ -9,7 +9,7 @@ module.exports = (async () => {
 
             await test.step('theme button should work to change theme dark', async () => {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+                await expect(page.locator('body')).toContainText(appName, { useInnerText: true });
                 await page.bringToFront();
 
                 // default theme is light
@@ -22,7 +22,7 @@ module.exports = (async () => {
             });
             await test.step('theme should persist', async () => {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+                await expect(page.locator('body')).toContainText(appName, { useInnerText: true });
                 await page.bringToFront();
 
                 // theme should be dark
@@ -30,7 +30,7 @@ module.exports = (async () => {
             });
             await test.step('theme button should work to change theme back to light', async () => {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+                await expect(page.locator('body')).toContainText(appName, { useInnerText: true });
                 await page.bringToFront();
                 await buttons.theme.click();
 

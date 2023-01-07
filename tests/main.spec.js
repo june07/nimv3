@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-const { test, expect, ids, basename } = require('./fixtures');
+const { test, expect, ids, basename, appName } = require('./fixtures');
 const { until } = require('async');
 
 module.exports = (async () => {
@@ -24,7 +24,7 @@ module.exports = (async () => {
 
             try {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                await expect(page.locator('body')).toContainText('Node.js V8 --inspector Manager (NiM)', { useInnerText: true });
+                await expect(page.locator('body')).toContainText(appName, { useInnerText: true });
                 await page.bringToFront();
                 await tabs.localhost.click();
                 await switches.localhost.first().setChecked(false);
