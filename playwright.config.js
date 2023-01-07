@@ -2,6 +2,7 @@
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
+  reporter: process.env.CI ? 'list' : 'list',
   use: {
     headless: false,
     ignoreHTTPSErrors: true,
