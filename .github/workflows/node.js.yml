@@ -89,7 +89,7 @@ jobs:
       with:
         path: |
           dist
-        key: nim-cache-build-${{ GITHUB_SHA }}
+        key: nim-cache-build-${{ github.event.push.head.sha }}
     - run: npm ci --legacy-peer-deps
 
     - name: Build
