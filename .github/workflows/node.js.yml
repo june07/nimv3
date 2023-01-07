@@ -101,14 +101,14 @@ jobs:
       shell: bash
 
     - name: Set zip name
-      run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6).zip" >> $GITHUB_ENV
+      run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
     - name: Zip
-      run: zip $ZIP_NAME dist src/*.js manifest.json _locales
+      run: zip ${ZIP_NAME}.zip dist src/*.js manifest.json _locales
       shell: bash
 
     - name: Upload zip artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ env.ZIP_NAME }}
-        path: ${{ env.ZIP_NAME }}
+        name: ${{ env.ZIP_NAME }}.zip
+        path: ${{ env.ZIP_NAME }}.zip
