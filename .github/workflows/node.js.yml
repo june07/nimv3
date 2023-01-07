@@ -107,5 +107,5 @@ jobs:
     - name: Upload zip artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ GITHUB_SHA }}.zip
-        path: ${{ GITHUB_SHA }}.zip
+        name: ${{ github.event.push.head.sha }}.zip
+        path: ${{ github.event.push.head.sha }}.zip
