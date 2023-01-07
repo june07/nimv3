@@ -61,7 +61,7 @@
     ],
     "host_permissions": ["<all_urls>"],
     "externally_connectable": {
-        "matches": ["*://*.brakecode.com/*"]
+        "matches": ["*://*.june07.com/*", "*://*.brakecode.com/*"]
     },
     "short_name": "__MSG_appShortName__",
     "version_name": "0.0.0"
