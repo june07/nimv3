@@ -4,7 +4,7 @@
             <v-btn variant="plain" density="compact" icon="close" v-if="route !== 'main'" @click="route = 'main'"></v-btn>
             <v-spacer></v-spacer>
             <span class="mx-8">v0.0.0</span>
-            <v-btn variant="plain" size="x-small" :icon="theme === 'light' ? 'light_mode' : 'dark_mode'" @click="themeHandler"></v-btn>
+            <v-btn variant="plain" size="x-small" id="theme" :icon="theme === 'light' ? 'light_mode' : 'dark_mode'" @click="themeHandler"></v-btn>
             <v-avatar v-if="isAuthenticated" size="x-small">
                 <v-img :src="user?.picture" :alt="user?.name"></v-img>
             </v-avatar>
@@ -60,7 +60,7 @@ const i18nString = inject("i18nString");
 const settings = inject("settings");
 const updateSetting = inject("updateSetting");
 const route = ref("main");
-const theme = ref(settings.theme || "light");
+const theme = ref(settings.value.theme || "light");
 const overlays = ref({
     donation: false,
 });
