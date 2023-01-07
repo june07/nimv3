@@ -10,9 +10,8 @@ module.exports = (async () => {
 
         test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const ports = randomPort(numPorts);
-            let processes = [];
 
-            test.setTimeout(60000 * numPorts);
+            test.setTimeout(15000 * numPorts);
 
             const inputs = {
                 port: await page.locator(ids.inputs.port),
@@ -23,7 +22,7 @@ module.exports = (async () => {
                     const re = new RegExp(`devtools://.*ws=localhost:${port}.*`)
                     let successes = 0;
                     
-                    processes.push(spawn('node', [`--inspect=${port}`, 'tests/hello.js']));
+                    const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
                     await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                     await page.bringToFront();
                     await inputs.port.clear();
@@ -40,9 +39,9 @@ module.exports = (async () => {
                         successes += 1;
                     }
                     expect(successes).toBe(numSuccesses);
+                    process.kill();
                 }
             } finally {
-                processes.map(process => process.kill());
                 await serviceWorker.evaluate(async () => {
                     await Promise.all([
                         chrome.storage.local.clear(),
