@@ -66,3 +66,46 @@ jobs:
 
     - run: npx playwright install-deps
     - run: xvfb-run npm test
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+        
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Cache build files
+      uses: actions/cache@v2
+      id: build-cache
+      with:
+        path: |
+          dist
+        key: nim-cache-build-${{ github.event.push.head.sha }}
+    - run: npm ci --legacy-peer-deps
+
+    - name: Build
+      if: steps.build-cache.outputs.cache-hit != 'true'
+      run: npm run build --if-present
+    
+    - name: Update manifest
+      run: ./scripts/updateManifest.sh
+      shell: bash
+
+    - name: Zip
+      run: zip ${github.event.push.head.sha}.zip dist src/*.js manifest.json _locales
+      shell: bash
+
+    - name: Upload zip artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${github.event.push.head.sha}.zip
+        path: ${github.event.push.head.sha}.zip
