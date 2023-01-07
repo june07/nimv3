@@ -89,7 +89,7 @@ jobs:
       with:
         path: |
           dist
-        key: nim-cache-build-${{ github.event.push.head.sha }}
+        key: nim-cache-build-${{ GITHUB_SHA }}
     - run: npm ci --legacy-peer-deps
 
     - name: Build
@@ -101,11 +101,11 @@ jobs:
       shell: bash
 
     - name: Zip
-      run: zip ${github.event.push.head.sha}.zip dist src/*.js manifest.json _locales
+      run: zip ${GITHUB_SHA}.zip dist src/*.js manifest.json _locales
       shell: bash
 
     - name: Upload zip artifact
       uses: actions/upload-artifact@v2
       with:
-        name: ${github.event.push.head.sha}.zip
-        path: ${github.event.push.head.sha}.zip
+        name: ${GITHUB_SHA}.zip
+        path: ${GITHUB_SHA}.zip
