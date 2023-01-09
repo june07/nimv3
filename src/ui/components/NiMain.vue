@@ -330,10 +330,10 @@ function updateUI(sessions) {
         .map((session) => setInfo(session));
     Object.entries(sessions).filter(kv => !kv[0].match(/:/) && kv[1]?.socket?.host && typeof kv[1].socket.host === 'object').forEach(kvLocal => {
         const remoteSessions = Object.entries(sessions).filter(kvRemote => kvRemote[0].match(/:/));
-        const remoteSessionId = remoteSessions.find(kvRemote => kvLocal.info === kvRemote.info)?.[0];
+        const remoteSessionId = remoteSessions.find(kvRemote => JSON.stringify(kvLocal[1].info) === JSON.stringify(kvRemote[1].info))?.[0];
         if (remoteSessionId && !cache.remove[remoteSessionId] && !kvLocal[1].closed) {
             sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
-            console.log(sessions[remoteSessionId].remove)
+            console.log(sessions[remoteSessionId]);
         }
     })
 }
