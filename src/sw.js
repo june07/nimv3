@@ -54,7 +54,8 @@ async function hydrateState() {
             openTab(foreignTabSessions.socket.host, foreignTabSessions.socket.port);
         })
     }
-    state.sessions = await chrome.storage.session.get('sessions');
+    const sessions = (await chrome.storage.session.get('sessions'))?.sessions;
+    state.sessions = sessions ? { ...sessions } : {};
     await Promise.all([
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
