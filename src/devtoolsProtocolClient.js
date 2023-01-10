@@ -12,13 +12,8 @@
         return promise;
     }
     devtoolsProtocolClient.getSocket = (socketUrl) => {
-        const ws = new WebSocket(socketUrl),
-            socket = devtoolsProtocolClient.parseWebSocketUrl(socketUrl)[2];
-        
-        ws.addEventListener('close', () => {
-            devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[socket]);
-        });
-        return ws;
+        // good info on why catching errors here doesn't work, https://stackoverflow.com/questions/31002592/javascript-doesnt-catch-error-in-websocket-instantiation
+        return new WebSocket(socketUrl);
     }
     devtoolsProtocolClient.closeSocket = (dtpSocket) => {
         if (dtpSocket === undefined) return;
@@ -41,6 +36,15 @@
         };
         const promise = devtoolsProtocolClient.tasks(devtoolsProtocolClient.sockets[socket], options);
         return promise;
+    }
+    devtoolsProtocolClient.addCloseEvent = (dtpSocket, autoClose, tabId) => {
+        dtpSocket.ws.addEventListener('close', () => {
+            devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket]);
+            if (autoClose) {
+                console.log(`removing tabId: ${tabId}...`);
+                chrome.tabs.remove(tabId);
+            }
+        });
     }
     devtoolsProtocolClient.tasks = (socket, options) => {
         const t1 = new Promise(resolve => {
