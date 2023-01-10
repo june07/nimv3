@@ -213,7 +213,8 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             }
         }).filter((session) => session);
         await Promise.all(sessionsWithClosedDebuggerProtocolSockets.map(async (session) => {
-            if (session.autoClose) {
+            // remove sessions if autoClose is set OR there is a new session to replace it.
+            if (session.autoClose || (host === session.socket.host && port == session.socket.port)) {
                 return await chrome.tabs.remove(session.tabId);
             }
         }));
@@ -276,6 +277,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
 function createTabOrWindow(infoURL, url, info, socket) {
     return new Promise(async function (resolve) {
         let webSocketDebuggerURL;
+
         if (infoURL.match(brakecode.PADS_HOST)) {
             webSocketDebuggerURL = url.match(brakecode.REGEXPS['INSPECTOR_WS_URL'])[0].replace('wss=', 'wss://');
         } else {
@@ -297,6 +299,7 @@ function createTabOrWindow(infoURL, url, info, socket) {
                 updateTabUI(tabId);
                 chrome.windows.update(currentWindow.id, { focused: true });
                 const dtpSocket = await dtpSocketPromise;
+                devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tabId);
                 saveSession({ url, infoURL, tabId, info, dtpSocket, socket });
                 resolve(window);
                 amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` });
@@ -308,6 +311,7 @@ function createTabOrWindow(infoURL, url, info, socket) {
             });
             updateTabUI(tab.id);
             const dtpSocket = await dtpSocketPromise;
+            devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tab.id);
             saveSession({ url, infoURL, tabId: tab.id, info, dtpSocket, socket });
             // group tabs
             if (settings.group && state.sessions.length > 0) {
