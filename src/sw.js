@@ -37,6 +37,7 @@ let cache = {
     removed: {},
     messagePort: undefined,
     info: {},
+    timeouts: {}
 };
 let state = {};
 
@@ -257,7 +258,19 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info, { host, port });
     } finally {
-        delete cache.tabs[cacheId];
+        if (cache.timeouts[cacheId]) {
+            return;
+        }
+        /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
+         *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
+         *  show up during the query stage... 
+         */
+        cache.timeouts[cacheId] = setTimeout(() => {
+            if (cache.tabs[cacheId]) {
+                delete cache.tabs[cacheId];
+            };
+            delete cache.timeouts[cacheId];
+        }, 700);
     }
 }
 function createTabOrWindow(infoURL, url, info, socket) {
@@ -376,7 +389,7 @@ function setDevtoolsURL(debuggerMetadata) {
 function getRemoteSessionIdFromTabSessionId(tabSessionId) {
     const tabSession = state.sessions[tabSessionId];
     const remoteSessions = Object.entries(state.sessions).filter(kv => kv[0].match(/:/));
-    
+
     // thought about comparing the socket data but that may be more ephemeral
     return remoteSessions.find(kv => JSON.stringify(tabSession.info) === JSON.stringify(kv[1].info))?.[0];
 }
