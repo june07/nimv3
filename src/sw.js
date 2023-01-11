@@ -6,11 +6,11 @@ importScripts(
     './scripting.js',
     './devtoolsProtocolClient.js',
     '../dist/uuidv5.min.js',
-    '../node_modules/tweetnacl/nacl-fast.min.js',
-    '../node_modules/tweetnacl-util/nacl-util.min.js',
-    '../node_modules/amplitude-js/amplitude.umd.min.js',
-    '../node_modules/async/dist/async.min.js',
-    '../node_modules/socket.io-client/dist/socket.io.min.js'
+    '../dist/nacl-fast.min.js',
+    '../dist/nacl-util.min.js',
+    '../dist/amplitude.umd.min.js',
+    '../dist/async.min.js',
+    '../dist/socket.io.min.js'
 );
 
 amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
