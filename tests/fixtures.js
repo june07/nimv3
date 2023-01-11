@@ -16,7 +16,7 @@ module.exports = {
                 args: [
                     `--disable-extensions-except=${pathToExtension}`,
                     `--load-extension=${pathToExtension}`,
-                    '--disable-setuid-sandbox'
+                    '--no-sandbox'
                 ],
                 devtools: true,
                 screen: {
