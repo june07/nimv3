@@ -9,7 +9,7 @@ module.exports = {
     basename,
     test: test.extend({
         context: async ({}, use, testInfo) => {
-            const pathToExtension = join(__dirname, '../');
+            const pathToExtension = process.env.PATH_TO_EXTENSION || join(__dirname, '../');
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
                 headless: false,
