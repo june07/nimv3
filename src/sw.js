@@ -40,6 +40,7 @@ let cache = {
     timeouts: {}
 };
 let state = {
+    hydrated: false,
     groups: [],
 };
 
@@ -64,6 +65,7 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey)
     ]);
+    state.hydrated = true;
 }
 function resetInterval(func, timeout) {
     if (timeout) {
@@ -413,6 +415,9 @@ function getRemoteSessionIdFromTabSessionId(tabSessionId) {
 // This function can't be async... should according to the docs but ran into issues! Worked fine on the Vue side, but not in the popup window.
 function messageHandler(request, sender, reply) {
     switch (request.command) {
+        case 'hydrated':
+            reply(state.hydrated);
+            break;
         case 'openDevtools':
             const { host, port, manual } = request;
             const remoteMetadata = typeof host === 'object' ? host : undefined;

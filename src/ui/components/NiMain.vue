@@ -163,6 +163,7 @@
 }
 </style>
 <script setup>
+import { until } from 'async';
 import { ref, inject, watch } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
@@ -213,6 +214,10 @@ let inputs = ref({
     autoResumeInspectBrk: settings.value.autoResumeInspectBrk,
 });
 let tooltips = ref({});
+await until(
+    (cb) => chrome.runtime.sendMessage(extensionId, { command: 'hydrated' }, (response) => cb(null, response)),
+    (next) => setTimeout(next, 500)
+); 
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) =>
         chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, (response) =>
