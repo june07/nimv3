@@ -35,7 +35,7 @@
                             <div class="mr-auto ml-2">
                                 <v-switch name="autoResumeInspectBrk" hide-details v-model="inputs.autoResumeInspectBrk" :color="inputs.autoResumeInspectBrk ? 'green' : ''" id="autoResumeSwitch" class="text-no-wrap" @change="update">
                                     <template v-slot:label>
-                                        <span class="text-no-wrap">{{ i18nString('autoSteppingLabel') }}</span>
+                                        <div class="text-no-wrap">{{ i18nString('autoSteppingLabel') }}</div>
                                     </template>
                                 </v-switch>
                             </div>
@@ -61,7 +61,7 @@
                             </div>
                             <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
                                 <template v-slot:activator="{ props }">
-                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000">
+                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
                                         <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
                                         <span class="ml-2">({{ session.infoURL.match(/https?:\/\/([^:]*:[0-9]+)/)[1] }})</span>
                                         <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id }}</span>
@@ -163,7 +163,7 @@
 }
 </style>
 <script setup>
-import { ref, inject, watch, reactive } from "vue";
+import { ref, inject, watch } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
