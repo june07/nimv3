@@ -7,10 +7,10 @@
     "build:dev": "vite build -w --base /dist/ --sourcemap --minify false",
     "build": "npm-run-all --serial build:prod build:deps",
     "build:prod": "vite build --base /dist/ --sourcemap --minify true",
-    "build:deps": "rollup -i node_modules/uuid/dist/esm-browser/v5.js --format iife --name uuidv5 --compact --file ./dist/uuidv5.min.js",
+    "build:deps": "NODE_ENV=production node utils/watch-rollup.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
-    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 2"
+    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\""
   },
   "dependencies": {
     "@auth0/auth0-vue": "^1.0.2",

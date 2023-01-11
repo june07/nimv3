@@ -35,7 +35,7 @@ const watchFiles = deps.map(dep => dep.watch);
 console.log({ watchFiles });
 
 const watcher = chokidar.watch(watchFiles, {
-    persistent: true
+    persistent: process.env.NODE_ENV === 'production' ? false : true
 });
 
 watcher.on('ready', async () => {
