@@ -108,6 +108,32 @@ jobs:
       shell: bash
 
     - name: Upload zip artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         path: ${{ env.ZIP_NAME }}.zip
+  
+  post-package-test:
+    needs: package
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+        
+    steps:
+    - name: Download package
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ env.ZIP_NAME }}.zip
+        path: '/tmp'
+
+    - name: Unzip
+      run: unzip ${{ env.ZIP_NAME }}.zip
+      shell: bash
+      working-directory: /tmp
+
+    - name: Set PATH_TO_EXTENSION env
+      run: echo "PATH_TO_EXTENSION=/tmp" >> $GITHUB_ENV
+
+    - run: npx playwright install-deps
+    - run: PATH_TO_EXTENSION=${PATH_TO_EXTENSION} xvfb-run npm test
