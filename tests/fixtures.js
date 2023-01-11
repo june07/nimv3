@@ -10,6 +10,7 @@ module.exports = {
     test: test.extend({
         context: async ({}, use, testInfo) => {
             const pathToExtension = process.env.PATH_TO_EXTENSION || process.cwd();
+            // very important to separate userDataDir between tests!
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${Date.now()}/${testInfo.title}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
                 headless: false,
