@@ -39,7 +39,9 @@ let cache = {
     info: {},
     timeouts: {}
 };
-let state = {};
+let state = {
+    groups: [],
+};
 
 async function importForeignTabs() {
     return await queryForDevtoolTabs();
@@ -301,6 +303,10 @@ function createTabOrWindow(infoURL, url, info, socket) {
                 const dtpSocket = await dtpSocketPromise;
                 devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tabId);
                 saveSession({ url, infoURL, tabId, info, dtpSocket, socket });
+                // group tabs
+                if (settings.group) {
+                    group(tab.id);
+                }
                 resolve(window);
                 amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` });
             });
@@ -314,8 +320,8 @@ function createTabOrWindow(infoURL, url, info, socket) {
             devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tab.id);
             saveSession({ url, infoURL, tabId: tab.id, info, dtpSocket, socket });
             // group tabs
-            if (settings.group && state.sessions.length > 0) {
-
+            if (settings.group) {
+                group(tab.id);
             }
             resolve(tab);
             amplitude.getInstance().logEvent('Program Event', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` });
@@ -323,6 +329,13 @@ function createTabOrWindow(infoURL, url, info, socket) {
     }).catch((error) => {
         console.error(error);
     })
+}
+function group(tabId) {
+    if (state.groups?.length) {
+        chrome.tabs.group({ tabIds: tabId, groupId: state.groups[0] });
+    } else {
+        chrome.tabs.group({ tabIds: tabId }, (groupId) => state.groups.push(groupId));
+    }
 }
 function updateTabUI(tabId) {
     chrome.scripting.executeScript(
@@ -580,4 +593,11 @@ chrome.notifications.onButtonClicked.addListener(async (_notificationId, buttonI
         chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
         amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
     }
+});
+chrome.tabGroups.onCreated.addListener((tabGroup) => {
+    const updatedTabGroup = {
+        color: 'green',
+        title: 'NiM',
+    }
+    chrome.tabGroups.update(tabGroup.id, updatedTabGroup);
 });

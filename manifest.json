@@ -52,6 +52,7 @@
         "storage",
         "background",
         "tabs",
+        "tabGroups",
         "identity",
         "identity.email",
         "notifications",
