@@ -5,11 +5,11 @@ const { test, expect, chromium } = require('@playwright/test');
 
 module.exports = {
     expect,
-    appName: JSON.parse(fs.readFileSync(join(__dirname, '../_locales/en/messages.json'), 'utf-8')).appName.message,
+    appName: JSON.parse(fs.readFileSync(join(process.cwd(), '_locales/en/messages.json'), 'utf-8')).appName.message,
     basename,
     test: test.extend({
         context: async ({}, use, testInfo) => {
-            const pathToExtension = process.env.PATH_TO_EXTENSION || join(__dirname, '../../');
+            const pathToExtension = process.env.PATH_TO_EXTENSION || process.cwd();
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
                 headless: false,
