@@ -125,14 +125,9 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         path: '/tmp'
-    
-    - name: Unzip
-      run: unzip /tmp/artifact.zip
-      shell: bash
-      working-directory: /tmp
 
     - name: Set PATH_TO_EXTENSION env
-      run: echo "PATH_TO_EXTENSION=/tmp" >> $GITHUB_ENV
+      run: echo "PATH_TO_EXTENSION=/tmp/artifact" >> $GITHUB_ENV
 
     - run: npx playwright install-deps
     - run: PATH_TO_EXTENSION=${PATH_TO_EXTENSION} xvfb-run npm test
