@@ -9,7 +9,7 @@ module.exports = {
     basename,
     test: test.extend({
         context: async ({}, use, testInfo) => {
-            const pathToExtension = process.env.PATH_TO_EXTENSION || process.cwd();
+            const pathToExtension = process.env?.PATH_TO_EXTENSION || process.cwd();
             // very important to separate userDataDir between tests!
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title.replaceAll(' ', '_')}-${testInfo.project.name}-${Date.now()}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
@@ -43,7 +43,7 @@ module.exports = {
     }),
     randomPort: (number = 1) => {
         const ports = [...new Array(10000)].map(arr => Math.floor(Math.random() * (29229 - 19229) + 19229)).splice(0, number)
-        console.log(ports);
+        console.log('random ports: ', ports);
         return ports;
     },
     ids: {
