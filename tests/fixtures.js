@@ -1,6 +1,5 @@
 const os = require('os');
 const fs = require('fs');
-const { nanoid } = require('nanoid');
 const { join, basename } = require('path');
 const { test, expect, chromium } = require('@playwright/test');
 
@@ -12,7 +11,7 @@ module.exports = {
         context: async ({}, use, testInfo) => {
             const pathToExtension = process.env.PATH_TO_EXTENSION || process.cwd();
             // very important to separate userDataDir between tests!
-            const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title.replaceAll(' ', '_')}-${nanoid()}`;
+            const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title.replaceAll(' ', '_')}-${testInfo.project.name}-${Date.now()}`;
             const context = await chromium.launchPersistentContext(userDataDir, {
                 headless: false,
                 args: [
@@ -42,7 +41,11 @@ module.exports = {
             await use(background);
         }
     }),
-    randomPort: (number = 1) => [...new Array(100)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229)).splice(0, number),
+    randomPort: (number = 1) => {
+        const ports = [...new Array(1000)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229)).splice(0, number)
+        console.log(ports);
+        return ports;
+    },
     ids: {
         theme: {
             dark: '.v-application.v-theme--dark',
