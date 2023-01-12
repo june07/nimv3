@@ -10,7 +10,7 @@
     "build:deps": "NODE_ENV=production node utils/watch-rollup.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
-    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --retries 3 --workers 3"
+    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --retries 3 --workers 1"
   },
   "dependencies": {
     "@auth0/auth0-vue": "^1.0.2",
