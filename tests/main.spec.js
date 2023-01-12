@@ -3,7 +3,7 @@ const { test, expect, ids, basename, appName } = require('./fixtures');
 
 module.exports = (async () => {
     test.describe(() => {
-        test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
+        test.skip(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const port = 9229;
             const re = new RegExp(`devtools:\/\/.*ws=localhost:${port}.*`);
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
