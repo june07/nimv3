@@ -4,9 +4,19 @@ const { test, expect, ids, basename, appName } = require('./fixtures');
 module.exports = (async () => {
     test.describe(() => {
         test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
-            const re = new RegExp(`devtools:\/\/.*ws=localhost:9229.*`);
-            const process = spawn('node', [`--inspect=9229`, 'tests/hello.js']);
+            const port = 9229;
+            const re = new RegExp(`devtools:\/\/.*ws=localhost:${port}.*`);
+            const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
 
+            await test.step(`node process should be listening on port ${port}`, async () => await new Promise((resolve) => {
+                let stderr = '';
+                process.stderr.on('data', async (data) => {
+                    stderr += data;
+                    if (Buffer.from(stderr).toString().match(new RegExp(`listening\\son\\sws:\/\/127.0.0.1:${port}`))) {
+                        resolve();
+                    }
+                });
+            }));
             await test.step('popup should load', async () => {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
                 await page.bringToFront();

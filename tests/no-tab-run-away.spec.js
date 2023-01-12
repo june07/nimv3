@@ -11,6 +11,15 @@ module.exports = (async () => {
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
             let successes = 0;
 
+            await test.step(`node process should be listening on port ${port}`, async () => await new Promise((resolve) => {
+                let stderr = '';
+                process.stderr.on('data', async (data) => {
+                    stderr += data;
+                    if (Buffer.from(stderr).toString().match(new RegExp(`listening\\son\\sws:\/\/127.0.0.1:${port}`))) {
+                        resolve();
+                    }
+                });
+            }));
             await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
             await page.bringToFront();
             await (await page.locator(ids.inputs.port)).clear();

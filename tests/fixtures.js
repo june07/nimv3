@@ -42,7 +42,7 @@ module.exports = {
         }
     }),
     randomPort: (number = 1) => {
-        const ports = [...new Array(1000)].map(arr => Math.floor(Math.random() * (19999 - 19229) + 19229)).splice(0, number)
+        const ports = [...new Array(10000)].map(arr => Math.floor(Math.random() * (29229 - 19229) + 19229)).splice(0, number)
         console.log(ports);
         return ports;
     },
