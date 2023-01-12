@@ -130,4 +130,4 @@ jobs:
       run: echo "PATH_TO_EXTENSION=/tmp/artifact" >> $GITHUB_ENV
 
     - run: npx playwright install-deps
-    - run: PATH_TO_EXTENSION=${env.PATH_TO_EXTENSION} xvfb-run npm test
+    - run: PATH_TO_EXTENSION=${{env.PATH_TO_EXTENSION}} xvfb-run npm test
