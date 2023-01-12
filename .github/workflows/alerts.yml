@@ -1,7 +1,8 @@
 name: alerts
-workflow_run:
-  types:
-    - completed
+on:
+  workflow_run:
+    types:
+      - completed
 jobs:
   alert:
     runs-on: ubuntu-latest
