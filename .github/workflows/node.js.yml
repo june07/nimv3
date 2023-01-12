@@ -138,4 +138,4 @@ jobs:
 
     - run: npm ci --legacy-peer-deps
     - run: npx playwright install-deps
-    - run: export PATH_TO_EXTENSION=${{env.PATH_TO_EXTENSION}} && xvfb-run npm test
+    - run: export PATH_TO_EXTENSION=${{env.PATH_TO_EXTENSION}} && xvfb-run npm test:post
