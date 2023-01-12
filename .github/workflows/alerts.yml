@@ -11,8 +11,10 @@ jobs:
     steps:
 
     - name: Call BrakeCODE API
+      env:
+        BRAKECODE_API_KEY: ${{ secrets.BRAKECODE_API_KEY }}
       run: |
         curl -k -L https://8w1i.ngrok-dns.june07.com/api/v1/alert?appId=alerts \
           -H 'Content-Type: application/json' \
-          -H 'x-api-key: { "apikey": "${{ secrets.BRAKECODE_API_KEY }}" }' \
+          -H 'x-api-key: { "apikey": "$BRAKECODE_API_KEY" }' \
           -d '{"message":"workflow completed."}'
