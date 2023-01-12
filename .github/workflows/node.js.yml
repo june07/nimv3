@@ -127,7 +127,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        
+
     - name: Download package
       uses: actions/download-artifact@v3
       with:
@@ -136,5 +136,6 @@ jobs:
     - name: Set PATH_TO_EXTENSION env
       run: echo "PATH_TO_EXTENSION=/tmp/artifact" >> $GITHUB_ENV
 
+    - run: npm ci --legacy-peer-deps
     - run: npx playwright install-deps
     - run: export PATH_TO_EXTENSION=${{env.PATH_TO_EXTENSION}} && xvfb-run npm test
