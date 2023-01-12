@@ -124,9 +124,8 @@ jobs:
     - name: Download package
       uses: actions/download-artifact@v3
       with:
-        name: ${{ env.ZIP_NAME }}.zip
         path: '/tmp'
-
+    
     - name: Unzip
       run: unzip ${{ env.ZIP_NAME }}.zip
       shell: bash
