@@ -127,7 +127,7 @@ jobs:
         path: '/tmp'
     
     - name: Unzip
-      run: unzip ${{ env.ZIP_NAME }}.zip
+      run: unzip /tmp/artifact.zip
       shell: bash
       working-directory: /tmp
 
