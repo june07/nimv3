@@ -64,6 +64,10 @@ jobs:
       if: steps.build-cache.outputs.cache-hit != 'true'
       run: npm run build --if-present
 
+    - name: Update system (Ubuntu)
+      if: matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
+      run: sudo apt update && sudo apt upgrade -y
+      
     - run: npx playwright install-deps
     - run: xvfb-run npm test
 
