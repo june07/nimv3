@@ -136,6 +136,9 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         path: '/tmp'
+        
+    - name: Unzip
+      run: unzip /tmp/artifact/*.zip -d /tmp/artifact
 
     - name: Set PATH_TO_EXTENSION env
       run: echo "PATH_TO_EXTENSION=/tmp/artifact" >> $GITHUB_ENV
