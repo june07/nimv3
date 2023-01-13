@@ -1,16 +1,17 @@
 importScripts(
+    '../dist/uuidv5.min.js',
+    '../dist/nacl-fast.min.js',
+    '../dist/nacl-util.min.js',
+    '../dist/amplitude.umd.min.js',
+    '../dist/async.min.js',
+    '../dist/socket.io.min.js',
+    '../dist/mitt.umd.js',
     './settings.js',
     './brakecode.js',
     './utilities.js',
     './analytics.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
-    '../dist/uuidv5.min.js',
-    '../dist/nacl-fast.min.js',
-    '../dist/nacl-util.min.js',
-    '../dist/amplitude.umd.min.js',
-    '../dist/async.min.js',
-    '../dist/socket.io.min.js'
 );
 
 amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
@@ -42,8 +43,28 @@ let cache = {
 let state = {
     hydrated: false,
     groups: [],
+    alerts: []
 };
 
+brakecode.emitter.on('alert', (data) => {
+    state.alerts.push(data);
+    chrome.action.setBadgeText({
+        text: `${state.alerts.length}`
+    });
+    if (state.alerts.length <= 3) {
+        chrome.action.setBadgeBackgroundColor({
+            color: '#4CAF50' // green
+        });
+    } else if (state.alerts.length <= 9) {
+        chrome.action.setBadgeBackgroundColor({
+            color: '#FFEB3B' // yellow
+        });
+    } else if (state.alerts.length > 10) {
+        chrome.action.setBadgeBackgroundColor({
+            color: '#F44336' // red
+        });
+    }
+});
 async function importForeignTabs() {
     return await queryForDevtoolTabs();
 }
