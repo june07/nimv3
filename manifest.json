@@ -49,6 +49,7 @@
         "service_worker": "/src/sw.js"
     },
     "permissions": [
+        "gcm",
         "storage",
         "background",
         "tabs",
