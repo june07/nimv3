@@ -10,6 +10,11 @@ const deps = [
         name: 'uuidv5'
     },
     {
+        input: 'node_modules/nanoid/index.browser.js',
+        watch: `${watchDir}/nanoid.min.js`,
+        name: 'nanoid'
+    },
+    {
         input: 'node_modules/tweetnacl/nacl-fast.min.js',
         watch: `${watchDir}/nacl-fast.min.js`,
     },
