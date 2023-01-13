@@ -6,10 +6,12 @@ importScripts(
     '../dist/async.min.js',
     '../dist/socket.io.min.js',
     '../dist/mitt.umd.js',
+    '../dist/nanoid.min.js',
     './settings.js',
     './brakecode.js',
     './utilities.js',
     './analytics.js',
+    './messaging.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
 );
@@ -46,25 +48,6 @@ let state = {
     alerts: []
 };
 
-brakecode.emitter.on('alert', (data) => {
-    state.alerts.push(data);
-    chrome.action.setBadgeText({
-        text: `${state.alerts.length}`
-    });
-    if (state.alerts.length <= 3) {
-        chrome.action.setBadgeBackgroundColor({
-            color: '#4CAF50' // green
-        });
-    } else if (state.alerts.length <= 9) {
-        chrome.action.setBadgeBackgroundColor({
-            color: '#FFEB3B' // yellow
-        });
-    } else if (state.alerts.length > 10) {
-        chrome.action.setBadgeBackgroundColor({
-            color: '#F44336' // red
-        });
-    }
-});
 async function importForeignTabs() {
     return await queryForDevtoolTabs();
 }
@@ -86,6 +69,7 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey)
     ]);
+    messaging.register();
     state.hydrated = true;
 }
 function resetInterval(func, timeout) {
@@ -524,6 +508,7 @@ function messageHandler(request, sender, reply) {
                         reply()
                     });
                 });
+                messaging.register();
             }
             break;
     }
