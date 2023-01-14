@@ -1,13 +1,12 @@
 <template>
     <v-overlay class="d-flex justify-center align-center">
-        <v-card color="rgba(255,255,255,0.95)" width="790" class="pt-4 px-4">
+        <v-card color="rgba(255,255,255,0.95)" width="790" height="590" class="pt-4 px-4">
             <v-card-title class="text-uppercase font-weight-bold" :class="theme === 'dark' ? 'text-black' : ''">{{ i18nString('optionsNotifications') }}</v-card-title>
-            <v-card-subtitle :class="theme === 'dark' ? 'text-black' : ''">Help make my open source career possible.</v-card-subtitle>
             <v-card-text class="text-body-1" :class="theme === 'dark' ? 'text-black' : ''">
                 <span v-if="props.messages?.length">You have {{ unread?.length }} unread notifications.</span>
                 <span v-else>{{ i18nString('noNotifications') }}</span>
             </v-card-text>
-            <v-virtual-scroll :items="messages">
+            <v-virtual-scroll height="400" :items="messages">
                 <template v-slot:default="{ item }">
                     <v-list-item :key="item.received" :title="item.title" :subtitle="item.subtitle">
                         <template v-slot:prepend>
@@ -44,6 +43,7 @@
 import { inject, computed } from "vue";
 
 const extensionId = inject("id");
+const amplitude = inject('amplitude');
 
 const emit = defineEmits(['deleted'])
 const props = defineProps({
@@ -58,7 +58,6 @@ async function deleteMessageHandler(message) {
         command: "deleteNotification",
         message
     });
-    amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
     amplitude.getInstance().logEvent("Delete Message Event", { action: message });
     emit('deleted', message);
 }

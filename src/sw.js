@@ -502,6 +502,7 @@ function messageHandler(request, sender, reply) {
             const index = state.notifications.findIndex((notification) => notification.id === message.id);
             state.notifications.splice(index, 1);
             chrome.storage.local.set({ notifications: state.notifications });
+            messaging.updateBadge();
             reply();
             break;
         case 'auth':

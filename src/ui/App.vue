@@ -45,7 +45,7 @@
             </div>
         </v-footer>
         <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false" :theme="theme">overlay</ni-donation-overlay>
-        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="getMessages()" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
+        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="deletedEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
     </v-app>
 </template>
 <style scoped>
@@ -66,6 +66,7 @@
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 
+import amplitude from 'amplitude-js';
 import { ref, inject, reactive, computed, provide, watch } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
 import { useAsyncState } from "@vueuse/core";
@@ -75,6 +76,9 @@ import NiMain from "./components/NiMain.vue";
 import NiSettings from "./components/NiSettings.vue";
 import NiDonationOverlay from "./components/NiDonationOverlay.vue";
 import NiMessagesOverlay from "./components/NiMessagesOverlay.vue";
+
+amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
+provide('amplitude', amplitude);
 
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const i18nString = inject("i18nString");
@@ -99,6 +103,9 @@ let loading = reactive({
 function themeHandler() {
     theme.value = theme.value === "light" ? "dark" : "light";
     updateSetting("theme", theme.value);
+}
+function deletedEventHandler() {
+    getMessages();
 }
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
@@ -145,10 +152,8 @@ const apikey = computed(
         ] || i18nString("brakeCODELoginRequired")
 );
 function getMessages() {
-    return new Promise((resolve) =>
-        chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
-            resolve(response)
-        )
+    chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
+        notifications.value = response
     )
 }
 let notifications = ref([]);

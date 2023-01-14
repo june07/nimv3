@@ -43,6 +43,9 @@ chrome.gcm.register([
         }
         state.notifications.push(notification);
         chrome.storage.local.set({ notifications: state.notifications });
+        messaging.updateBadge();
+    }
+    messaging.updateBadge = () => {
         chrome.action.setBadgeText({
             text: `${state.notifications.length}`
         });
