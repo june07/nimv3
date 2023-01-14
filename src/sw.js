@@ -511,8 +511,8 @@ function messageHandler(request, sender, reply) {
                         reply()
                     });
                 });
-                messaging.register();
             }
+            messaging.register();
             break;
     }
     return true;
