@@ -45,7 +45,7 @@ let cache = {
 let state = {
     hydrated: false,
     groups: [],
-    alerts: []
+    notifications: []
 };
 
 async function importForeignTabs() {
@@ -69,7 +69,7 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
         chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
-        chrome.storage.local.get('alerts').then((obj) => state.alerts = obj.alerts)
+        chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
     ]);
     console.log(state);
     messaging.register();
@@ -493,6 +493,16 @@ function messageHandler(request, sender, reply) {
             break;
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
+            break;
+        case 'getNotifications':
+            reply(state.notifications);
+            break;
+        case 'deleteNotification':
+            const { message } = request;
+            const index = state.notifications.findIndex((notification) => notification.id === message.id);
+            state.notifications.splice(index, 1);
+            chrome.storage.local.set({ notifications: state.notifications });
+            reply();
             break;
         case 'auth':
             const { uid, token, apikey } = request.credentials;
