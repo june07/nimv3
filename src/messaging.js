@@ -1,4 +1,5 @@
 
+
 const senderId = "162467809982";
 let registrationId;
 
@@ -9,9 +10,13 @@ chrome.gcm.register([
 });
 
 (async function (messaging) {
-    chrome.gcm.onMessage.addListener(message => {
+    chrome.gcm.onMessage.addListener(async message => {
         const { data } = message;
 
+        await async.until(
+            (cb) => cb(null, state.hydrated),
+            (next) => setTimeout(next, 500)
+        ); 
         alertEventHandler(data.payload);
     });
     messaging.emitter = new mitt();
@@ -35,6 +40,7 @@ chrome.gcm.register([
         const data = JSON.parse(payload);
 
         state.alerts.push(data);
+        chrome.storage.local.set({ alerts: state.alerts });
         chrome.action.setBadgeText({
             text: `${state.alerts.length}`
         });

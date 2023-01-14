@@ -67,8 +67,11 @@ async function hydrateState() {
     await Promise.all([
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
-        chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey)
+        chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
+        chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
+        chrome.storage.local.get('alerts').then((obj) => state.alerts = obj.alerts)
     ]);
+    console.log(state);
     messaging.register();
     state.hydrated = true;
 }
