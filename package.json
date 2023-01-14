@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@auth0/auth0-vue": "^1.0.2",
-    "@mdi/font": "7.0.96",
     "@vueuse/core": "^9.8.2",
     "amplitude-js": "^8.21.3",
     "animejs": "^3.2.1",
