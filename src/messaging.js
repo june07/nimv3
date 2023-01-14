@@ -11,17 +11,15 @@ chrome.gcm.register([
 
 (async function (messaging) {
     chrome.gcm.onMessage.addListener(async message => {
-        const { data } = message;
-
         await async.until(
             (cb) => cb(null, state.hydrated),
             (next) => setTimeout(next, 500)
         ); 
-        alertEventHandler(data.payload);
+        notificationEventHandler(message);
     });
     messaging.emitter = new mitt();
     messaging.emitter.on('alert', (data) => {
-        alertEventHandler(data);
+        notificationEventHandler(data);
     });
     messaging.register = async () => {
         await (await fetch(`https://${brakecode.PADS_HOST}/api/v1/gcm/register`, {
@@ -36,23 +34,27 @@ chrome.gcm.register([
             })
         }));
     }
-    function alertEventHandler(payload) {
-        const data = JSON.parse(payload);
-
-        state.alerts.push(data);
-        chrome.storage.local.set({ alerts: state.alerts });
+    function notificationEventHandler(message) {
+        const { data, from } = message;
+        const notification = {
+            id: nanoid.nanoid(),
+            received: Date.now(),
+            ...JSON.parse(data.payload)
+        }
+        state.notifications.push(notification);
+        chrome.storage.local.set({ notifications: state.notifications });
         chrome.action.setBadgeText({
-            text: `${state.alerts.length}`
+            text: `${state.notifications.length}`
         });
-        if (state.alerts.length <= 3) {
+        if (state.notifications.length <= 3) {
             chrome.action.setBadgeBackgroundColor({
                 color: '#4CAF50' // green
             });
-        } else if (state.alerts.length <= 9) {
+        } else if (state.notifications.length <= 9) {
             chrome.action.setBadgeBackgroundColor({
                 color: '#FFEB3B' // yellow
             });
-        } else if (state.alerts.length > 10) {
+        } else if (state.notifications.length > 10) {
             chrome.action.setBadgeBackgroundColor({
                 color: '#F44336' // red
             });

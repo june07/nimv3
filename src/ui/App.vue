@@ -15,7 +15,7 @@
             <v-btn variant="plain" icon density="compact" @click="login" :loading="loading.login">
                 <span class="material-icons">{{ isAuthenticated ? 'logout' : 'login' }}</span>
             </v-btn>
-            <v-btn variant="plain" icon density="compact">
+            <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlays.messages = true">
                 <span class="material-icons">notifications</span>
             </v-btn>
             <v-btn variant="plain" icon density="compact" @click="route = route === 'settings' ? 'main' : 'settings'" class="mr-6">
@@ -45,13 +45,10 @@
             </div>
         </v-footer>
         <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false" :theme="theme">overlay</ni-donation-overlay>
-        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" :theme="theme">overlay</ni-messages-overlay>
+        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="getMessages()" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
     </v-app>
 </template>
 <style scoped>
-.small-icon {
-    font-size: 16px;
-}
 :deep() .small-switch .v-switch__track {
     height: 20px;
     width: 40px;
@@ -61,11 +58,17 @@
     width: 16px;
 }
 </style>
+<style>
+.small-icon {
+    font-size: 16px;
+}
+</style>
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 
-import { ref, inject, reactive, computed, provide } from "vue";
+import { ref, inject, reactive, computed, provide, watch } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
+import { useAsyncState } from "@vueuse/core";
 
 import ShareMenu from "./components/ShareMenu.vue";
 import NiMain from "./components/NiMain.vue";
@@ -73,7 +76,7 @@ import NiSettings from "./components/NiSettings.vue";
 import NiDonationOverlay from "./components/NiDonationOverlay.vue";
 import NiMessagesOverlay from "./components/NiMessagesOverlay.vue";
 
-const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
+const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const i18nString = inject("i18nString");
 const settings = inject("settings");
 const updateSetting = inject("updateSetting");
@@ -99,9 +102,9 @@ function themeHandler() {
 }
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
-        redirect_uri: `chrome-extension://${chrome.runtime.id}`,
+        redirect_uri: `chrome-extension://${extensionId}`,
     });
-    chrome.runtime.sendMessage(id, {
+    chrome.runtime.sendMessage(extensionId, {
         command: "auth",
         credentials: {
             uid: user.value.sub,
@@ -118,7 +121,9 @@ async function login() {
             await loginWithPopup();
             getAccessTokenSilentlyWrapper();
         } else {
-            await chrome.runtime.sendMessage(id, { command: "signout" });
+            await chrome.runtime.sendMessage(extensionId, {
+                command: "signout",
+            });
             await logout({
                 localOnly: true,
             });
@@ -139,7 +144,19 @@ const apikey = computed(
             }`
         ] || i18nString("brakeCODELoginRequired")
 );
-
+function getMessages() {
+    return new Promise((resolve) =>
+        chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
+            resolve(response)
+        )
+    )
+}
+let notifications = ref([]);
+let { state: asyncNotifications } = useAsyncState(getMessages);
+watch(asyncNotifications, (currentValue) => {
+    if (!currentValue) return;
+    notifications.value = currentValue;
+});
 provide("apikey", apikey);
-provide("id", id);
+provide("id", extensionId);
 </script>

@@ -218,7 +218,7 @@
         "description": "Tweet link button text."
     },
     "optionsNotifications": {
-        "message": "Notifications.",
+        "message": "Notifications",
         "description": "Options page label for notifications."
     },
     "nodeReportMaxMessages": {
