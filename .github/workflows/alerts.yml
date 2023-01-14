@@ -12,7 +12,7 @@ jobs:
 
     - name: Call BrakeCODE API
       run: |
-        CONTENT=$(cat ${{ env.GITHUB_EVENT_PATH }} | jq -) 
+        CONTENT=$(cat ${{ env.GITHUB_EVENT_PATH }} | jq) 
         curl -k -L https://8w1i.ngrok-dns.june07.com/api/v1/alert?appId=alerts \
           -H 'Content-Type: application/json' \
           -H "x-api-key: { \"apikey\": \"${{ secrets.BRAKECODE_API_KEY }}\" }" \
