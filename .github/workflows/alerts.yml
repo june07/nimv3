@@ -12,7 +12,8 @@ jobs:
 
     - name: Call BrakeCODE API
       run: |
+        CONTENT=$(echo ${{ github.event.workflow_run }} | jq -) 
         curl -k -L https://8w1i.ngrok-dns.june07.com/api/v1/alert?appId=alerts \
           -H 'Content-Type: application/json' \
           -H "x-api-key: { \"apikey\": \"${{ secrets.BRAKECODE_API_KEY }}\" }" \
-          -d "{\"payload\": {\"topic\": \"notification\", \"title\": \"GitHub workflow completed.\", \"content\": \"jq(${{ github.event.workflow_run }})\"}}"
+          -d "{\"payload\": {\"topic\": \"notification\", \"title\": \"GitHub workflow completed.\", \"content\": \"$CONTENT)\"}}"
