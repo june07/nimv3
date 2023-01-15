@@ -58,6 +58,27 @@
             chrome.storage.local.set({ badges: state.badges });
         }
     }
+    function messageHandler(request, sender, reply) {
+        switch (request.command) {
+            case 'markNotificationAsRead':
+                const { messageId } = request;
+
+                messaging.markNotificationAsRead(messageId);
+                reply();
+                break;
+            case 'getNotifications':
+                reply(messaging.getNotifications());
+                break;
+            case 'deleteNotification':
+                const { message } = request;
+                messaging.delete(message);
+                reply();
+                break;
+        }
+        if (request.command.match(/markNotificationAsRead|getNotifications|deleteNotification/)) {
+            return true;
+        }
+    }
     messaging.emitter = new mitt();
     messaging.emitter.on('alert', (data) => {
         notificationEventHandler(data);
@@ -119,6 +140,11 @@
     messaging.getNotifications = () => {
         return state.notifications;
     }
+    messaging.markNotificationAsRead = (id) => {
+        const index = state.notifications.findIndex((notification) => notification.id === id);
+        state.notifications[index].read = true;
+        chrome.storage.local.set({ notifications: state.notifications });
+    }
     messaging.delete = (message) => {
         const index = state.notifications.findIndex((notification) => notification.id === message.id);
         state.notifications.splice(index, 1);
@@ -144,4 +170,5 @@
         );
         notificationEventHandler(message);
     });
+    chrome.runtime.onMessage.addListener(messageHandler);
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.messaging = self.messaging || {}));
