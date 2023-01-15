@@ -488,14 +488,6 @@ function messageHandler(request, sender, reply) {
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
             break;
-        case 'getNotifications':
-            reply(messaging.getNotifications());
-            break;
-        case 'deleteNotification':
-            const { message } = request;
-            messaging.delete(message);
-            reply();
-            break;
         case 'auth':
             const { uid, token, apikey } = request.credentials;
 
@@ -574,7 +566,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
     if (areaName.match(/session/)) {
         sendMessage({ command: 'update' });
+    } else if (areaName.match(/local/) && changes.notifications) {
+        sendMessage({ command: 'updateNotifications' });
     }
+
 });
 chrome.commands.onCommand.addListener((command) => {
     switch (command) {
