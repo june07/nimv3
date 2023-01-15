@@ -45,7 +45,7 @@
             </div>
         </v-footer>
         <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false" :theme="theme">overlay</ni-donation-overlay>
-        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="deletedEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
+        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="deletedEventHandler" @read="readEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
     </v-app>
 </template>
 <style scoped>
@@ -107,6 +107,12 @@ function themeHandler() {
 function deletedEventHandler() {
     getMessages();
 }
+function readEventHandler(message) {
+    if (!message.read) {
+        chrome.runtime.sendMessage(extensionId, { command: "markNotificationAsRead", messageId: message.id });
+    }
+}
+
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
         redirect_uri: `chrome-extension://${extensionId}`,
@@ -162,6 +168,7 @@ watch(asyncNotifications, (currentValue) => {
     if (!currentValue) return;
     notifications.value = currentValue;
 });
+provide("updateNotifications", getMessages);
 provide("apikey", apikey);
 provide("id", extensionId);
 </script>

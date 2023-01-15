@@ -87,7 +87,7 @@
                                 </template>
                             </v-switch>
                             <v-btn size="x-small" :id="`devtools-localhost-${id}`" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" :id="`remove-localhost-${id}`"  color="red" @click="clickHandlerSessionUpdate(`remove-localhost-${id}`, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn size="x-small" :id="`remove-localhost-${id}`" color="red" @click="clickHandlerSessionUpdate(`remove-localhost-${id}`, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -135,8 +135,8 @@
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
-                            <v-btn :id="`devtools-remote-${id}`"  :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :id="`remove-remote-${id}`"  :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                            <v-btn :id="`devtools-remote-${id}`" :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                            <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>
                 </v-container>
@@ -163,20 +163,21 @@
 }
 </style>
 <script setup>
-import { until } from 'async';
+import { until } from "async";
 import { ref, inject, watch } from "vue";
 import { useAsyncState } from "@vueuse/core";
 import anime from "animejs/lib/anime.es.js";
 import { useAuth0 } from "@auth0/auth0-vue";
 import NiInfo from "./NiInfo.vue";
 import iconNiM from "/icon/icon128@3x.png";
-import iconDeno from '/deno-favicon.ico';
+import iconDeno from "/deno-favicon.ico";
 import iconNode from "/node-favicon.ico";
 
 const { VITE_ENV } = import.meta.env;
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
 const extensionId = inject("id");
+const updateNotifications = inject("updateNotifications");
 const form = ref("form");
 const tab = ref("tab");
 const ml11 = ref("ml11");
@@ -200,7 +201,7 @@ const inits = {
 };
 let workerPort;
 let cache = {
-    remove: {}
+    remove: {},
 };
 let tabs = ref([
     { name: "home", id: "home" },
@@ -215,21 +216,30 @@ let inputs = ref({
 });
 let tooltips = ref({});
 await until(
-    (cb) => chrome.runtime.sendMessage(extensionId, { command: 'hydrated' }, (response) => cb(null, response)),
+    (cb) =>
+        chrome.runtime.sendMessage(
+            extensionId,
+            { command: "hydrated" },
+            (response) => cb(null, response)
+        ),
     (next) => setTimeout(next, 500)
-); 
+);
 let { state: asyncSessions } = useAsyncState(
     new Promise((resolve) =>
-        chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, (response) =>
-            resolve(response)
+        chrome.runtime.sendMessage(
+            extensionId,
+            { command: "getSessions" },
+            (response) => resolve(response)
         )
     )
 );
 let sessions = ref({});
 let { state: asyncRemotes } = useAsyncState(
     new Promise((resolve) =>
-        chrome.runtime.sendMessage(extensionId, { command: "getRemotes" }, (response) =>
-            resolve(response)
+        chrome.runtime.sendMessage(
+            extensionId,
+            { command: "getRemotes" },
+            (response) => resolve(response)
         )
     )
 );
@@ -250,21 +260,27 @@ watch(asyncRemotes, (currentValue) => {
             ...remoteSessions,
             ...Object.values(remote.connections)
                 // filter out session for which we are already tracking
-                .filter(remoteConnection => !sessions.value[`${remote.uuid}:${remoteConnection.pid}`])
+                .filter(
+                    (remoteConnection) =>
+                        !sessions.value[
+                            `${remote.uuid}:${remoteConnection.pid}`
+                        ]
+                )
                 .reduce(
-                (sessionsPerHost, connection) => ({
-                    ...sessionsPerHost,
-                    [`${remote.uuid}:${connection.pid}`]: {
-                        remote: true,
-                        host: remote.host,
-                        title: remote.title,
-                        uuid: remote.uuid,
-                        tunnelSocket: remote.tunnelSockets?.[connection.pid],
-                        connection,
-                    },
-                }),
-                {}
-            ),
+                    (sessionsPerHost, connection) => ({
+                        ...sessionsPerHost,
+                        [`${remote.uuid}:${connection.pid}`]: {
+                            remote: true,
+                            host: remote.host,
+                            title: remote.title,
+                            uuid: remote.uuid,
+                            tunnelSocket:
+                                remote.tunnelSockets?.[connection.pid],
+                            connection,
+                        },
+                    }),
+                    {}
+                ),
         }),
         {}
     );
@@ -275,7 +291,7 @@ watch(asyncRemotes, (currentValue) => {
             id: value.uuid,
         })
     );
-    tabs.value.sort((a, b) => a.name < b.name ? -1 : 0);
+    tabs.value.sort((a, b) => (a.name < b.name ? -1 : 0));
     sessions.value = { ...sessions.value, ...remoteSessions };
 });
 if (chrome.runtime) {
@@ -287,9 +303,16 @@ if (chrome.runtime) {
         switch (command) {
             case "update":
                 const sessionsUpdate = await new Promise((resolve) =>
-                    chrome.runtime.sendMessage(extensionId, { command: "getSessions" }, response => resolve(response))
-                )
+                    chrome.runtime.sendMessage(
+                        extensionId,
+                        { command: "getSessions" },
+                        (response) => resolve(response)
+                    )
+                );
                 sessions.value = { ...sessions.value, ...sessionsUpdate };
+                break;
+            case "updateNotifications":
+                updateNotifications();
                 break;
         }
     });
@@ -301,9 +324,10 @@ async function setInfo(session) {
         (info) => {
             // deno info fix
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
-                info.type = 'deno';
+                info.type = "deno";
             }
-            sessions.value[`${session.uuid}:${session.connection.pid}`].info = info;
+            sessions.value[`${session.uuid}:${session.connection.pid}`].info =
+                info;
         }
     );
 }
@@ -311,7 +335,7 @@ function updateUI(sessions) {
     /** 1. combine all these reduce functions
      *  2. there are tab sessions and non-tab sessions. I think here is where tab sessions should take precedence.
      *     So tab session data should be copied over to the non-tab (remote sessions) in this function.
-    */
+     */
     tooltips.value = Object.keys(sessions).reduce((acc, sessionId) => {
         return sessionId ? { ...acc, [sessionId]: 0 } : acc;
     }, {});
@@ -324,7 +348,9 @@ function updateUI(sessions) {
             return sessionId
                 ? {
                       ...formInputModel,
-                      [sessionId]: cache.remove[sessionId] ? false : !!sessions?.[sessionId]?.auto,
+                      [sessionId]: cache.remove[sessionId]
+                          ? false
+                          : !!sessions?.[sessionId]?.auto,
                   }
                 : formInputModel;
         },
@@ -333,14 +359,31 @@ function updateUI(sessions) {
     Object.values(sessions)
         .filter((session) => session.tunnelSocket)
         .map((session) => setInfo(session));
-    Object.entries(sessions).filter(kv => !kv[0].match(/:/) && kv[1]?.socket?.host && typeof kv[1].socket.host === 'object').forEach(kvLocal => {
-        const remoteSessions = Object.entries(sessions).filter(kvRemote => kvRemote[0].match(/:/));
-        const remoteSessionId = remoteSessions.find(kvRemote => JSON.stringify(kvLocal[1].info) === JSON.stringify(kvRemote[1].info))?.[0];
-        if (remoteSessionId && !cache.remove[remoteSessionId] && !kvLocal[1].closed) {
-            sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
-            console.log(sessions[remoteSessionId]);
-        }
-    })
+    Object.entries(sessions)
+        .filter(
+            (kv) =>
+                !kv[0].match(/:/) &&
+                kv[1]?.socket?.host &&
+                typeof kv[1].socket.host === "object"
+        )
+        .forEach((kvLocal) => {
+            const remoteSessions = Object.entries(sessions).filter((kvRemote) =>
+                kvRemote[0].match(/:/)
+            );
+            const remoteSessionId = remoteSessions.find(
+                (kvRemote) =>
+                    JSON.stringify(kvLocal[1].info) ===
+                    JSON.stringify(kvRemote[1].info)
+            )?.[0];
+            if (
+                remoteSessionId &&
+                !cache.remove[remoteSessionId] &&
+                !kvLocal[1].closed
+            ) {
+                sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
+                console.log(sessions[remoteSessionId]);
+            }
+        });
 }
 watch(ml11, (currentValue, oldValue) => {
     if (currentValue !== oldValue && !inits.connectionErrorMessage) {
@@ -413,10 +456,12 @@ function initConnectionErrorMessage() {
 }
 async function devtoolsButtonHandler(session) {
     const { host, port } = settings.value;
-    const remoteMetadata = session.remote ? {
-        cid: session.tunnelSocket.cid,
-        uuid: session.uuid,
-    } : undefined
+    const remoteMetadata = session.remote
+        ? {
+              cid: session.tunnelSocket.cid,
+              uuid: session.uuid,
+          }
+        : undefined;
     const response = await chrome.runtime.sendMessage(extensionId, {
         command: "openDevtools",
         host: remoteMetadata || host,
@@ -427,27 +472,32 @@ async function devtoolsButtonHandler(session) {
 }
 
 function clickHandlerSessionUpdate(action, tabId, sessionId) {
-    const re = new RegExp(`https?:\/\/${settings.value.host}:${settings.value.port}`);
+    const re = new RegExp(
+        `https?:\/\/${settings.value.host}:${settings.value.port}`
+    );
     let values;
 
     /** if the session matches the home tabs current auto setting, then change it as well...
      *  When removing sessions always set auto to false, otherwise the update will be ineffective
      *  as the session will just be recreated automatically.
-     * 
+     *
      *  !sessionId to ensure it's only for local sessions.
      */
     const match = action.match(/(auto)(-.*)?|(remove)(-.*)?/);
     if (tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
         // update auto session and setting in localhost tab
-        if (match[1] === 'auto') {
+        if (match[1] === "auto") {
             values = {
-                [tabId]: { ...sessions.value[tabId], [match[1]]: inputs.value.session.auto[sessionId] }
+                [tabId]: {
+                    ...sessions.value[tabId],
+                    [match[1]]: inputs.value.session.auto[sessionId],
+                },
             };
-            updateSetting('auto', inputs.value.session.auto[sessionId]);
+            updateSetting("auto", inputs.value.session.auto[sessionId]);
         } else {
             cache.remove[tabId] = true;
             cache.remove[sessionId] = true;
-            updateSetting('auto', false);
+            updateSetting("auto", false);
         }
     } else {
         // update auto session and setting in remote tabs
@@ -456,10 +506,16 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
             cache.remove[sessionId] = true;
         } else if (action.match(/auto/)) {
             values = {
-                [sessionId]: { ...sessions.value[tabId || sessionId], [match[1]]: inputs.value.session[match[1]][sessionId] }
+                [sessionId]: {
+                    ...sessions.value[tabId || sessionId],
+                    [match[1]]: inputs.value.session[match[1]][sessionId],
+                },
             };
             if (tabId) {
-                values[tabId] = { ...sessions.value[sessionId], [match[1]]: inputs.value.session[match[1]][sessionId] }
+                values[tabId] = {
+                    ...sessions.value[sessionId],
+                    [match[1]]: inputs.value.session[match[1]][sessionId],
+                };
             }
         }
     }
@@ -469,7 +525,7 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
             obj: "sessions",
-            keys: [tabId, sessionId].filter(i => i),
+            keys: [tabId, sessionId].filter((i) => i),
             values,
         },
         (responses) => {
@@ -479,7 +535,13 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
                 delete cache.remove[sessionId];
                 console.log(sessions.value);
             } else {
-                const update = responses.reduce((update, response) => ({ ...update, [response.key]: response.value }), {});
+                const update = responses.reduce(
+                    (update, response) => ({
+                        ...update,
+                        [response.key]: response.value,
+                    }),
+                    {}
+                );
                 sessions.value = { ...sessions.value, ...update };
             }
         }
@@ -500,9 +562,16 @@ function getSessions(
     UITabId,
     sort = (a, b) => (a[1]?.info?.title < b[1]?.info?.title ? -1 : 0)
 ) {
-    let entries = UITabId ? Object.entries(sessions).filter(e => e[0].match(new RegExp(`${UITabId}`))) : Object.entries(sessions);
+    let entries = UITabId
+        ? Object.entries(sessions).filter((e) =>
+              e[0].match(new RegExp(`${UITabId}`))
+          )
+        : Object.entries(sessions);
 
-    entries = [ ...entries.filter(kv => kv[1].tunnelSocket).sort(sort), ...entries.filter(kv => !kv[1].tunnelSocket).sort(sort) ]
+    entries = [
+        ...entries.filter((kv) => kv[1].tunnelSocket).sort(sort),
+        ...entries.filter((kv) => !kv[1].tunnelSocket).sort(sort),
+    ];
     return !UITabId
         ? entries.reduce(
               (localSessions, kv) =>

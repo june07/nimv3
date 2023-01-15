@@ -8,11 +8,17 @@
             </v-card-text>
             <v-virtual-scroll height="440" :items="messages">
                 <template v-slot:default="{ item }">
-                    <v-list-item :key="item.received" :title="item.title" :subtitle="item.subtitle">
+                    <v-list-item :key="item.received" :subtitle="item.subtitle">
                         <template v-slot:prepend>
                             <v-icon size="x-small">
                                 <span class="material-icons-outlined small-icon">{{ !item.read ? 'mark_email_unread' : 'email' }}</span>
                             </v-icon>
+                        </template>
+                        <template v-slot:default>
+                            <v-expansion-panels>
+                                <v-expansion-panel elevation="0" bg-color="" :title="item.title" :text="item.content" @click="emit('read', item)">
+                                </v-expansion-panel>
+                            </v-expansion-panels>
                         </template>
                         <template v-slot:append>
                             <v-hover>
@@ -33,22 +39,23 @@
     </v-overlay>
 </template>
 <style scoped>
+:deep .v-expansion-panel-title {
+    min-height: unset;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
 .logo {
     background-color: white;
     border-radius: 12px;
-}
-:deep() #bitcoin.v-field__input {
-    padding-top: 0;
-    padding-bottom: 0;
 }
 </style>
 <script setup>
 import { inject, computed } from "vue";
 
 const extensionId = inject("id");
-const amplitude = inject('amplitude');
+const amplitude = inject("amplitude");
 
-const emit = defineEmits(['deleted'])
+const emit = defineEmits(["read", "deleted"]);
 const props = defineProps({
     theme: String,
     messages: Array,
@@ -61,8 +68,10 @@ async function deleteMessageHandler(message) {
         command: "deleteNotification",
         message
     });
-    amplitude.getInstance().logEvent("Delete Message Event", { action: message });
-    emit('deleted', message);
+    amplitude
+        .getInstance()
+        .logEvent("Delete Message Event", { action: message });
+    emit("deleted", message);
 }
 const clipboard = inject("clipboard");
 const i18nString = inject("i18nString");
