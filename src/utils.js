@@ -1,7 +1,12 @@
 (async function (utils) {
-    utils.resetInterval = (func, timeout) => {
-        if (timeout) {
-            clearTimeout(timeout);
+    utils.resetInterval = (func, options) => {
+        const { interval, timeout, immediate } = options;
+
+        if (interval) {
+            clearTimeout(interval);
+        }
+        if (immediate) {
+            func();
         }
         return {
             func,

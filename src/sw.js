@@ -72,9 +72,9 @@ async function hydrateState() {
         chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
         // chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
     ]);
-    console.log('serviceworker state:', state);
     // messaging.register();
     state.hydrated = true;
+    console.log('serviceworker state:', state);
 }
 (async function init() {
     cache.ip = await (await fetch('https://ip-cfworkers.brakecode.com', { method: 'head' })).headers.get('cf-connecting-ip');
@@ -122,7 +122,9 @@ async function hydrateState() {
             openTab(settings.host, settings.port);
         }
         // failsafe interval of 60 seconds because the runaway problem can be real!!!
-    }, settings.checkInterval || 60000);
+    }, {
+        timeout: 60000
+    });
     cache.drainInterval = setInterval(() => cache.highWaterMark > 0 && (cache.highWaterMark -= 1), DRAIN_INTERVAL);
 })();
 async function getInfo(host, port) {
@@ -487,14 +489,11 @@ function messageHandler(request, sender, reply) {
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
             break;
         case 'getNotifications':
-            reply(state.notifications);
+            reply(messaging.getNotifications());
             break;
         case 'deleteNotification':
             const { message } = request;
-            const index = state.notifications.findIndex((notification) => notification.id === message.id);
-            state.notifications.splice(index, 1);
-            chrome.storage.local.set({ notifications: state.notifications });
-            messaging.updateBadge();
+            messaging.delete(message);
             reply();
             break;
         case 'auth':
