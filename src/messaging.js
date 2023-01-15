@@ -1,33 +1,42 @@
-
-
-const senderId = "162467809982";
-let registrationId;
-let state = {
-    hydrated: false,
-    notifications: []
-};
-async function hydrateState() {
-    const sessions = (await chrome.storage.session.get('sessions'))?.sessions;
-    state.sessions = sessions ? { ...sessions } : {};
-    await Promise.all([
-        chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
-    ]);
-    console.log('messaging state: ', state);
-    messaging.register();
-    state.hydrated = true;
-}
-(async function init() {
-    chrome.gcm.register([
-        senderId
-    ], (id) => {
-        registrationId = id;
-    });
-}());
 (async function (messaging) {
-    state.badgeUpdateInterval = utils.resetInterval(() => {
-        cache
-    }, settings.badgeUpdateInterval || 60000);
+    const senderId = "162467809982";
+    let registrationId;
 
+    (async function init() {
+        chrome.gcm.register([
+            senderId
+        ], (id) => {
+            registrationId = id;
+        });
+    }());
+    let state = {
+        hydrated: false,
+        notifications: [],
+        badges: {
+            /**
+             * id: {
+             *     text: '',
+             *     color: '',
+             *     updated: Date.now()
+             * }
+             */
+        },
+    };
+
+    async function hydrateState() {
+        const sessions = (await chrome.storage.session.get('sessions'))?.sessions;
+        state.sessions = sessions ? { ...sessions } : {};
+        await Promise.all([
+            chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
+        ]);
+        state.hydrated = true;
+        console.log('messaging state: ', state);
+    }
+    hydrateState();
+    await async.until(
+        (cb) => cb(null, state.hydrated),
+        (next) => setTimeout(next, 500)
+    );
     function notificationEventHandler(message) {
         const { data, from } = message;
         const notification = {
@@ -37,7 +46,17 @@ async function hydrateState() {
         }
         state.notifications.push(notification);
         chrome.storage.local.set({ notifications: state.notifications });
-        messaging.updateBadge();
+        if (notification.badge) {
+            state.badges = {
+                [notification.id]: {
+                    text: notification.badge.text,
+                    color: notification.badge?.color,
+                    updated: 1181137020,
+                },
+                ...state.badges,
+            }
+            chrome.storage.local.set({ badges: state.badges });
+        }
     }
     messaging.emitter = new mitt();
     messaging.emitter.on('alert', (data) => {
@@ -56,29 +75,73 @@ async function hydrateState() {
             })
         }));
     }
-    messaging.updateBadge = () => {
-        chrome.action.setBadgeText({
-            text: `${state.notifications.length}`
-        });
-        if (state.notifications.length <= 3) {
+    messaging.register();
+    messaging.updateBadge = (badgeId) => {
+        if (badgeId) {
             chrome.action.setBadgeBackgroundColor({
-                color: '#4CAF50' // green
+                color: state.badges[badgeId]?.color || '#FFFFFF'
             });
-        } else if (state.notifications.length <= 9) {
-            chrome.action.setBadgeBackgroundColor({
-                color: '#FFEB3B' // yellow
+            let badgeTextArr = [
+                ...state.badges[badgeId].text.split(''),
+                ...[' ', ' ', ' ', ' ', ' ']
+            ];
+            (async () => {
+                let badgeText = badgeTextArr.splice(0, 5);
+                while (badgeTextArr.length) {
+                    chrome.action.setBadgeText({
+                        text: badgeText.join('')
+                    });
+                    badgeText.shift();
+                    badgeText.push(badgeTextArr.shift());
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                messaging.updateBadge();
+            })();
+        } else {
+            chrome.action.setBadgeText({
+                text: state.notifications.length ? `${state.notifications.length}` : ''
             });
-        } else if (state.notifications.length > 10) {
-            chrome.action.setBadgeBackgroundColor({
-                color: '#F44336' // red
-            });
+            if (state.notifications.length <= 3) {
+                chrome.action.setBadgeBackgroundColor({
+                    color: '#E8F5E9' // green lighten-5
+                });
+            } else if (state.notifications.length <= 9) {
+                chrome.action.setBadgeBackgroundColor({
+                    color: '#A5D6A7' // green lighten-3
+                });
+            } else if (state.notifications.length > 10) {
+                chrome.action.setBadgeBackgroundColor({
+                    color: '#66BB6A' // green lighten-1
+                });
+            }
         }
     }
+    messaging.getNotifications = () => {
+        return state.notifications;
+    }
+    messaging.delete = (message) => {
+        const index = state.notifications.findIndex((notification) => notification.id === message.id);
+        state.notifications.splice(index, 1);
+        chrome.storage.local.set({ notifications: state.notifications });
+        messaging.updateBadge();
+    }
+    state.badgeUpdateInterval = utils.resetInterval(() => {
+        if (Object.keys(state.badges)?.length) {
+            const oldestBadge = Object.entries(state.badges).reduce((oldest, badge) => badge[1].updated > oldest[1].updated ? oldest : badge);
+            oldestBadge[1].updated = Date.now();
+            messaging.updateBadge(oldestBadge[0]);
+        } else {
+            messaging.updateBadge();
+        }
+    }, {
+        immediate: true,
+        timeout: settings.badgeUpdateInterval || 60000
+    });
     chrome.gcm.onMessage.addListener(async message => {
         await async.until(
             (cb) => cb(null, state.hydrated),
             (next) => setTimeout(next, 500)
-        ); 
+        );
         notificationEventHandler(message);
     });
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.messaging = self.messaging || {}));
