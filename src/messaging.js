@@ -2,21 +2,43 @@
 
 const senderId = "162467809982";
 let registrationId;
-
-chrome.gcm.register([
-    senderId
-], (id) => {
-    registrationId = id;
-});
-
-(async function (messaging) {
-    chrome.gcm.onMessage.addListener(async message => {
-        await async.until(
-            (cb) => cb(null, state.hydrated),
-            (next) => setTimeout(next, 500)
-        ); 
-        notificationEventHandler(message);
+let state = {
+    hydrated: false,
+    notifications: []
+};
+async function hydrateState() {
+    const sessions = (await chrome.storage.session.get('sessions'))?.sessions;
+    state.sessions = sessions ? { ...sessions } : {};
+    await Promise.all([
+        chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
+    ]);
+    console.log('messaging state: ', state);
+    messaging.register();
+    state.hydrated = true;
+}
+(async function init() {
+    chrome.gcm.register([
+        senderId
+    ], (id) => {
+        registrationId = id;
     });
+}());
+(async function (messaging) {
+    state.badgeUpdateInterval = utils.resetInterval(() => {
+        cache
+    }, settings.badgeUpdateInterval || 60000);
+
+    function notificationEventHandler(message) {
+        const { data, from } = message;
+        const notification = {
+            id: nanoid.nanoid(),
+            received: Date.now(),
+            ...JSON.parse(data.payload)
+        }
+        state.notifications.push(notification);
+        chrome.storage.local.set({ notifications: state.notifications });
+        messaging.updateBadge();
+    }
     messaging.emitter = new mitt();
     messaging.emitter.on('alert', (data) => {
         notificationEventHandler(data);
@@ -33,17 +55,6 @@ chrome.gcm.register([
                 apikey: state.apikey
             })
         }));
-    }
-    function notificationEventHandler(message) {
-        const { data, from } = message;
-        const notification = {
-            id: nanoid.nanoid(),
-            received: Date.now(),
-            ...JSON.parse(data.payload)
-        }
-        state.notifications.push(notification);
-        chrome.storage.local.set({ notifications: state.notifications });
-        messaging.updateBadge();
     }
     messaging.updateBadge = () => {
         chrome.action.setBadgeText({
@@ -63,4 +74,11 @@ chrome.gcm.register([
             });
         }
     }
+    chrome.gcm.onMessage.addListener(async message => {
+        await async.until(
+            (cb) => cb(null, state.hydrated),
+            (next) => setTimeout(next, 500)
+        ); 
+        notificationEventHandler(message);
+    });
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.messaging = self.messaging || {}));

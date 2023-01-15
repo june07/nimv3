@@ -7,6 +7,7 @@ importScripts(
     '../dist/socket.io.min.js',
     '../dist/mitt.umd.js',
     '../dist/nanoid.min.js',
+    './utils.js',
     './settings.js',
     './brakecode.js',
     './utilities.js',
@@ -69,20 +70,11 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
         chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
-        chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
+        // chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
     ]);
-    console.log(state);
-    messaging.register();
+    console.log('serviceworker state:', state);
+    // messaging.register();
     state.hydrated = true;
-}
-function resetInterval(func, timeout) {
-    if (timeout) {
-        clearTimeout(timeout);
-    }
-    return {
-        func,
-        interval: setInterval(func, timeout)
-    }
 }
 (async function init() {
     cache.ip = await (await fetch('https://ip-cfworkers.brakecode.com', { method: 'head' })).headers.get('cf-connecting-ip');
@@ -91,7 +83,7 @@ function resetInterval(func, timeout) {
         (next) => setTimeout(next, 500)
     );
     await hydrateState();
-    cache.checkInterval = resetInterval(() => {
+    cache.checkInterval = utils.resetInterval(() => {
         let home,
             openedRemoteTabSessions = {};
 
