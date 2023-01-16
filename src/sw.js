@@ -546,6 +546,7 @@ chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     if (cache.highWaterMark > HIGH_WATER_MARK_MAX) {
         settings.auto = false;
     }
+    amplitude.getInstance().logEvent('Program Event', { 'action': 'onCreated' });
 });
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
@@ -561,6 +562,9 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     await chrome.storage.session.set({ sessions: state.sessions });
     cache.removed[tabId] = Date.now();
     amplitude.getInstance().logEvent('Program Event', { 'action': 'onRemoved' });
+});
+chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
+    amplitude.getInstance().logEvent('Program Event', { 'action': 'onActivated' });
 });
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
