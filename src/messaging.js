@@ -9,6 +9,7 @@
             registrationId = id;
         });
     }());
+
     let state = {
         hydrated: false,
         notifications: [],
@@ -24,10 +25,10 @@
     };
 
     async function hydrateState() {
-        const sessions = (await chrome.storage.session.get('sessions'))?.sessions;
-        state.sessions = sessions ? { ...sessions } : {};
         await Promise.all([
-            chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
+            chrome.storage.local.get('token').then((obj) => state.token = obj.token),
+            chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
+            chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications || [])
         ]);
         state.hydrated = true;
         console.log('messaging state: ', state);
@@ -120,17 +121,17 @@
             })();
         } else {
             chrome.action.setBadgeText({
-                text: state.notifications.length ? `${state.notifications.length}` : ''
+                text: state.notifications?.length ? `${state.notifications.length}` : ''
             });
-            if (state.notifications.length <= 3) {
+            if (state.notifications?.length <= 3) {
                 chrome.action.setBadgeBackgroundColor({
                     color: '#E8F5E9' // green lighten-5
                 });
-            } else if (state.notifications.length <= 9) {
+            } else if (state.notifications?.length <= 9) {
                 chrome.action.setBadgeBackgroundColor({
                     color: '#A5D6A7' // green lighten-3
                 });
-            } else if (state.notifications.length > 10) {
+            } else if (state.notifications?.length > 10) {
                 chrome.action.setBadgeBackgroundColor({
                     color: '#66BB6A' // green lighten-1
                 });
