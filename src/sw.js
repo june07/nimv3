@@ -66,7 +66,7 @@ async function hydrateState() {
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
-        chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
+        chrome.storage.local.get('groups').then((obj) => state.groups = obj?.groups || []),
     ]);
     // messaging.register();
     state.hydrated = true;
@@ -433,7 +433,9 @@ function messageHandler(request, sender, reply) {
             break;
         case 'getSettings': settings.get().then(reply); break;
         case 'getSessions': reply(state.sessions); break;
-        case 'getRemotes': reply(state.remotes); break;
+        case 'getRemotes':
+            chrome.storage.session.get('remotes').then((response) => reply(response?.remotes || {}));
+            break;
         case 'commit':
             const { store, obj, key, keys, value, values } = request;
 
