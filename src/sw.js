@@ -117,7 +117,7 @@ async function hydrateState() {
         }
         // failsafe interval of 60 seconds because the runaway problem can be real!!!
     }, {
-        timeout: 60000
+        timeout: settings.checkInterval || 60000
     });
     cache.drainInterval = setInterval(() => cache.highWaterMark > 0 && (cache.highWaterMark -= 1), DRAIN_INTERVAL);
 })();
