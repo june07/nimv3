@@ -146,7 +146,10 @@ async function getInfo(host, port) {
         if (!`${response.status}`.match(/2[0-9]{2}/)) return;
         const info = await response.json();
         // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
-        cache.info[cacheId] = browserAgnosticFix(info[0]);
+        cache.info[cacheId] = {
+            infoURL: url,
+            ...browserAgnosticFix(info[0])
+        }
         return cache.info[cacheId];
     } catch (error) {
         if (!error?.message?.match(/Failed to fetch/i)) {
@@ -241,7 +244,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
                 info.type = 'deno'
             }
-            const wsQuery = encodeURIComponent(`uid=${state.user.uid}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
+            const wsQuery = encodeURIComponent(`uid=${state.user.sub}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`);
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
@@ -259,7 +262,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         if (devtoolsURL.match(/chrome-devtools:\/\//)) {
             devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://');
         }
-        await createTabOrWindow(getinfoURL(host, port), devtoolsURL, info, { host, port });
+        await createTabOrWindow(devtoolsURL, info, { host, port });
     } finally {
         if (cache.timeouts[cacheId]) {
             return;
@@ -276,11 +279,11 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }, 700);
     }
 }
-function createTabOrWindow(infoURL, url, info, socket) {
+function createTabOrWindow(url, info, socket) {
     return new Promise(async function (resolve) {
         let webSocketDebuggerURL;
 
-        if (infoURL.match(brakecode.PADS_HOST)) {
+        if (info.infoURL.match(brakecode.PADS_HOST)) {
             webSocketDebuggerURL = url.match(brakecode.REGEXPS['INSPECTOR_WS_URL'])[0].replace('wss=', 'wss://');
         } else {
             webSocketDebuggerURL = info.webSocketDebuggerUrl;
@@ -302,7 +305,7 @@ function createTabOrWindow(infoURL, url, info, socket) {
                 chrome.windows.update(currentWindow.id, { focused: true });
                 const dtpSocket = await dtpSocketPromise;
                 devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tabId);
-                saveSession({ url, infoURL, tabId, info, dtpSocket, socket });
+                saveSession({ url, tabId, info, dtpSocket, socket });
                 // group tabs
                 if (settings.group) {
                     group(tab.id);
@@ -318,7 +321,7 @@ function createTabOrWindow(infoURL, url, info, socket) {
             updateTabUI(tab.id);
             const dtpSocket = await dtpSocketPromise;
             devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tab.id);
-            saveSession({ url, infoURL, tabId: tab.id, info, dtpSocket, socket });
+            saveSession({ url, tabId: tab.id, info, dtpSocket, socket });
             // group tabs
             if (settings.group) {
                 group(tab.id);
@@ -352,15 +355,14 @@ function updateTabUI(tabId) {
         });
 }
 async function saveSession(params) {
-    const { url, infoURL, tabId, info, dtpSocket, socket } = params;
-    const existingSessions = Object.values(state.sessions).filter((session) => session.infoURL === infoURL);
+    const { url, tabId, info, dtpSocket, socket } = params;
+    const existingSessions = Object.values(state.sessions).filter((session) => session.info.infoURL === info.infoURL);
 
     const session = {
         url,
         auto: existingSessions[0]?.auto || settings.auto,
         autoClose: existingSessions[0]?.autoClose || settings.autoClose,
         isWindow: existingSessions[0]?.isWindow || settings.isWindow,
-        infoURL,
         tabId,
         info,
         dtpSocket,
@@ -371,12 +373,6 @@ async function saveSession(params) {
     chrome.storage.session.set({ sessions: state.sessions });
     // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it. 
     existingSessions.map((session) => delete state.sessions[session.tabId]);
-}
-function getinfoURL(host, port) {
-    if (host && host === brakecode?.PADS_HOST) {
-        return `${brakecode.PADS_SERVER}/json/${port}`;
-    }
-    return `http://${host}:${port}/json`;
 }
 async function encryptMessage(message, publicKeyBase64Encoded) {
     const clientPrivateKey = nacl.randomBytes(32),
@@ -614,3 +610,39 @@ chrome.tabGroups.onCreated.addListener((tabGroup) => {
     }
     chrome.tabGroups.update(tabGroup.id, updatedTabGroup);
 });
+
+(async function StayAlive() {
+    let alivePort;
+    let lastCall = Date.now();
+    var wakeup = setInterval( () => {        
+        const age = Date.now() - lastCall;
+        
+        console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age}`)
+        if (alivePort == null) {
+            alivePort = chrome.runtime.connect({name: 'stayAlive'})
+
+            alivePort.onDisconnect.addListener( (p) => {
+				if (chrome.runtime.lastError){
+					console.log(`(DEBUG StayAlive) Disconnected due to an error: ${chrome.runtime.lastError.message}`);
+				} else {
+					console.log(`(DEBUG StayAlive): port disconnected`);
+				}
+
+				alivePort = null;
+			});
+        }
+
+        if (alivePort) {
+                        
+            alivePort.postMessage({content: "ping"});
+            
+            if (chrome.runtime.lastError) {                              
+                console.log(`(DEBUG StayAlive): postMessage error: ${chrome.runtime.lastError.message}`)                
+            } else {                               
+                console.log(`(DEBUG StayAlive): "ping" sent through ${alivePort.name} port`)
+            }
+            
+        }         
+               
+    }, 25000);
+})();
