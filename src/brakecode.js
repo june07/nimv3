@@ -111,7 +111,6 @@
             $scope.nodeReportSortedMessages[`${host}`] = messages;
         });
     }
-    brakecode.emitter = new mitt();
     brakecode.settings = {
         remoteTabTimeout: settings.ENV !== 'production' ? 7 * 24 * 60 * 60000 : 7 * 24 * 60 * 60000,
         START_PADS_SOCKET_RETRY_INTERVAL: settings.ENV !== 'production' ? 10000 : 60000
@@ -150,10 +149,7 @@
                             delete state.remotes[kv[0]];
                         }
                     })
-                })
-                .on('alert', (data) => {
-                    brakecode.emitter.emit('alert', data);
-                })
+                });
         } catch (error) {
             console.log(error);
         }

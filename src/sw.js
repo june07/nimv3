@@ -5,7 +5,6 @@ importScripts(
     '../dist/amplitude.umd.min.js',
     '../dist/async.min.js',
     '../dist/socket.io.min.js',
-    '../dist/mitt.umd.js',
     '../dist/nanoid.min.js',
     './utils.js',
     './settings.js',
@@ -68,7 +67,6 @@ async function hydrateState() {
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
         chrome.storage.local.get('groups').then((obj) => state.groups = obj?.groups || []),
     ]);
-    // messaging.register();
     state.hydrated = true;
     console.log('serviceworker state:', state);
 }
@@ -500,7 +498,6 @@ function messageHandler(request, sender, reply) {
                     });
                 });
             }
-            messaging.register();
             break;
     }
     return true;

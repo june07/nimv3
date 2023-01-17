@@ -71,10 +71,6 @@
             return true;
         }
     }
-    messaging.emitter = new mitt();
-    messaging.emitter.on('alert', (data) => {
-        notificationEventHandler(data);
-    });
     messaging.updateBadge = (badgeId) => {
         if (badgeId) {
             chrome.action.setBadgeBackgroundColor({
@@ -129,11 +125,7 @@
         chrome.storage.local.set({ notifications: state.notifications });
         messaging.updateBadge();
     }
-    messaging.onMessageEvent = (async message => {
-        await async.until(
-            (cb) => cb(null, state.hydrated),
-            (next) => setTimeout(next, 500)
-        );
+    brakecode.io.on('notification', (message) => {
         notificationEventHandler(message);
     });
     state.badgeUpdateInterval = utils.resetInterval(() => {
