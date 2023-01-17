@@ -1,15 +1,6 @@
 (async function (messaging) {
     const senderId = "162467809982";
     let registrationId;
-
-    (async function init() {
-        chrome.gcm.register([
-            senderId
-        ], (id) => {
-            registrationId = id;
-        });
-    }());
-
     let state = {
         hydrated: false,
         notifications: [],
@@ -84,20 +75,6 @@
     messaging.emitter.on('alert', (data) => {
         notificationEventHandler(data);
     });
-    messaging.register = async () => {
-        await (await fetch(`https://${brakecode.PADS_HOST}/api/v1/gcm/register`, {
-            method: 'post',
-            headers: {
-                'content-type': 'application/json',
-                'authorization': 'Bearer ' + state.token
-            },
-            body: JSON.stringify({
-                registrationId,
-                apikey: state.apikey
-            })
-        }));
-    }
-    messaging.register();
     messaging.updateBadge = (badgeId) => {
         if (badgeId) {
             chrome.action.setBadgeBackgroundColor({
@@ -152,6 +129,13 @@
         chrome.storage.local.set({ notifications: state.notifications });
         messaging.updateBadge();
     }
+    messaging.onMessageEvent = (async message => {
+        await async.until(
+            (cb) => cb(null, state.hydrated),
+            (next) => setTimeout(next, 500)
+        );
+        notificationEventHandler(message);
+    });
     state.badgeUpdateInterval = utils.resetInterval(() => {
         if (Object.keys(state.badges)?.length) {
             const oldestBadge = Object.entries(state.badges).reduce((oldest, badge) => badge[1].updated > oldest[1].updated ? oldest : badge);
@@ -163,13 +147,6 @@
     }, {
         immediate: true,
         timeout: settings.badgeUpdateInterval || 60000
-    });
-    chrome.gcm.onMessage.addListener(async message => {
-        await async.until(
-            (cb) => cb(null, state.hydrated),
-            (next) => setTimeout(next, 500)
-        );
-        notificationEventHandler(message);
     });
     chrome.runtime.onMessage.addListener(messageHandler);
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.messaging = self.messaging || {}));
