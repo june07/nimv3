@@ -176,7 +176,7 @@ import iconNode from "/node-favicon.ico";
 const { VITE_ENV } = import.meta.env;
 const updateSetting = inject("updateSetting");
 const i18nString = inject("i18nString");
-const extensionId = inject("id");
+const extensionId = inject("extensionId");
 const updateNotifications = inject("updateNotifications");
 const form = ref("form");
 const tab = ref("tab");

@@ -52,7 +52,7 @@
 <script setup>
 import { inject, computed } from "vue";
 
-const extensionId = inject("id");
+const extensionId = inject("extensionId");
 const amplitude = inject("amplitude");
 
 const emit = defineEmits(["read", "deleted"]);

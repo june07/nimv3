@@ -120,7 +120,7 @@ async function getAccessTokenSilentlyWrapper() {
     chrome.runtime.sendMessage(extensionId, {
         command: "auth",
         credentials: {
-            uid: user.value.sub,
+            user: user.value,
             token,
             apikey: apikey.value,
         },
@@ -170,5 +170,5 @@ watch(asyncNotifications, (currentValue) => {
 });
 provide("updateNotifications", getMessages);
 provide("apikey", apikey);
-provide("id", extensionId);
+provide("extensionId", extensionId);
 </script>

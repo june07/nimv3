@@ -33,9 +33,7 @@ const HIGH_WATER_MARK_MAX = 3;
 const DRAIN_INTERVAL = 5000;
 
 let cache = {
-    dns: {},
     tabs: {},
-    age: {},
     forceRemoveSession: {},
     highlighted: {},
     removed: {},
@@ -46,7 +44,6 @@ let cache = {
 let state = {
     hydrated: false,
     groups: [],
-    notifications: []
 };
 
 async function importForeignTabs() {
@@ -70,7 +67,6 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
         chrome.storage.local.get('groups').then((obj) => state.groups = obj.groups),
-        // chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications)
     ]);
     // messaging.register();
     state.hydrated = true;
@@ -245,7 +241,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
                 info.type = 'deno'
             }
-            const wsQuery = encodeURIComponent(`uid=${state.uid}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
+            const wsQuery = encodeURIComponent(`uid=${state.user.uid}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`);
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
@@ -483,22 +479,22 @@ function messageHandler(request, sender, reply) {
             }
             break;
         case 'signout':
-            chrome.storage.local.remove(['sapikey', 'apikey', 'token', 'uid']).then(() => reply());
+            chrome.storage.local.remove(['sapikey', 'apikey', 'token', 'user']).then(() => reply());
             break;
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
             break;
         case 'auth':
-            const { uid, token, apikey } = request.credentials;
+            const { user, token, apikey } = request.credentials;
 
-            if (uid !== state.uid) {
-                chrome.storage.local.set({ uid }).then(() => state.uid = uid);
+            if (user !== state.user) {
+                chrome.storage.local.set({ user }).then(() => state.user = user);
             }
             if (token !== state.token) {
                 chrome.storage.local.set({ token }).then(() => state.token = token);
             }
             if (apikey !== state.apikey) {
-                encryptMessage(apikey, cache.dns.publicKey).then((sapikey) => {
+                encryptMessage(apikey, brakecode.getPublicKey()).then((sapikey) => {
                     chrome.storage.local.set({ apikey, sapikey }).then(() => {
                         state.apikey = apikey;
                         state.sapikey = sapikey;
