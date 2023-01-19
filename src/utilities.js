@@ -32,5 +32,17 @@
     });
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         console.log(info, tab);
+        chrome.scripting.executeScript(
+            {
+                target: { tabId: tab.id, allFrames: true },
+                func: scripting.rotate,
+                args: [info]
+            },
+            (injectionResults) => {
+                if (!injectionResults) return;
+                for (const frameResult of injectionResults) {
+                    console.log('Frame Title: ' + frameResult.result);
+                }
+            });
     })
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.utilities = self.utilities || {}));
