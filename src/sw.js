@@ -64,7 +64,6 @@ async function hydrateState() {
     await Promise.all([
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
-        chrome.storage.local.get('sapikey').then((obj) => state.sapikey = obj.sapikey),
         chrome.storage.local.get('groups').then((obj) => state.groups = obj?.groups || []),
     ]);
     state.hydrated = true;
@@ -242,7 +241,8 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
                 info.type = 'deno'
             }
-            const wsQuery = encodeURIComponent(`uid=${state.user.sub}&sapikey=${btoa(state.sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
+            const sapikey = encryptMessage(state.apikey, brakecode.getPublicKey());
+            const wsQuery = encodeURIComponent(`uid=${state.user.sub}&sapikey=${btoa(sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`);
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
@@ -372,7 +372,7 @@ async function saveSession(params) {
     // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it. 
     existingSessions.map((session) => delete state.sessions[session.tabId]);
 }
-async function encryptMessage(message, publicKeyBase64Encoded) {
+function encryptMessage(message, publicKeyBase64Encoded) {
     const clientPrivateKey = nacl.randomBytes(32),
         publicKey = (publicKeyBase64Encoded !== undefined) ? nacl.util.decodeBase64(publicKeyBase64Encoded) : nacl.util.decodeBase64('cXFjuDdYNvsedzMWf1vSXbymQ7EgG8c40j/Nfj3a2VU='),
         nonce = crypto.getRandomValues(new Uint8Array(24)),
@@ -383,7 +383,7 @@ async function encryptMessage(message, publicKeyBase64Encoded) {
 }
 async function getUserInfo() {
     const userInfo = await chrome.identity.getProfileUserInfo();
-    const encryptedUserInfo = await encryptMessage(userInfo);
+    const encryptedUserInfo = encryptMessage(userInfo);
     chrome.storage.local.set({ userInfo: encryptedUserInfo });
     return encryptedUserInfo
 }
@@ -475,7 +475,7 @@ function messageHandler(request, sender, reply) {
             }
             break;
         case 'signout':
-            chrome.storage.local.remove(['sapikey', 'apikey', 'token', 'user']).then(() => reply());
+            chrome.storage.local.remove(['apikey', 'token', 'user']).then(() => reply());
             break;
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info));
@@ -490,12 +490,9 @@ function messageHandler(request, sender, reply) {
                 chrome.storage.local.set({ token }).then(() => state.token = token);
             }
             if (apikey !== state.apikey) {
-                encryptMessage(apikey, brakecode.getPublicKey()).then((sapikey) => {
-                    chrome.storage.local.set({ apikey, sapikey }).then(() => {
-                        state.apikey = apikey;
-                        state.sapikey = sapikey;
-                        reply()
-                    });
+                chrome.storage.local.set({ apikey }).then(() => {
+                    state.apikey = apikey;
+                    reply()
                 });
             }
             break;
@@ -529,7 +526,6 @@ chrome.runtime.onSuspend.addListener(() => {
     chrome.storage.local.set({
         token: state.token,
         apikey: state.token,
-        sapikey: state.sapikey
     });
 });
 chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {

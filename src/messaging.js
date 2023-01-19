@@ -26,7 +26,7 @@
     }
     hydrateState();
     await async.until(
-        (cb) => cb(null, state.hydrated),
+        (cb) => cb(null, state.hydrated && brakecode.io),
         (next) => setTimeout(next, 500)
     );
     function notificationEventHandler(message) {
