@@ -607,18 +607,18 @@ chrome.tabGroups.onCreated.addListener((tabGroup) => {
 (async function StayAlive() {
     let alivePort;
     let lastCall = Date.now();
-    var wakeup = setInterval( () => {        
+    setInterval( () => {        
         const age = Date.now() - lastCall;
         
-        console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age}`)
+        console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age / 3600000} hrs`)
         if (alivePort == null) {
             alivePort = chrome.runtime.connect({name: 'stayAlive'})
 
             alivePort.onDisconnect.addListener( (p) => {
 				if (chrome.runtime.lastError){
-					console.log(`(DEBUG StayAlive) Disconnected due to an error: ${chrome.runtime.lastError.message}`);
+					// console.log(`(DEBUG StayAlive) Disconnected due to an error: ${chrome.runtime.lastError.message}`);
 				} else {
-					console.log(`(DEBUG StayAlive): port disconnected`);
+					// console.log(`(DEBUG StayAlive): port disconnected`);
 				}
 
 				alivePort = null;
@@ -630,9 +630,9 @@ chrome.tabGroups.onCreated.addListener((tabGroup) => {
             alivePort.postMessage({content: "ping"});
             
             if (chrome.runtime.lastError) {                              
-                console.log(`(DEBUG StayAlive): postMessage error: ${chrome.runtime.lastError.message}`)                
+                // console.log(`(DEBUG StayAlive): postMessage error: ${chrome.runtime.lastError.message}`)                
             } else {                               
-                console.log(`(DEBUG StayAlive): "ping" sent through ${alivePort.name} port`)
+                // console.log(`(DEBUG StayAlive): "ping" sent through ${alivePort.name} port`)
             }
             
         }         
