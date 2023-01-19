@@ -31,7 +31,6 @@
         chrome.contextMenus.create({title: 'Image Rotate (270deg)', id: 'utilities-rotate-270', parentId: 'image-rotate', contexts: ['image'] }, () => {});
     });
     chrome.contextMenus.onClicked.addListener((info, tab) => {
-        console.log(info, tab);
         chrome.scripting.executeScript(
             {
                 target: { tabId: tab.id, allFrames: true },
