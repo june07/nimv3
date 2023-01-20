@@ -8,7 +8,9 @@
         <v-list class="rounded-xl">
             <v-list-item v-for="type in data.networks" :key="type.network" dense>
                 <ShareNetwork url="https://june07.com/nim" :network="type.network" :title="data.sharing.title" :description="data.sharing.description" :quote="data.sharing.quote" :hashtags="data.sharing.hashtags" :twitterUser="data.sharing.twitterUser">
-                    <v-icon small class="mr-2" :color="type.color" :icon="type.icon"></v-icon>
+                    <v-icon class="mr-2" :color="type.color">
+                        <span class="material-icons small-icon">{{ type.icon }}</span>
+                    </v-icon>
                     <span>{{ type.name }}</span>
                 </ShareNetwork>
             </v-list-item>
@@ -57,13 +59,13 @@ const data = {
         {
             network: "twitter",
             name: "Twitter",
-            icon: "mdi:mdi-twitter",
+            icon: '',
             color: "#1da1f2",
         },
         {
             network: "whatsapp",
             name: "Whatsapp",
-            icon: "mdi:mdi-whatsapp",
+            icon: '',
             color: "#25d366",
         },
     ],
