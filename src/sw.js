@@ -241,9 +241,8 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
                 info.type = 'deno'
             }
-            const sapikey = encryptMessage(state.apikey, brakecode.getPublicKey());
-            const wsQuery = encodeURIComponent(`uid=${state.user.sub}&sapikey=${btoa(sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`);
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`);
+            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${getRemoteWebSocketDebuggerUrl(remoteMetadata, info)}`);
+            info.remoteWebSocketDebuggerUrl = () => `wss://${getRemoteWebSocketDebuggerUrl(remoteMetadata, info, { encode: false })}`;
         } else {
             devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1');
             var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1];
@@ -277,16 +276,16 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }, 700);
     }
 }
+function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
+    const { encode } = options;
+    const sapikey = encryptMessage(state.apikey, brakecode.getPublicKey());
+    const uriString = `uid=${state.user.sub}&sapikey=${btoa(sapikey, 'base64')}&${info.type === 'deno' ? 'runtime=deno' : ''}`;
+    const wsQuery = encode ? encodeURIComponent(uriString) : uriString;
+    return `${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`;
+}
 function createTabOrWindow(url, info, socket) {
     return new Promise(async function (resolve) {
-        let webSocketDebuggerURL;
-
-        if (info.infoURL.match(brakecode.PADS_HOST)) {
-            webSocketDebuggerURL = url.match(brakecode.REGEXPS['INSPECTOR_WS_URL'])[0].replace('wss=', 'wss://');
-        } else {
-            webSocketDebuggerURL = info.webSocketDebuggerUrl;
-        }
-        const dtpSocketPromise = devtoolsProtocolClient.setSocket(info.id, webSocketDebuggerURL, {
+        const dtpSocketPromise = devtoolsProtocolClient.setSocket(info, {
             autoResume: settings.autoResumeInspectBrk,
             focusOnBreakpoint: settings.focusOnBreakpoint
         });
@@ -331,11 +330,23 @@ function createTabOrWindow(url, info, socket) {
         console.error(error);
     })
 }
-function group(tabId) {
+async function group(tabId) {
+    // first check to see if there's an open group that we aren't tracking via state
+    const untrackedGroup = (await chrome.tabGroups.query({ title: 'NiM' })).pop();
+    const trackedDefaultGroup = state.groups.find((group) => group.title === 'NiM');
+
+    if (untrackedGroup && trackedDefaultGroup) {
+        const untrackedGroupTabs = await chrome.tabs.query({ groupId: untrackedGroup.id });
+        untrackedGroupTabs.forEach((tab) => chrome.tabs.ungroup(tab.id).then(() => chrome.tabs.group({ groupId: trackedDefaultGroup.id, tabIds: [tab.id] })));
+    } else if (untrackedGroup) {
+        state.groups.push(untrackedGroup);
+    }
     if (state.groups?.length) {
-        chrome.tabs.group({ tabIds: tabId, groupId: state.groups[0] });
+        chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups[0].id });
     } else {
-        chrome.tabs.group({ tabIds: tabId }, (groupId) => state.groups.push(groupId));
+        const groupId = await chrome.tabs.group({ tabIds: tabId });
+        const group = await chrome.tabGroups.get(groupId);
+        state.groups.push(group);
     }
 }
 function updateTabUI(tabId) {

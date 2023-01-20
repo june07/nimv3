@@ -2,8 +2,10 @@
     devtoolsProtocolClient.sockets = {};
     
     devtoolsProtocolClient.parseWebSocketUrl = (socketUrl) => socketUrl.match(/(wss?):\/\/(.*)\/(.*)$/);
-    devtoolsProtocolClient.setSocket = (_websocketId, socketUrl, options) => {
+    devtoolsProtocolClient.setSocket = (info, options) => {
+        const socketUrl = info.remoteWebSocketDebuggerUrl ? info.remoteWebSocketDebuggerUrl() : info.webSocketDebuggerUrl;
         const socket = devtoolsProtocolClient.parseWebSocketUrl(socketUrl)[2];
+
         if (! devtoolsProtocolClient.sockets[socket]) {
             const ws = devtoolsProtocolClient.getSocket(socketUrl);
             devtoolsProtocolClient.sockets[socket] = { messageIndex: 0, socketUrl, ws, socket };
