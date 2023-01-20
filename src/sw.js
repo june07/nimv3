@@ -26,8 +26,8 @@ const NOTIFICATION_CHECK_INTERVAL = settings.ENV !== 'production' ? 60000 : 60 *
 const NOTIFICATION_PUSH_INTERVAL = settings.ENV !== 'production' ? 60000 : 60 * 60000; // Push new notifications no more than 1 every hour if there is a queue.
 const NOTIFICATION_LIFETIME = settings.ENV !== 'production' ? 3 * 60000 : 7 * 86400000;
 const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)/;
-const devtoolsURL_Regex = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/;
-const UUID_Regex = new RegExp(/\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/i);
+const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/;
+const reTabGroupTitle = new RegExp(/NiM/);
 const HIGH_WATER_MARK_MAX = 3;
 const DRAIN_INTERVAL = 5000;
 
@@ -42,7 +42,7 @@ let cache = {
 };
 let state = {
     hydrated: false,
-    groups: [],
+    groups: {},
 };
 
 async function importForeignTabs() {
@@ -64,7 +64,6 @@ async function hydrateState() {
     await Promise.all([
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
-        chrome.storage.local.get('groups').then((obj) => state.groups = obj?.groups || []),
     ]);
     state.hydrated = true;
     console.log('serviceworker state:', state);
@@ -252,8 +251,8 @@ async function openTab(host = 'localhost', port = 9229, manual) {
                 .replace(inspectIP + ":" + inspectPORT, host + ":" + port) // A check for just the port change must be made.
         }
         // custom devtools
-        if ((settings.localDevtools || settings.devtoolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(devtoolsURL_Regex)) {
-            devtoolsURL = devtoolsURL.replace(devtoolsURL_Regex, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url);
+        if ((settings.localDevtools || settings.devtoolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
+            devtoolsURL = devtoolsURL.replace(reDevtoolsURL, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url);
         }
         // legacy fix
         if (devtoolsURL.match(/chrome-devtools:\/\//)) {
@@ -262,18 +261,22 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         await createTabOrWindow(devtoolsURL, info, { host, port });
     } finally {
         if (cache.timeouts[cacheId]) {
+            cache.timeouts[cacheId].hits += 1;
             return;
         }
         /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
          *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
          *  show up during the query stage... 
          */
-        cache.timeouts[cacheId] = setTimeout(() => {
-            if (cache.tabs[cacheId]) {
-                delete cache.tabs[cacheId];
-            };
-            delete cache.timeouts[cacheId];
-        }, 700);
+        cache.timeouts[cacheId] = {
+            hits: 0,
+            timeout: setTimeout(() => {
+                if (cache.tabs[cacheId]) {
+                    delete cache.tabs[cacheId];
+                };
+                delete cache.timeouts[cacheId];
+            }, 1100)
+        }
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
@@ -331,22 +334,29 @@ function createTabOrWindow(url, info, socket) {
     })
 }
 async function group(tabId) {
-    // first check to see if there's an open group that we aren't tracking via state
-    const untrackedGroup = (await chrome.tabGroups.query({ title: 'NiM' })).pop();
-    const trackedDefaultGroup = state.groups.find((group) => group.title === 'NiM');
+    try {
+        // first check to see if there's an open group that we aren't tracking via state
+        const trackedDefaultGroup = state.groups['default'];
+        const untrackedGroup = (await chrome.tabGroups.query({ title: 'NiM' })).filter((tracked) => tracked.id !== trackedDefaultGroup.id).pop();
 
-    if (untrackedGroup && trackedDefaultGroup) {
-        const untrackedGroupTabs = await chrome.tabs.query({ groupId: untrackedGroup.id });
-        untrackedGroupTabs.forEach((tab) => chrome.tabs.ungroup(tab.id).then(() => chrome.tabs.group({ groupId: trackedDefaultGroup.id, tabIds: [tab.id] })));
-    } else if (untrackedGroup) {
-        state.groups.push(untrackedGroup);
-    }
-    if (state.groups?.length) {
-        chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups[0].id });
-    } else {
-        const groupId = await chrome.tabs.group({ tabIds: tabId });
-        const group = await chrome.tabGroups.get(groupId);
-        state.groups.push(group);
+        if (untrackedGroup && trackedDefaultGroup) {
+            const untrackedGroupTabs = await chrome.tabs.query({ groupId: untrackedGroup.id });
+            await Promise.all(
+                untrackedGroupTabs.forEach((tab) => chrome.tabs.ungroup(tab.id).then(() => chrome.tabs.group({ groupId: trackedDefaultGroup.id, tabIds: [tab.id] })))
+            )
+        } else if (untrackedGroup) {
+            state.groups['external'] = untrackedGroup;
+            amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'external' });
+        }
+        if (state.groups['default']) {
+            chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id });
+        } else {
+            const groupId = await chrome.tabs.group({ tabIds: tabId });
+            state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' });
+            amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' });
+        }
+    } catch (error) {
+        console.log(error);
     }
 }
 function updateTabUI(tabId) {
@@ -607,12 +617,12 @@ chrome.notifications.onButtonClicked.addListener(async (_notificationId, buttonI
         amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
     }
 });
-chrome.tabGroups.onCreated.addListener((tabGroup) => {
-    const updatedTabGroup = {
-        color: 'green',
-        title: 'NiM',
-    }
-    chrome.tabGroups.update(tabGroup.id, updatedTabGroup);
+chrome.tabGroups.onRemoved.addListener((tabGroup) => {
+    Object.entries(state.groups).filter((kv) => kv[1].id === tabGroup.id).map((kv) => {
+        const tabGroupId = kv[0];
+        delete state.groups[tabGroupId];
+        amplitude.getInstance().logEvent('User Event', { action: 'Tab Group Removed', detail: tabGroupId });
+    });
 });
 
 (async function StayAlive() {
