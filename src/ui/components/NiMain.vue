@@ -484,7 +484,7 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
      *  !sessionId to ensure it's only for local sessions.
      */
     const match = action.match(/(auto)(-.*)?|(remove)(-.*)?/);
-    if (tabId && match && re.test(sessions.value[tabId]?.info?.url)) {
+    if (tabId && match && re.test(sessions.value[tabId]?.info?.infoURL)) {
         // update auto session and setting in localhost tab
         if (match[1] === "auto") {
             values = {
