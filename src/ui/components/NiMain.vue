@@ -63,14 +63,14 @@
                                 <template v-slot:activator="{ props }">
                                     <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
                                         <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
-                                        <span class="ml-2">({{ session.infoURL.match(/https?:\/\/([^:]*:[0-9]+)/)[1] }})</span>
+                                        <span class="ml-2">({{ session.info?.infoURL?.match(/https?:\/\/([^:]*:[0-9]+)/)?.[1] }})</span>
                                         <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id }}</span>
                                     </div>
                                 </template>
                                 <v-container v-click-outside="() => tooltips[`${id}`] = 0">
                                     <v-row>
                                         <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
-                                        <v-col class="pa-0">{{ session.info.url }}</v-col>
+                                        <v-col class="pa-0">{{ session.info?.infoURL }}</v-col>
                                     </v-row>
                                     <v-row>
                                         <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
@@ -484,7 +484,7 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
      *  !sessionId to ensure it's only for local sessions.
      */
     const match = action.match(/(auto)(-.*)?|(remove)(-.*)?/);
-    if (tabId && match && re.test(sessions.value[tabId]?.infoURL)) {
+    if (tabId && match && re.test(sessions.value[tabId]?.info?.url)) {
         // update auto session and setting in localhost tab
         if (match[1] === "auto") {
             values = {
