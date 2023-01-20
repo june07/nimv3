@@ -337,7 +337,7 @@ async function group(tabId) {
     try {
         // first check to see if there's an open group that we aren't tracking via state
         const trackedDefaultGroup = state.groups['default'];
-        const untrackedGroup = (await chrome.tabGroups.query({ title: 'NiM' })).filter((tracked) => tracked.id !== trackedDefaultGroup.id).pop();
+        const untrackedGroup = (await chrome.tabGroups.query({ title: 'NiM' })).filter((tracked) => tracked.id !== trackedDefaultGroup?.id).pop();
 
         if (untrackedGroup && trackedDefaultGroup) {
             const untrackedGroupTabs = await chrome.tabs.query({ groupId: untrackedGroup.id });
@@ -345,7 +345,7 @@ async function group(tabId) {
                 untrackedGroupTabs.forEach((tab) => chrome.tabs.ungroup(tab.id).then(() => chrome.tabs.group({ groupId: trackedDefaultGroup.id, tabIds: [tab.id] })))
             )
         } else if (untrackedGroup) {
-            state.groups['external'] = untrackedGroup;
+            state.groups['default'] = untrackedGroup;
             amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'external' });
         }
         if (state.groups['default']) {
@@ -414,7 +414,8 @@ function browserAgnosticFix(info) {
     return info;
 }
 function setDevtoolsURL(debuggerMetadata) {
-    settings.localDevtoolsOptions[0].url = (settings.devtoolsCompat && debuggerMetadata.devtoolsFrontendUrlCompat) ? debuggerMetadata.devtoolsFrontendUrlCompat.split('?')[0] : debuggerMetadata.devtoolsFrontendUrl.split('?')[0];
+    /** Deno also doesn't have devtoolsFrontendUrlCompat so if it's missing juse use the hardcoded value */
+    settings.localDevtoolsOptions[0].url = settings.devtoolsCompat ? debuggerMetadata.devtoolsFrontendUrlCompat?.split('?')[0] || 'devtools://devtools/bundled/inspector.html' : debuggerMetadata.devtoolsFrontendUrl.split('?')[0];
     /** Deno is still using the legacy chrome-devtools:// scheme.  See https://github.com/denoland/deno/pull/7659 */
     settings.localDevtoolsOptions[0].url = settings.localDevtoolsOptions[0].url.replace(/chrome-devtools:\/\//, 'devtools://');
 }
@@ -626,12 +627,17 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
 });
 
 (async function StayAlive() {
-    let alivePort;
-    let lastCall = Date.now();
-    setInterval( () => {        
-        const age = Date.now() - lastCall;
+    const lastCall = Date.now();
+    let alivePort, lastAge = 0;
+
+    setInterval( () => {
+        let age = (Date.now() - lastCall) / 3600000;
         
-        console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age / 3600000} hrs`)
+        // console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age} hrs`);
+        if (Math.trunc(age) !== lastAge) {
+            lastAge = Math.trunc(age);
+            amplitude.getInstance().logEvent('Program Event', { action: 'StayAlive', detail: age });
+        }
         if (alivePort == null) {
             alivePort = chrome.runtime.connect({name: 'stayAlive'})
 
