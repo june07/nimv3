@@ -43,8 +43,16 @@
         dtpSocket.ws.addEventListener('close', () => {
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket]);
             if (autoClose) {
-                console.log(`removing tabId: ${tabId}...`);
-                chrome.tabs.remove(tabId);
+                let log = `protocol client removing tabId: ${tabId}... `;
+                chrome.tabs.remove(tabId)
+                    .then(() => console.log(`${log} removed.`))
+                    .catch(error => {
+                        if (!error.match(/No tab with id:/)) {
+                            console.error(error);
+                        } else if (error.match(/No tab with id:/)) {
+                            console.log(`${log} ${error}`)
+                        }
+                });
             }
         });
     }
