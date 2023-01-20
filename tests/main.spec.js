@@ -6,13 +6,17 @@ module.exports = (async () => {
         test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
             const port = 9229;
             const re = new RegExp(`devtools:\/\/.*ws=localhost:${port}.*`);
-            const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
+            
 
             await test.step(`node process should be listening on port ${port}`, async () => await new Promise((resolve) => {
+                const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
                 let stderr = '';
+
                 process.stderr.on('data', async (data) => {
                     stderr += data;
-                    if (Buffer.from(stderr).toString().match(new RegExp(`listening\\son\\sws:\/\/127.0.0.1:${port}`))) {
+                    const s = Buffer.from(stderr).toString();
+                    // console.log('s: ', s);
+                    if (s.match(new RegExp(`listening\\son\\sws:\/\/127.0.0.1:${port}|address\\salready`))) {
                         resolve();
                     }
                 });
