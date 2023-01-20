@@ -94,6 +94,8 @@ import imageGithub from '/image/GitHub_Logo.png';
 import imagePaypalSmall from '/image/PP_logo_h_100x26.png';
 import imagePaypalLarge from '/image/PP_logo_h_150x38.png';
 
+const amplitude = inject('amplitude');
+
 const props = defineProps({
     theme: String
 });
