@@ -251,7 +251,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
                 .replace(inspectIP + ":" + inspectPORT, host + ":" + port) // A check for just the port change must be made.
         }
         // custom devtools
-        if ((settings.localDevtools || settings.devtoolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
+        if ((settings.localDevtools || settings.devToolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
             devtoolsURL = devtoolsURL.replace(reDevtoolsURL, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url);
         }
         // legacy fix
@@ -415,7 +415,7 @@ function browserAgnosticFix(info) {
 }
 function setDevtoolsURL(debuggerMetadata) {
     /** Deno also doesn't have devtoolsFrontendUrlCompat so if it's missing juse use the hardcoded value */
-    settings.localDevtoolsOptions[0].url = settings.devtoolsCompat ? debuggerMetadata.devtoolsFrontendUrlCompat?.split('?')[0] || 'devtools://devtools/bundled/inspector.html' : debuggerMetadata.devtoolsFrontendUrl.split('?')[0];
+    settings.localDevtoolsOptions[0].url = settings.devToolsCompat ? debuggerMetadata.devtoolsFrontendUrlCompat?.split('?')[0] || 'devtools://devtools/bundled/inspector.html' : debuggerMetadata.devtoolsFrontendUrl.split('?')[0];
     /** Deno is still using the legacy chrome-devtools:// scheme.  See https://github.com/denoland/deno/pull/7659 */
     settings.localDevtoolsOptions[0].url = settings.localDevtoolsOptions[0].url.replace(/chrome-devtools:\/\//, 'devtools://');
 }

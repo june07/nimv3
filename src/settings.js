@@ -34,7 +34,7 @@ const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCH
         nimsVscode: {
             enabled: true
         },
-        devtoolsCompat: true,
+        devToolsCompat: true,
         localDevtoolsOptionsSelectedIndex: 0,
         windowStateMaximized: false,
         diagnosticReports: {
