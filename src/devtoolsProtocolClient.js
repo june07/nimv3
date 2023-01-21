@@ -42,14 +42,15 @@
     devtoolsProtocolClient.addCloseEvent = (dtpSocket, autoClose, tabId) => {
         dtpSocket.ws.addEventListener('close', () => {
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket]);
-            if (autoClose) {
+            // first check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
+            if (autoClose && !cache.removed[tabId]) {
                 let log = `protocol client removing tabId: ${tabId}... `;
                 chrome.tabs.remove(tabId)
                     .then(() => console.log(`${log} removed.`))
                     .catch(error => {
-                        if (!error.match(/No tab with id:/)) {
+                        if (!error.message.match(/No tab with id:/)) {
                             console.error(error);
-                        } else if (error.match(/No tab with id:/)) {
+                        } else if (error.message.match(/No tab with id:/)) {
                             console.log(`${log} ${error}`)
                         }
                 });
