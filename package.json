@@ -11,6 +11,7 @@
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
     "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --retries 3",
+    "test:local": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1",
     "test:post": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --retries 3"
   },
   "dependencies": {
