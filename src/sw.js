@@ -350,9 +350,14 @@ async function group(tabId) {
         if (state.groups['default']) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id });
         } else {
-            const groupId = await chrome.tabs.group({ tabIds: tabId });
-            state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' });
-            amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' });
+            /**
+             * async/await still seems buggy for chrome.tabs.group! Continue to get "Error: Tabs can only be moved to and from normal windows."
+             * before this change.
+             */
+            chrome.tabs.group({ tabIds: tabId }, async (groupId) => {
+                state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' });
+                amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' });
+            });
         }
     } catch (error) {
         console.log(error);
