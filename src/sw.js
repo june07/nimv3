@@ -80,7 +80,7 @@ async function hydrateState() {
             openedRemoteTabSessions = {};
 
         // first handle tab sessions
-        Object.entries(state.sessions).filter(kv => !kv[0].match(':')).forEach((kv) => {
+        const tabSessions = Object.entries(state.sessions).filter(kv => !kv[0].match(':')).map((kv) => {
             const tabSession = kv[1];
 
             if (tabSession.auto && tabSession.socket) {
@@ -95,9 +95,12 @@ async function hydrateState() {
                 }
                 openTab(host, port);
             }
+            return kv[1];
         });
         // then handle remote sessions that have not yet been opened thus there is no tab session
-        Object.entries(state.sessions).filter(kv => kv[0].match(':')).forEach((kv) => {
+        Object.entries(state.sessions).filter(kv => kv[0].match(':') &&
+            !tabSessions.find((tabSession) => tabSession.info.id.match(kv[1].info.id))).forEach((kv) => {
+
             const remoteSessionId = kv[0],
                 remoteSession = kv[1];
 
@@ -199,12 +202,18 @@ async function openTab(host = 'localhost', port = 9229, manual) {
     const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || `${host}:${port}`);
     let devtoolsURL;
 
+    if (!cache.tabs[cacheId]) {
+        cache.tabs[cacheId] = {
+            start: Date.now(),
+            hits: 0
+        }
+    };
     try {
         // settings.DEVTOOLS_SCHEME can be null on initial startup
-        if ((!manual && cache.tabs[cacheId]) || !settings?.DEVTOOLS_SCHEME) {
+        if ((!manual && cache.tabs[cacheId].promise) || !settings?.DEVTOOLS_SCHEME) {
+            cache.tabs[cacheId].hits += 1;
             return;
         }
-        cache.tabs[cacheId] = Date.now();
         const tabs = await queryForDevtoolTabs(host, port);
         // close autoClose sessions if they are dead
         const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => !state.sessions?.[tab.id]?.socket?.host?.cid).map(tab => {
@@ -228,10 +237,12 @@ async function openTab(host = 'localhost', port = 9229, manual) {
                 const highlight = chrome.tabs.highlight({ tabs: tabIndexes, windowId: tabs[0].windowId });
                 tabIndexes.forEach((tabIndex) => cache.highlighted[tabIndex] = highlight);
             }
+            cache.tabs[cacheId].hits += 1;
             return;
         }
         const info = await getInfo(remoteMetadata || host, port);
         if (!info) {
+            cache.tabs[cacheId].hits += 1;
             return;
         }
         setDevtoolsURL(info);
@@ -258,25 +269,15 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         if (devtoolsURL.match(/chrome-devtools:\/\//)) {
             devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://');
         }
-        await createTabOrWindow(devtoolsURL, info, { host, port });
-    } finally {
-        if (cache.timeouts[cacheId]) {
-            cache.timeouts[cacheId].hits += 1;
-            return;
+        if (!cache.tabs[cacheId].promise) {
+            cache.tabs[cacheId].promise = createTabOrWindow(devtoolsURL, info, { host, port });
+            cache.tabs[cacheId].tabId = await cache.tabs[cacheId].promise;
+        } else {
+            cache.tabs[cacheId].hits += 1;
+            console.log('adding hit ', cacheId, cache.tabs[cacheId]);
         }
-        /** 700 seems to be the sweet-spot for preventing rogue (i.e. multiple per devtools session) tabs.
-         *  I thought initially that 501 should have worked but evidently it takes a while for the tab to
-         *  show up during the query stage... 
-         */
-        cache.timeouts[cacheId] = {
-            hits: 0,
-            timeout: setTimeout(() => {
-                if (cache.tabs[cacheId]) {
-                    delete cache.tabs[cacheId];
-                };
-                delete cache.timeouts[cacheId];
-            }, 1100)
-        }
+    } catch(error) {
+        delete cache.tabs[cacheId];
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
@@ -310,7 +311,7 @@ function createTabOrWindow(url, info, socket) {
                 if (settings.group) {
                     group(tab.id);
                 }
-                resolve(window);
+                resolve(tabId);
                 amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` });
             });
         } else {
@@ -326,12 +327,10 @@ function createTabOrWindow(url, info, socket) {
             if (settings.group) {
                 group(tab.id);
             }
-            resolve(tab);
+            resolve(tab.id);
             amplitude.getInstance().logEvent('Program Event', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` });
         }
-    }).catch((error) => {
-        console.error(error);
-    })
+    });
 }
 async function group(tabId) {
     try {
@@ -558,6 +557,12 @@ chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     amplitude.getInstance().logEvent('Program Event', { 'action': 'onCreated' });
 });
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
+    cache.removed[tabId] = Date.now();
+    const tabCacheEntry = Object.entries(cache.tabs).find((kv) => kv[1]?.tabId === tabId);
+    if (tabCacheEntry) {
+        // console.log(`deleting cache.tabs[${tabCacheEntry[0]}]`)
+        delete cache.tabs[tabCacheEntry[0]];
+    }
     if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
         // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession;
         // set this so the close button knows the state
@@ -569,7 +574,6 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     delete cache.forceRemoveSession[tabId];
     delete state.sessions[tabId];
     await chrome.storage.session.set({ sessions: state.sessions });
-    cache.removed[tabId] = Date.now();
     amplitude.getInstance().logEvent('Program Event', { 'action': 'onRemoved' });
 });
 chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
