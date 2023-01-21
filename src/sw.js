@@ -66,7 +66,7 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
     ]);
     state.hydrated = true;
-    console.log('serviceworker state:', state);
+    // console.log('serviceworker state:', state);
 }
 (async function init() {
     cache.ip = await (await fetch('https://ip-cfworkers.brakecode.com', { method: 'head' })).headers.get('cf-connecting-ip');
@@ -274,7 +274,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].tabId = await cache.tabs[cacheId].promise;
         } else {
             cache.tabs[cacheId].hits += 1;
-            console.log('adding hit ', cacheId, cache.tabs[cacheId]);
+            // console.log('adding hit ', cacheId, cache.tabs[cacheId]);
         }
     } catch(error) {
         delete cache.tabs[cacheId];
@@ -446,7 +446,7 @@ function messageHandler(request, sender, reply) {
                 cache[cacheId] = Date.now();
                 openTab(host, port, manual);
             } catch (error) {
-                console.log(error);
+                console.error(error);
             } finally {
                 delete cache[cacheId];
             }
