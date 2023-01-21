@@ -70,7 +70,7 @@ async function copy(text, tooltipId = text) {
     try {
         await navigator.clipboard.writeText(text);
     } catch (error) {
-        console.log({ error });
+        console.error(error);
         this.debounce.value = false;
         this.tooltips[tooltipId] = false;
     }

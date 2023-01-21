@@ -22,7 +22,7 @@
             chrome.storage.local.get('notifications').then((obj) => state.notifications = obj.notifications || [])
         ]);
         state.hydrated = true;
-        console.log('messaging state: ', state);
+        // console.log('messaging state: ', state);
     }
     hydrateState();
     await async.until(

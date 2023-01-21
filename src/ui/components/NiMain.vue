@@ -254,7 +254,7 @@ watch(asyncSessions, (currentValue) => {
 });
 watch(asyncRemotes, (currentValue) => {
     if (!currentValue) return;
-    console.log("asyncRemotes", currentValue);
+    // console.log("asyncRemotes", currentValue);
     const remoteSessions = Object.values(currentValue).reduce(
         (remoteSessions, remote) => ({
             ...remoteSessions,
@@ -284,7 +284,7 @@ watch(asyncRemotes, (currentValue) => {
         }),
         {}
     );
-    console.log("remoteSessions", remoteSessions);
+    // console.log("remoteSessions", remoteSessions);
     Object.values(currentValue).forEach((value) =>
         tabs.value.push({
             name: value.host,
@@ -381,7 +381,7 @@ function updateUI(sessions) {
                 !kvLocal[1].closed
             ) {
                 sessions[remoteSessionId].tabSession = ref(kvLocal[0]);
-                console.log(sessions[remoteSessionId]);
+                // console.log(sessions[remoteSessionId]);
             }
         });
 }
@@ -468,7 +468,7 @@ async function devtoolsButtonHandler(session) {
         port,
         manual: true,
     });
-    console.log(response);
+    // console.log(response);
 }
 
 function clickHandlerSessionUpdate(action, tabId, sessionId) {
@@ -533,7 +533,7 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
                 delete sessions.value[tabId];
                 delete cache.remove[tabId];
                 delete cache.remove[sessionId];
-                console.log(sessions.value);
+                // console.log(sessions.value);
             } else {
                 const update = responses.reduce(
                     (update, response) => ({

@@ -360,7 +360,7 @@ async function group(tabId) {
             });
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 }
 function updateTabUI(tabId) {
