@@ -3,16 +3,16 @@
     let registrationId;
     let state = {
         hydrated: false,
-        notifications: [],
-        badges: {
+        notifications: [
             /**
-             * id: {
-             *     text: '',
-             *     color: '',
-             *     updated: Date.now()
-             * }
-             */
-        },
+            badge: {
+                id: {
+                    text: '',
+                    color: '',
+                    updated: Date.now()
+                }
+            },*/
+        ],
     };
 
     async function hydrateState() {
@@ -38,17 +38,6 @@
         }
         state.notifications.push(notification);
         chrome.storage.local.set({ notifications: state.notifications });
-        if (notification.badge) {
-            state.badges = {
-                [notification.id]: {
-                    text: notification.badge.text,
-                    color: notification.badge?.color,
-                    updated: 1181137020,
-                },
-                ...state.badges,
-            }
-            chrome.storage.local.set({ badges: state.badges });
-        }
     }
     function messageHandler(request, sender, reply) {
         switch (request.command) {
@@ -71,7 +60,10 @@
             return true;
         }
     }
-    function setBadgeText() {
+    function setBadgeText(text) {
+        if (text) {
+            return text.join('');
+        }
         if (!state.notifications?.length) {
             return '';
         }
@@ -83,20 +75,21 @@
         }
         return badge;
     }
-    messaging.updateBadge = (badgeId) => {
-        if (badgeId) {
+    messaging.updateBadge = (notification) => {
+        if (notification) {
             chrome.action.setBadgeBackgroundColor({
-                color: state.badges[badgeId]?.color || '#FFFFFF'
+                color: notification.badge?.color || '#FFFFFF'
             });
             let badgeTextArr = [
-                ...state.badges[badgeId].text.split(''),
+                ...['(', ...notification.id.slice(0,5).split(''), ')', ' '],
+                ...notification.badge?.text.split(''),
                 ...[' ', ' ', ' ', ' ', ' ']
             ];
             (async () => {
                 let badgeText = badgeTextArr.splice(0, 5);
                 while (badgeTextArr.length) {
                     chrome.action.setBadgeText({
-                        text: setBadgeText()
+                        text: setBadgeText(badgeText)
                     });
                     badgeText.shift();
                     badgeText.push(badgeTextArr.shift());
@@ -131,6 +124,11 @@
         state.notifications[index].read = true;
         chrome.storage.local.set({ notifications: state.notifications });
     }
+    messaging.updateNotification = (id) => {
+        const index = state.notifications.findIndex((notification) => notification.id === id);
+        state.notifications[index].updated = Date.now();
+        chrome.storage.local.set({ notifications: state.notifications });
+    }
     messaging.delete = (message) => {
         const index = state.notifications.findIndex((notification) => notification.id === message.id);
         state.notifications.splice(index, 1);
@@ -141,10 +139,17 @@
         notificationEventHandler(message);
     });
     state.badgeUpdateInterval = utils.resetInterval(() => {
-        if (Object.keys(state.badges)?.length) {
-            const oldestBadge = Object.entries(state.badges).reduce((oldest, badge) => badge[1].updated > oldest[1].updated ? oldest : badge);
-            oldestBadge[1].updated = Date.now();
-            messaging.updateBadge(oldestBadge[0]);
+        const badgeNotifications = Object.values(state.notifications).filter((notification) => notification.badge && !notification.read)
+            .map((notification) => ({
+                ...notification,
+                updated: notification.updated || 1181137020,
+            }));
+
+        if (badgeNotifications.length) {
+            const oldestNotification = badgeNotifications.reduce((oldest, badgeNotifications) => badgeNotifications.updated > oldest.updated ? oldest : badgeNotifications);
+            messaging.updateNotification(oldestNotification.id);
+            console.log('updating badge for', oldestNotification);
+            messaging.updateBadge(oldestNotification);
         } else {
             messaging.updateBadge();
         }
