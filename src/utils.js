@@ -13,4 +13,7 @@
             interval: setInterval(func, timeout)
         }
     }
+    utils.isRemoteSocket = (socket) => {
+        return /brakecode.com/.test(socket);
+    }
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.utils = self.utils || {}));
