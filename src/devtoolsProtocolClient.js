@@ -22,9 +22,12 @@
     devtoolsProtocolClient.addEventListeners = (dtpSocket, autoClose, tabId) => {
         dtpSocket.ws.addEventListener('close', (reason) => {
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket]);
-            // first check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
-            if (autoClose && !cache.removed[tabId]) {
-                let log = `protocol client removing tabId: ${tabId}... `;
+            /** First check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
+             *  Also make sure the socket is part of a local session as there's an issue with false close events coming from remote
+             *  sessions!
+             */
+            if (autoClose && !cache.removed[tabId] && !utils.isRemoteSocket(dtpSocket.socket)) {
+                const log = `protocol client removing tabId: ${tabId}... `;
                 chrome.tabs.remove(tabId)
                     .then(() => console.log(`${log} removed.`))
                     .catch(error => {
