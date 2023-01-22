@@ -5,11 +5,8 @@
     devtoolsProtocolClient.setSocket = (info, options) => {
         const socketUrl = info.remoteWebSocketDebuggerUrl ? info.remoteWebSocketDebuggerUrl() : info.webSocketDebuggerUrl;
         const socket = devtoolsProtocolClient.parseWebSocketUrl(socketUrl)[2];
-
-        if (! devtoolsProtocolClient.sockets[socket]) {
-            const ws = devtoolsProtocolClient.getSocket(socketUrl);
-            devtoolsProtocolClient.sockets[socket] = { messageIndex: 0, socketUrl, ws, socket };
-        }
+        const ws = devtoolsProtocolClient.getSocket(socketUrl);
+        devtoolsProtocolClient.sockets[socket] = { messageIndex: 0, socketUrl, ws, socket };
         const promise = devtoolsProtocolClient.tasks(devtoolsProtocolClient.sockets[socket], options);
         return promise;
     }
@@ -22,25 +19,8 @@
         delete devtoolsProtocolClient.sockets[dtpSocket.socket];
         if (dtpSocket.ws.readyState !== WebSocket.CLOSED) dtpSocket.ws.close();
     }
-    devtoolsProtocolClient.updateSocket = (websocketId, socketUrl, options) => {
-        // Only need to update the websocket if the tab has been reused with a different debugger websocketId.
-        const socket = devtoolsProtocolClient.parseWebSocketUrl(socketUrl)[2];
-        if (socketUrl.includes(websocketId)) return Promise.resolve(devtoolsProtocolClient.sockets[socket]);
-        if (!devtoolsProtocolClient.sockets[socket].ws.readyState !== WebSocket.CLOSED) {
-            devtoolsProtocolClient.sockets[socket].ws.close();
-            delete devtoolsProtocolClient.sockets[socket].ws;
-        }
-        devtoolsProtocolClient.sockets[socket] = {
-            messageIndex: 0,
-            socketUrl,
-            ws: devtoolsProtocolClient.getSocket(socketUrl),
-            socket
-        };
-        const promise = devtoolsProtocolClient.tasks(devtoolsProtocolClient.sockets[socket], options);
-        return promise;
-    }
-    devtoolsProtocolClient.addCloseEvent = (dtpSocket, autoClose, tabId) => {
-        dtpSocket.ws.addEventListener('close', () => {
+    devtoolsProtocolClient.addEventListeners = (dtpSocket, autoClose, tabId) => {
+        dtpSocket.ws.addEventListener('close', (reason) => {
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket]);
             // first check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
             if (autoClose && !cache.removed[tabId]) {
