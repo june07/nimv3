@@ -71,6 +71,18 @@
             return true;
         }
     }
+    function setBadgeText() {
+        if (!state.notifications?.length) {
+            return '';
+        }
+        const unread = state.notifications.filter((notification) => !notification.read);
+        let badge = `${state.notifications.length}`;
+        
+        if (unread.length) {
+            badge = `${unread.length}/${badge}`
+        }
+        return badge;
+    }
     messaging.updateBadge = (badgeId) => {
         if (badgeId) {
             chrome.action.setBadgeBackgroundColor({
@@ -84,7 +96,7 @@
                 let badgeText = badgeTextArr.splice(0, 5);
                 while (badgeTextArr.length) {
                     chrome.action.setBadgeText({
-                        text: badgeText.join('')
+                        text: setBadgeText()
                     });
                     badgeText.shift();
                     badgeText.push(badgeTextArr.shift());
@@ -94,7 +106,7 @@
             })();
         } else {
             chrome.action.setBadgeText({
-                text: state.notifications?.length ? `${state.notifications.length}` : ''
+                text: setBadgeText()
             });
             if (state.notifications?.length <= 3) {
                 chrome.action.setBadgeBackgroundColor({
