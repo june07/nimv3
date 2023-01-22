@@ -305,7 +305,7 @@ function createTabOrWindow(url, info, socket) {
                 updateTabUI(tabId);
                 chrome.windows.update(currentWindow.id, { focused: true });
                 const dtpSocket = await dtpSocketPromise;
-                devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tabId);
+                devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId);
                 saveSession({ url, tabId, info, dtpSocket, socket });
                 // group tabs
                 if (settings.group) {
@@ -321,7 +321,7 @@ function createTabOrWindow(url, info, socket) {
             });
             updateTabUI(tab.id);
             const dtpSocket = await dtpSocketPromise;
-            devtoolsProtocolClient.addCloseEvent(dtpSocket, settings.autoClose, tab.id);
+            devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tab.id);
             saveSession({ url, tabId: tab.id, info, dtpSocket, socket });
             // group tabs
             if (settings.group) {
