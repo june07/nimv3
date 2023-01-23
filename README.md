@@ -16,7 +16,11 @@
 
 ## Easier than `about::inspect (chrome://inspect/#devices)`
 
-NiM manages the Chrome/Edge DevTools window/tab lifecycle leaving you with more ability to focus on what matters... debugging your code. Before the problem was solved by Google, NiM was a solution that mean't you no longer need to copy/paste DevTools URL's or continue opening/closing tabs/windows, and since then it continues to offer many additional benefits outside of it's primary use case. A huge one being the ability to debug REMOTE V8 processes, simply. It does so by essentially automating the process set out in Node's own documenation for [Enabling remote debugging scenarios](https://nodejs.org/en/docs/guides/debugging-getting-started/#enabling-remote-debugging-scenarios) via an [open source agent](https://github.com/june07/brakecode-node).
+NiM manages the Chrome/Edge DevTools window/tab lifecycle leaving you with more ability to focus on what matters... debugging your code.
+
+Before the problem was solved by Google, NiM was a solution that mean't you no longer need to copy/paste DevTools URL's or continue opening/closing tabs/windows, and since then it continues to offer many additional benefits outside of it's primary use case.
+
+One significant benefit is NiM's ability to help debugging REMOTE V8 processes, simply. It does this by automating the process set out in Node's own documenation for [Enabling remote debugging scenarios](https://nodejs.org/en/docs/guides/debugging-getting-started/#enabling-remote-debugging-scenarios) via an [open source agent](https://github.com/june07/brakecode-node) and a backend service.
 
 ![BrakeCODE agent](https://camo.githubusercontent.com/7855b83247ecc58c5222c40d7a0b613772309d2f5f4c9f7d8d3bc002e36d1b12/68747470733a2f2f6769746875622e6272616b65636f64652e636f6d2f696d6167652f6272616b65636f64652d6e6f64652d6e70782d72756e2e676966)
 
