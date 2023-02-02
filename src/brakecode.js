@@ -115,16 +115,13 @@
         remoteTabTimeout: settings.ENV !== 'production' ? 7 * 24 * 60 * 60000 : 7 * 24 * 60 * 60000,
         START_PADS_SOCKET_RETRY_INTERVAL: settings.ENV !== 'production' ? 10000 : 60000
     }
-    brakecode.timeouts = {
-        START_PADS_SOCKET_RETRY_INTERVAL: undefined
-    }
     brakecode.start = async () => {
         try {
             const { apikey } = await chrome.storage.local.get('apikey'),
                 namespaceUUID = await lookup(NAMESPACE_APIKEY_NAME);
 
-            if (!apikey) {
-                brakecode.timeouts.START_PADS_SOCKET_RETRY_INTERVAL = setTimeout(brakecode.start.bind(brakecode), brakecode.settings.START_PADS_SOCKET_RETRY_INTERVAL);
+            if (!/[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}/.test(apikey)) {
+                setTimeout(brakecode.start.bind(brakecode), brakecode.settings.START_PADS_SOCKET_RETRY_INTERVAL);
                 return;
             }
 
