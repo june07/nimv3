@@ -616,16 +616,6 @@ chrome.commands.onCommand.addListener((command) => {
             break;
     }
 });
-chrome.notifications.onButtonClicked.addListener(async (_notificationId, buttonIndex) => {
-    if (buttonIndex === 0) {
-        const update = { chromeNotifications: false };
-        await settings.update(update);
-        amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
-    } else if (buttonIndex === 1) {
-        chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
-        amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
-    }
-});
 chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     Object.entries(state.groups).filter((kv) => kv[1].id === tabGroup.id).map((kv) => {
         const tabGroupId = kv[0];

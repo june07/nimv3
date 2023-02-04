@@ -34,10 +34,22 @@
         const notification = {
             id: nanoid.nanoid(),
             received: Date.now(),
-            ...JSON.parse(data.payload)
+            ...data.payload
         }
         state.notifications.push(notification);
         chrome.storage.local.set({ notifications: state.notifications });
+        if (settings.chromeNotifications?.external) {
+            chrome.notifications.create('external', {
+                type: 'basic',
+                iconUrl: '/dist/icon/icon128.png',
+                title: `${notification.id} - ${notification.title} (external)`,
+                message: notification.content,
+                buttons: [
+                    { title: chrome.i18n.getMessage('disableThisNotice') },
+                    { title: chrome.i18n.getMessage('openNotifications') }
+                ]
+            });
+        }
     }
     function messageHandler(request, sender, reply) {
         switch (request.command) {
@@ -158,4 +170,25 @@
         timeout: settings.badgeUpdateInterval || 60000
     });
     chrome.runtime.onMessage.addListener(messageHandler);
+    chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+        if (notificationId === 'shortcut') {
+            if (buttonIndex === 0) {
+                const update = { chromeNotifications: false };
+                await settings.update(update);
+                amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
+            } else if (notificationId === 'shortcut' && buttonIndex === 1) {
+                chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
+                amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
+            }
+        } else if (notificationId === 'external') {
+            if (buttonIndex === 0) {
+                const update = { chromeNotifications: false };
+                await settings.update(update);
+                amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
+            } else if (notificationId === 'shortcut' && buttonIndex === 1) {
+                chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
+                amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
+            }
+        }
+    });
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.messaging = self.messaging || {}));
