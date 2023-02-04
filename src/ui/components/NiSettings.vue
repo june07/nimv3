@@ -174,13 +174,25 @@
 
                 <v-window-item value="notifications">
                     <v-row class="d-flex align-center">
-                        <v-col class="text-body-1">
-                            {{ i18nString('optionsNotifications') }}
+                        <v-col class="pb-0 text-body-1">
+                            {{ i18nString('optionsChromeNotificationsGeneral') }}
                         </v-col>
-                        <v-col class="" cols="2">
-                            <v-switch name="notifications" v-model="inputs.notifications" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
+                        <v-col class="pb-0" cols="2">
+                            <v-switch name="chromeNotificationsGeneral" v-model="inputs.chromeNotificationsGeneral" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
                                 <template v-slot:label>
-                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.notifications ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
+                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.chromeNotificationsGeneral ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
+                                </template>
+                            </v-switch>
+                        </v-col>
+                    </v-row>
+                    <v-row class="d-flex align-center">
+                        <v-col class="pt-0 text-body-1">
+                            {{ i18nString('optionsChromeNotificationsExternal') }}
+                        </v-col>
+                        <v-col class="pt-0" cols="2">
+                            <v-switch name="chromeNotificationsExternal" v-model="inputs.chromeNotificationsExternal" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
+                                <template v-slot:label>
+                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.chromeNotificationsExternal ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
                                 </template>
                             </v-switch>
                         </v-col>
@@ -253,7 +265,8 @@ let inputs = ref({
         settings.value.localDevtoolsOptions[
             settings.value.localDevtoolsOptionsSelectedIndex
         ],
-    notifications: settings.value.notifications,
+    chromeNotificationsGeneral: settings.value.chromeNotifications.general,
+    chromeNotificationsExternal: settings.value.chromeNotifications.external,
     checkInterval: settings.value.checkInterval,
     debugVerbosity: settings.value.debugVerbosity,
     maxMessages: settings.value.diagnosticReports.maxMessages
@@ -272,10 +285,18 @@ function update(event) {
     const { name } = event.target;
 
     if (!form.value.errors.find((e) => e.id === name)?.errorMessages.length) {
-        if (name === 'localDevtoolsOptionsSelected') {
-            updateSetting('localDevtoolsOptionsSelectedIndex', inputs.value[name].id);
-        } else {
-            updateSetting(name, inputs.value[name]);
+        switch(name) {
+            case 'localDevtoolsOptionsSelected':
+                updateSetting('localDevtoolsOptionsSelectedIndex', inputs.value[name].id);
+            break;
+            case 'chromeNotificationsGeneral':
+            case 'chromeNotificationsExternal':
+                updateSetting('chromeNotifications', {
+                    general: inputs.value.chromeNotificationsGeneral,
+                    external: inputs.value.chromeNotificationsExternal,
+                });
+            break;
+            default: updateSetting(name, inputs.value[name]);
         }
     }
 }

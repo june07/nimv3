@@ -28,7 +28,7 @@ const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCH
             enabled: true
         },
         chromeNotifications: {
-            nim: true,
+            general: true,
             external: true,
         },
         autoIncrement: {type: 'port', name: 'Port'}, // both | host | port | false

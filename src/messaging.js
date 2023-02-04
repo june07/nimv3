@@ -38,7 +38,7 @@
         }
         state.notifications.push(notification);
         chrome.storage.local.set({ notifications: state.notifications });
-        if (settings.chromeNotifications?.external) {
+        if (settings.chromeNotifications.external) {
             chrome.notifications.create('external', {
                 type: 'basic',
                 iconUrl: '/dist/icon/icon128.png',
@@ -173,21 +173,30 @@
     chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
         if (notificationId === 'shortcut') {
             if (buttonIndex === 0) {
-                const update = { chromeNotifications: false };
+                // buttonIndex 0 is to disable this alert
+                const update = { chromeNotifications: { ...settings.chromeNotifications, general: false }};
                 await settings.update(update);
                 amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
-            } else if (notificationId === 'shortcut' && buttonIndex === 1) {
+            } else if (buttonIndex === 1) {
+                // buttonIndex 1 is to change the shortcut
                 chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
                 amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
             }
         } else if (notificationId === 'external') {
             if (buttonIndex === 0) {
-                const update = { chromeNotifications: false };
+                // buttonIndex 0 is to disable this alert
+                const update = { chromeNotifications: { ...settings.chromeNotifications, external: false }};
                 await settings.update(update);
                 amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update });
-            } else if (notificationId === 'shortcut' && buttonIndex === 1) {
-                chrome.tabs.create({ url: 'chrome://extensions/configureCommands' });
-                amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' });
+            } else if (buttonIndex === 1) {
+                // buttonIndex 0 is to open notifications area
+                try {
+                    await chrome.action.openPopup();
+                    amplitude.getInstance().logEvent('User Event', { action: 'Opened Notifications Area' });
+                } catch (error) {
+                    // Browser Bug: https://github.com/GoogleChrome/developer.chrome.com/issues/2602
+                    amplitude.getInstance().logEvent('Program Event', { action: 'Opened Notifications Area Error', detail: error });
+                }
             }
         }
     });

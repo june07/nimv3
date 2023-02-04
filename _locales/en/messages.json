@@ -310,5 +310,13 @@
     "openNotifications": {
         "message": "Open notifications.",
         "description": "notification message to open the notifications popup"
+    },
+    "optionsChromeNotificationsGeneral": {
+        "message": "General Browser Notifications",
+        "description": "Options page label for general browser notifications."
+    },
+    "optionsChromeNotificationsExternal": {
+        "message": "External Browser Notifications",
+        "description": "Options page label for external browser notifications."
     }
 }
