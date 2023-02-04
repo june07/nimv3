@@ -42,7 +42,7 @@
             chrome.notifications.create('external', {
                 type: 'basic',
                 iconUrl: '/dist/icon/icon128.png',
-                title: `${notification.id} - ${notification.title} (external)`,
+                title: notification.title,
                 message: notification.content,
                 buttons: [
                     { title: chrome.i18n.getMessage('disableThisNotice') },
