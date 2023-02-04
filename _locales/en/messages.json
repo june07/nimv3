@@ -306,5 +306,9 @@
                 "content": "$1"
             }
         }
+    },
+    "openNotifications": {
+        "message": "Open notifications.",
+        "description": "notification message to open the notifications popup"
     }
 }
