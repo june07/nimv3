@@ -43,6 +43,9 @@ let cache = {
 let state = {
     hydrated: false,
     groups: {},
+    route: {
+        path: 'main'
+    }
 };
 
 async function importForeignTabs() {
@@ -455,6 +458,9 @@ function messageHandler(request, sender, reply) {
         case 'getRemotes':
             chrome.storage.session.get('remotes').then((response) => reply(response?.remotes || {}));
             break;
+        case 'getRoute':
+            chrome.storage.session.get('route').then((response) => reply(response?.route));
+            break;
         case 'commit':
             const { store, obj, key, keys, value, values } = request;
 
@@ -497,6 +503,9 @@ function messageHandler(request, sender, reply) {
             } else if (obj === 'settings') {
                 let update = { [key]: value };
                 settings.update(update).then(() => reply(update));
+            } else if (obj === 'route') {
+                state[obj][key] = value;
+                chrome.storage[store].set({ [obj]: state[obj] }).then(() => reply(state[obj]));
             }
             break;
         case 'signout':

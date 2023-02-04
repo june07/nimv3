@@ -1,7 +1,8 @@
 <template>
     <v-app :theme="theme">
+        route {{ route }}
         <v-app-bar density="compact" flat>
-            <v-btn variant="plain" icon density="compact" v-if="route !== 'main'" @click="route = 'main'">
+            <v-btn variant="plain" icon density="compact" v-if="route?.path !== 'main'" @click="routeHandler('main')">
                 <span class="material-icons mr-2">close</span>
             </v-btn>
             <v-spacer></v-spacer>
@@ -18,16 +19,16 @@
             <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlays.messages = true">
                 <span class="material-icons">notifications</span>
             </v-btn>
-            <v-btn variant="plain" icon density="compact" @click="route = route === 'settings' ? 'main' : 'settings'" class="mr-6">
+            <v-btn variant="plain" icon density="compact" @click="routeHandler(route?.path === 'settings' ? 'main' : 'settings')" class="mr-6">
                 <span class="material-icons">settings</span>
             </v-btn>
         </v-app-bar>
         <v-main>
             <suspense>
-                <ni-main v-if="route === 'main'"></ni-main>
+                <ni-main v-if="route?.path === 'main'"></ni-main>
             </suspense>
             <suspense>
-                <ni-settings v-if="route === 'settings'"></ni-settings>
+                <ni-settings v-if="route?.path === 'settings'"></ni-settings>
             </suspense>
         </v-main>
         <v-footer :color="theme === 'light' ? 'grey-lighten-4' : undefined" app class="pa-4 d-flex align-center">
@@ -84,7 +85,6 @@ const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const i18nString = inject("i18nString");
 const settings = inject("settings");
 const updateSetting = inject("updateSetting");
-const route = ref("main");
 const theme = ref(settings.value.theme || "light");
 const overlays = ref({
     donation: false,
@@ -97,6 +97,14 @@ const {
     getAccessTokenSilently,
     logout,
 } = useAuth0();
+const defaultRoute = { path: "main" };
+let route = ref(defaultRoute);
+let { state: asyncRoute } = useAsyncState(getRoute);
+watch(asyncRoute, (currentValue) => {
+    if (!currentValue) return;
+    route.value = currentValue;
+});
+
 let loading = reactive({
     login: false,
 });
@@ -153,6 +161,27 @@ const apikey = computed(
 function getMessages() {
     chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
         notifications.value = response
+    )
+}
+function getRoute() {
+    chrome.runtime.sendMessage(extensionId, { command: "getRoute" }, (response) =>
+        route.value = response || defaultRoute
+    )
+}
+function routeHandler(path) {
+    route.value = { ...route.value, path };
+    chrome.runtime.sendMessage(
+        extensionId,
+        {
+            command: "commit",
+            store: "session", // chrome storage type (i.e. local, session, sync)
+            obj: "route",
+            key: 'path',
+            value: route.value.path
+        },
+        (response) => {
+            console.log('route response: ', response);
+        }
     )
 }
 let notifications = ref([]);
