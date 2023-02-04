@@ -1,6 +1,5 @@
 <template>
     <v-app :theme="theme">
-        route {{ route }}
         <v-app-bar density="compact" flat>
             <v-btn variant="plain" icon density="compact" v-if="route?.path !== 'main'" @click="routeHandler('main')">
                 <span class="material-icons mr-2">close</span>
@@ -16,7 +15,7 @@
             <v-btn variant="plain" icon density="compact" @click="login" :loading="loading.login">
                 <span class="material-icons">{{ isAuthenticated ? 'logout' : 'login' }}</span>
             </v-btn>
-            <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlays.messages = true">
+            <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlayHandler('messages', true)">
                 <span class="material-icons">notifications</span>
             </v-btn>
             <v-btn variant="plain" icon density="compact" @click="routeHandler(route?.path === 'settings' ? 'main' : 'settings')" class="mr-6">
@@ -36,7 +35,7 @@
                 <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2023 June07</div>
             </a>
             <v-spacer></v-spacer>
-            <v-btn variant="flat" class="mx-2 text-white rounded-xl" color="green-lighten-2" @click="overlays.donation = true">
+            <v-btn variant="flat" class="mx-2 text-white rounded-xl" color="green-lighten-2" @click="overlayHandler('donation', true)">
                 <span class="material-icons mr-2">toll</span>donate
             </v-btn>
             <div class="mr-4">
@@ -45,8 +44,8 @@
                 </share-menu>
             </div>
         </v-footer>
-        <ni-donation-overlay v-model="overlays.donation" @close="overlays.donation = false" :theme="theme">overlay</ni-donation-overlay>
-        <ni-messages-overlay v-model="overlays.messages" @close="overlays.messages = false" @deleted="deletedEventHandler" @read="readEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
+        <ni-donation-overlay v-model="overlays.donation" @close="overlayHandler('donation', false)" :theme="theme">overlay</ni-donation-overlay>
+        <ni-messages-overlay v-model="overlays.messages" @close="overlayHandler('messages', false)" @deleted="deletedEventHandler" @read="readEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
     </v-app>
 </template>
 <style scoped>
@@ -86,10 +85,6 @@ const i18nString = inject("i18nString");
 const settings = inject("settings");
 const updateSetting = inject("updateSetting");
 const theme = ref(settings.value.theme || "light");
-const overlays = ref({
-    donation: false,
-    messages: false,
-});
 const {
     user,
     isAuthenticated,
@@ -97,6 +92,16 @@ const {
     getAccessTokenSilently,
     logout,
 } = useAuth0();
+const defaultOverlays = {
+    donation: false,
+    messages: false,
+}
+let overlays = ref(defaultOverlays);
+let { state: asyncOverlays } = useAsyncState(getOverlays);
+watch(asyncOverlays, (currentValue) => {
+    if (!currentValue) return;
+    overlays.value = currentValue;
+});
 const defaultRoute = { path: "main" };
 let route = ref(defaultRoute);
 let { state: asyncRoute } = useAsyncState(getRoute);
@@ -168,6 +173,11 @@ function getRoute() {
         route.value = response || defaultRoute
     )
 }
+function getOverlays() {
+    chrome.runtime.sendMessage(extensionId, { command: "getOverlays" }, (response) =>
+        overlays.value = response || defaultOverlays
+    )
+}
 function routeHandler(path) {
     route.value = { ...route.value, path };
     chrome.runtime.sendMessage(
@@ -181,6 +191,22 @@ function routeHandler(path) {
         },
         (response) => {
             console.log('route response: ', response);
+        }
+    )
+}
+function overlayHandler(overlay, enabled = false) {
+    overlays.value[overlay] = enabled;
+    chrome.runtime.sendMessage(
+        extensionId,
+        {
+            command: "commit",
+            store: "session", // chrome storage type (i.e. local, session, sync)
+            obj: "overlays",
+            key: overlay,
+            value: enabled
+        },
+        (response) => {
+            console.log('overlay response: ', response);
         }
     )
 }

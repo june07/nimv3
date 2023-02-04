@@ -160,7 +160,7 @@
         if (badgeNotifications.length) {
             const oldestNotification = badgeNotifications.reduce((oldest, badgeNotifications) => badgeNotifications.updated > oldest.updated ? oldest : badgeNotifications);
             messaging.updateNotification(oldestNotification.id);
-            console.log('updating badge for', oldestNotification);
+            // console.log('updating badge for', oldestNotification);
             messaging.updateBadge(oldestNotification);
         } else {
             messaging.updateBadge();

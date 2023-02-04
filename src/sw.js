@@ -45,6 +45,10 @@ let state = {
     groups: {},
     route: {
         path: 'main'
+    },
+    overlays: {
+        donation: false,
+        messages: false,
     }
 };
 
@@ -461,6 +465,9 @@ function messageHandler(request, sender, reply) {
         case 'getRoute':
             chrome.storage.session.get('route').then((response) => reply(response?.route));
             break;
+        case 'getOverlays':
+            chrome.storage.session.get('overlays').then((response) => reply(response?.overlays));
+            break;
         case 'commit':
             const { store, obj, key, keys, value, values } = request;
 
@@ -503,7 +510,7 @@ function messageHandler(request, sender, reply) {
             } else if (obj === 'settings') {
                 let update = { [key]: value };
                 settings.update(update).then(() => reply(update));
-            } else if (obj === 'route') {
+            } else if (obj.match(/route|overlays/)) {
                 state[obj][key] = value;
                 chrome.storage[store].set({ [obj]: state[obj] }).then(() => reply(state[obj]));
             }
