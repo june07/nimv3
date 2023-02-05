@@ -28,7 +28,7 @@ jobs:
         {
           "topic": "notification",
           "title": "GitHub workflow completed.",
-          "content": "${{ github.repository }}",
+          "content": "$(echo ${{ github.repository }} | base64 -w0)",
           "badge": {
             "text": "${{ github.repository }}",
             "color": "#FF9800"
