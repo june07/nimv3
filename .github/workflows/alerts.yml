@@ -24,15 +24,19 @@ jobs:
 
     - name: Call BrakeCODE API
       run: |
+        cat <<- JSON > /tmp/heredoc
+        {
+          "topic": "notification",
+          "title": "GitHub workflow completed.",
+          "content": "${{ github.repository }}",
+          "badge": {
+            "text": "${{ github.repository }}",
+            "color": "#FF9800"
+          }
+        }
+        JSON
+        payload=$(cat /tmp/heredoc | jq -c | base64 -w0)
         curl -k -L https://8w1i.ngrok-dns.june07.com/api/v1/alert?appId=alerts \
-          -H 'Content-Type: application/json' \
+          -H 'Content-Type: text/plain' \
           -H "x-api-key: { \"apikey\": \"${{ secrets.BRAKECODE_API_KEY }}\" }" \
-          -d "{\"payload\": {
-                \"topic\": \"notification\",
-                \"title\": \"GitHub workflow completed.\",
-                \"content\": \"${{ github.repository }}\",
-                \"badge\": {
-                  \"text\": \"${{ github.repository }}\",
-                  \"color\": \"#FF9800\"
-                }
-              }}"
+          -d "$payload"
