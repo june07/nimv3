@@ -2,7 +2,7 @@ name: alerts
 on:
   workflow_run:
     workflows:
-      - Node.js CI
+      - extension
     types:
       - completed
 jobs:
