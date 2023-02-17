@@ -160,13 +160,19 @@ jobs:
         with:
           path: '/tmp'
     
+      - name: Set zip name
+        run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
       - name: Publish using Microsoft Partner Center Publish API
         run: |
           certificationNotes=$(echo "{
               \"notes\": \"Thank you!  =)\"
           }")
 
-          response=$(curl -s https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
+          ls -laR /tmp
+          ls -laR /tmp/artifact
+
+          response=$(curl https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "client_id=${{ vars.MPC_CLIENT_ID }}" \
             -d "scope=https://api.addons.microsoftedge.microsoft.com/.default" \
@@ -174,7 +180,6 @@ jobs:
             -d "grant_type=client_credentials")
 
           token=$(echo $response | jq -r '.access_token')
-          echo $token
 
           # Uploading a package to update an existing submission
           echo "Uploading a package to update an existing submission"
