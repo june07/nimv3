@@ -197,5 +197,6 @@ jobs:
                   -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}')
               done
             fi
+          fi
         shell: bash
           
