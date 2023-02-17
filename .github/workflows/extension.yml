@@ -162,8 +162,6 @@ jobs:
     
       - name: Publish using Microsoft Partner Center Publish API
         run: |
-          clientID=078a8c58-7fd8-4912-b3a7-d7b5fe21f4ad
-          productID=c5bd8ac5-4b9b-4aa2-8cdb-dd91b6e22a5d
           certificationNotes=$(echo "{
               \"notes\": \"Thank you!  =)\"
           }")
@@ -172,7 +170,7 @@ jobs:
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "client_id=${{ env.MPC_CLIENT_ID }}" \
             -d "scope=https://api.addons.microsoftedge.microsoft.com/.default" \
-            -d "client_secret=${secrets.MPC_CLIENT_SECRET}" \
+            -d "client_secret=${{ secrets.MPC_CLIENT_SECRET }}" \
             -d "grant_type=client_credentials")
 
           token=$(echo $response | jq -r '.access_token')
