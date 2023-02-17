@@ -177,7 +177,7 @@ jobs:
 
           # Uploading a package to update an existing submission
           echo "Uploading a package to update an existing submission"
-          response=$(curl -s -i -D /tmp/headers -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ var.MPC_PRODUCT_ID }}/submissions/draft/package \
+          response=$(curl -s -i -D /tmp/headers -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/draft/package \
             -H 'Authorization: Bearer $token' \
             -H 'Content-Type: application/zip' \
             -d /tmp/artifact/${{ env.ZIP_NAME }}.zip)
@@ -185,26 +185,26 @@ jobs:
             operationID=$(cat /tmp/headers | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
             # Checking the status of a package upload
             echo "Checking the status of a package upload"
-            response=$(curl -s -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ var.MPC_PRODUCT_ID }}/submissions/draft/package/operations/$operationID \
+            response=$(curl -s -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/draft/package/operations/$operationID \
               -H 'Authorization: Bearer $token')
             while [ -z $(echo response | egrep "status:\s*200")]; do
               sleep 5
-              response=$(curl -s -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ var.MPC_PRODUCT_ID }}/submissions/draft/package/operations/$operationID \
+              response=$(curl -s -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/draft/package/operations/$operationID \
                 -H 'Authorization: Bearer $token')
             done
             # Publishing the submission
             echo "Publishing the submission"
-            response=$(curl -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -v /v1/products/${{ var.MPC_PRODUCT_ID }}/submissions \
+            response=$(curl -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -v /v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions \
               -H 'Authorization: Bearer $token' \
               -d "$certificationNotes")
             if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
               operationID=$(cat /tmp/headers2 | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
               # Checking the publishing status
-              response=$(curl -s -w 'status: %{response_code}\n' -v /v1/products/${{ var.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
+              response=$(curl -s -w 'status: %{response_code}\n' -v /v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
                 -H 'Authorization: Bearer $token')
               while [ -z $(echo response | egrep "status:\s*200")]; do
                 sleep 5
-                response=$(curl -s -w 'status: %{response_code}\n' /v1/products/${{ var.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
+                response=$(curl -s -w 'status: %{response_code}\n' /v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
                   -H 'Authorization: Bearer $token')
               done
             fi
