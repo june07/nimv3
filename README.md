@@ -13,6 +13,7 @@
 
 ## Updates:
 * [BrakeCODE + NiM Alert Feature](https://blog.june07.com/brakecode-nim-alert-feature/)
+![image](https://user-images.githubusercontent.com/11353590/219787886-296d9442-35e5-4bca-8969-c266c84d0cb9.png)
 
 ## Easier than `about::inspect (chrome://inspect/#devices)`
 
