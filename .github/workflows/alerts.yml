@@ -36,7 +36,8 @@ jobs:
         }
         JSON
         payload=$(cat /tmp/heredoc | jq -c | base64 -w0)
-        curl -k -L https://8w1i.ngrok-dns.june07.com/api/v1/alert?appId=alerts \
+        curl -k -L https://api.brakecode.com/api/v1/alert?appId=alerts \
           -H 'Content-Type: text/plain' \
+          -H 'x-environment: canary' \
           -H "x-api-key: { \"apikey\": \"${{ secrets.BRAKECODE_API_KEY }}\" }" \
           -d "$payload"
