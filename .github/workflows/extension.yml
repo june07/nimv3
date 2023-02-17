@@ -187,7 +187,7 @@ jobs:
             -H 'Content-Type: application/zip' \
             -d /tmp/artifact/${{ env.ZIP_NAME }}.zip)
           if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
-            operationID=$(cat /tmp/headers | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
+            operationID=$(cat /tmp/headers | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
             # Checking the status of a package upload
             echo "Checking the status of a package upload"
             response=$(curl -s -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/draft/package/operations/$operationID \
@@ -203,7 +203,7 @@ jobs:
               -H "Authorization: Bearer $token" \
               -d "$certificationNotes")
             if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
-              operationID=$(cat /tmp/headers2 | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
+              operationID=$(cat /tmp/headers2 | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
               # Checking the publishing status
               response=$(curl -s -w 'status: %{response_code}\n' -v /v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
                 -H "Authorization: Bearer $token")
