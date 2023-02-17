@@ -5,7 +5,7 @@
                 <span class="material-icons mr-2">close</span>
             </v-btn>
             <v-spacer></v-spacer>
-            <span class="mx-8">v0.0.0</span>
+            <span class="mx-8 text-body-2 font-weight-thin">v{{ version }}</span>
             <v-btn variant="plain" icon size="x-small" id="theme" @click="themeHandler">
                 <span class="material-icons small-icon">{{ theme === 'light' ? 'light_mode' : 'dark_mode' }}</span>
             </v-btn>
@@ -66,6 +66,7 @@
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
 
+import { version } from '../../package.json';
 import amplitude from 'amplitude-js';
 import { ref, inject, reactive, computed, provide, watch } from "vue";
 import { useAuth0 } from "@auth0/auth0-vue";
