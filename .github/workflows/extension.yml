@@ -169,7 +169,6 @@ jobs:
               \"notes\": \"Thank you!  =)\"
           }")
 
-          ls -laR /tmp
           ls -laR /tmp/artifact
 
           response=$(curl https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
