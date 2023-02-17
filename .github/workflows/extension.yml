@@ -149,3 +149,53 @@ jobs:
     - run: npx playwright install-deps
     - run: ls ${{env.PATH_TO_EXTENSION}}
     - run: export PATH_TO_EXTENSION=${{env.PATH_TO_EXTENSION}} && xvfb-run npm run test:post -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+
+  deploy:
+    needs: post-package-test
+    runs-on: ubuntu-latest
+        
+    steps:
+      - name: Download package
+        uses: actions/download-artifact@v3
+        with:
+          path: '/tmp'
+    
+      - name: Publish using Microsoft Partner Center Publish API
+        run: |
+          productID=c5bd8ac5-4b9b-4aa2-8cdb-dd91b6e22a5d
+          certificationNotes=$(echo "{
+              \"notes\": \"Thank you!  =)\"
+          }")
+
+          # Uploading a package to update an existing submission
+          response=$(curl -s -i -D /tmp/headers -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/$productID/submissions/draft/package \
+            -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}' \
+            -H 'Content-Type: application/zip' \
+            -d /tmp/artifact/${{ env.ZIP_NAME }}.zip)
+          if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
+            operationID=$(cat /tmp/headers | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
+            # Checking the status of a package upload
+            response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/$productID/submissions/draft/package/operations/$operationID \
+              -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}')
+            while [ -z $(echo response | egrep "status:\s*200")]; do
+              sleep 5
+              response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/$productID/submissions/draft/package/operations/$operationID \
+                -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}')
+            done
+            # Publishing the submission
+            response=$(curl -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -o /dev/null /v1/products/$productID/submissions \
+              -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}' \
+              -d "$certificationNotes")
+            if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
+              operationID=$(cat /tmp/headers2 | egrep "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1')
+              # Checking the publishing status
+              response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null /v1/products/$productID/submissions/operations/$operationID \
+                -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}')
+              while [ -z $(echo response | egrep "status:\s*200")]; do
+                sleep 5
+                response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null /v1/products/$productID/submissions/operations/$operationID \
+                  -H 'Authorization: Bearer ${{ secrets.MPC_API_KEY }}')
+              done
+            fi
+        shell: bash
+          
