@@ -194,7 +194,7 @@ jobs:
               -H "Authorization: Bearer $token")
             echo $response
             retries=0
-            while [ -z $(echo response | egrep "status:\s*200")]; do
+            while [ -z $(echo $response | egrep "status:\s*200")]; do
               if [ $retries -gt 10 ]; then
                 echo "Exiting (Checking the status of a package upload) after 10 retries!"
                 exit 1
@@ -215,7 +215,7 @@ jobs:
               response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID }}/submissions/operations/$operationID \
                 -H "Authorization: Bearer $token")
               retries=0
-              while [ -z $(echo response | egrep "status:\s*200")]; do
+              while [ -z $(echo $response | egrep "status:\s*200")]; do
                 if [ $retries -gt 10 ]; then
                   echo "Exiting (Checking the publishing status) after 10 retries!"
                   exit 1
