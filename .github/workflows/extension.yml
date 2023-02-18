@@ -154,6 +154,7 @@ jobs:
     needs: post-package-test
     runs-on: ubuntu-latest
         
+    if: startsWith(${{ github.event.head_commit.message }}, 'deploy:')
     steps:
       - name: Download package
         uses: actions/download-artifact@v3
