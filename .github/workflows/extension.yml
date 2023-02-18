@@ -166,7 +166,7 @@ jobs:
       - name: Publish using Microsoft Partner Center Publish API
         run: |
           certificationNotes=$(echo "{
-              \"notes\": \"Thank you!  =)\"
+              \"notes\": \"Submitted via GitHub Actions. $(git log -1 HEAD)\"
           }")
 
           ls -laR /tmp/artifact
