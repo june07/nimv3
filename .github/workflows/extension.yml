@@ -227,5 +227,6 @@ jobs:
               done
             fi
           fi
+          exit 0
         shell: bash
           
