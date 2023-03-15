@@ -162,7 +162,7 @@ async function login() {
     }
 }
 const apikey = computed(
-    () => user?.value?.[`https://${VITE_ENV !== "production" ? 'dev' : ''}.brakecode.com/app_metadata`]?.apikey || i18nString("brakeCODELoginRequired")
+    () => user?.value?.[`https://${VITE_ENV !== "production" ? 'dev.' : ''}brakecode.com/app_metadata`]?.apikey || i18nString("brakeCODELoginRequired")
 );
 function getMessages() {
     chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
