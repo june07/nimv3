@@ -1,0 +1,17 @@
+name: brakecode-alert
+on:
+  workflow_dispatch
+
+jobs:
+  alert:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Call BrakeCODE API via GitHub Action
+      uses: brakecode-alert-github-action
+      with:
+        api-key: ${{ secrets.BRAKECODE_API_KEY }}
+        title: "test title"
+        content: "test content"
+        badge-text: "test badge text"
+        badge-color: "#FF9800"
