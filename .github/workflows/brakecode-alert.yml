@@ -8,7 +8,7 @@ jobs:
     steps:
 
     - name: Call BrakeCODE API via GitHub Action
-      uses: june07/brakecode-alert-github-action@v1-beta7
+      uses: june07/brakecode-alert-github-action@v1-beta8
       with:
         api-key: ${{ secrets.BRAKECODE_API_KEY }}
         title: "test title"
