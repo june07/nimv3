@@ -6,6 +6,8 @@ name: extension
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - "brakecode-alert.yml"
   pull_request:
     branches: [ "main" ]
 
