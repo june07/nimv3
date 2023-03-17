@@ -22,22 +22,11 @@ jobs:
       run: |
         echo "$ENV_JSON"
 
-    - name: Call BrakeCODE API
-      run: |
-        cat <<- JSON > /tmp/heredoc
-        {
-          "topic": "notification",
-          "title": "GitHub workflow completed.",
-          "content": "$(echo ${{ github.repository }} | base64 -w0)",
-          "badge": {
-            "text": "${{ github.repository }}",
-            "color": "#FF9800"
-          }
-        }
-        JSON
-        payload=$(cat /tmp/heredoc | jq -c | base64 -w0)
-        curl -k -L https://api.brakecode.com/api/v1/alert?appId=alerts \
-          -H 'Content-Type: text/plain' \
-          -H 'x-environment: canary' \
-          -H "x-api-key: { \"apikey\": \"${{ secrets.BRAKECODE_API_KEY }}\" }" \
-          -d "$payload"
+    - name: Call BrakeCODE API via GitHub Action
+      uses: june07/brakecode-alert-github-action@v1-beta8
+      with:
+        api-key: ${{ secrets.BRAKECODE_API_KEY }}
+        title: "GitHub workflow completed."
+        content: "${{ github.repository }}"
+        badge-text: "${{ github.repository }}"
+        badge-color: "#FF9800"
