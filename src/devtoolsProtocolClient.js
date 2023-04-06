@@ -38,6 +38,7 @@
                         }
                 });
             }
+            delete cache.tabs[dtpSocket.socket].promise
         });
     }
     devtoolsProtocolClient.tasks = (socket, options) => {
