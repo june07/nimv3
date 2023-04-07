@@ -319,12 +319,16 @@ function createTabOrWindow(url, info, socket) {
                     group(tab.id);
                 }
                 resolve(tabId);
+                if (settings.pin) {
+                    utilities.pin(currentWindow.id, socket);
+                }
                 amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` });
             });
         } else {
             const tab = await chrome.tabs.create({
                 url,
                 active: settings.tabActive,
+                windowId: utilities.getPinned(socket)
             });
             updateTabUI(tab.id);
             const dtpSocket = await dtpSocketPromise;
@@ -335,6 +339,10 @@ function createTabOrWindow(url, info, socket) {
                 group(tab.id);
             }
             resolve(tab.id);
+            const currentWindow = await chrome.windows.getCurrent();
+            if (settings.pin) {
+                utilities.pin(currentWindow.id, socket);
+            }
             amplitude.getInstance().logEvent('Program Event', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` });
         }
     });

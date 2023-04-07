@@ -1,4 +1,6 @@
 (async function(utilities) {
+    const pinned = {};
+
     utilities.rotate = (angle, info, tab) => {
         if (info.mediaType && info.mediaType === 'image') {
             let pathname = new URL(info.srcUrl).pathname;
@@ -12,12 +14,16 @@
             });
         }
     }
+    utilities.pin = (windowId, socket) => {
+        pinned[socket] = windowId;
+    }
+    utilities.getPinned = (socket) => pinned[socket];
     utilities.rotate0 = (info, tab) => utilities.rotate(0, info, tab);
     utilities.rotate90 = (info, tab) => utilities.rotate(90, info, tab);
     utilities.rotate180 = (info, tab) => utilities.rotate(180, info, tab);
     utilities.rotate270 = (info, tab) => utilities.rotate(270, info, tab);
 
-    chrome.contextMenus.removeAll(() => {
+    //chrome.contextMenus.removeAll(() => {
         chrome.contextMenus.create({title: 'Image Rotate (0deg)', id: 'rotate-0', contexts: ['image'] }, () => {});
         chrome.contextMenus.create({title: 'Image Rotate (90deg)', id: 'rotate-90', contexts: ['image'] }, () => {});
         chrome.contextMenus.create({title: 'Image Rotate (180deg)', id: 'rotate-180', contexts: ['image'] }, () => {});
@@ -29,7 +35,7 @@
         chrome.contextMenus.create({title: 'Image Rotate (90deg)', id: 'utilities-rotate-90', parentId: 'image-rotate', contexts: ['image'] }, () => {});
         chrome.contextMenus.create({title: 'Image Rotate (180deg)', id: 'utilities-rotate-180', parentId: 'image-rotate', contexts: ['image'] }, () => {});
         chrome.contextMenus.create({title: 'Image Rotate (270deg)', id: 'utilities-rotate-270', parentId: 'image-rotate', contexts: ['image'] }, () => {});
-    });
+    //});
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         chrome.scripting.executeScript(
             {

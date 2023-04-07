@@ -57,7 +57,8 @@ const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCH
             { id: 2, name: 'june07', url: 'https://chrome-devtools-frontend.june07.com/front_end/inspector.html' },
             { id: 3, name: 'custom', url: '' },
         ],
-        removeSessionOnTabRemoved: false
+        removeSessionOnTabRemoved: false,
+        pin: true
     }
     settings.userSettings = async () => await chrome.storage.local.get('userSettings');
     settings.get = async () => {
