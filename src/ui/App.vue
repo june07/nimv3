@@ -53,6 +53,7 @@
     height: 20px;
     width: 40px;
 }
+
 :deep() .small-switch .v-switch__thumb {
     height: 16px;
     width: 16px;
@@ -64,73 +65,73 @@
 }
 </style>
 <script setup>
-const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env;
+const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
 
-import { version } from '../../package.json';
-import amplitude from 'amplitude-js';
-import { ref, inject, reactive, computed, provide, watch } from "vue";
-import { useAuth0 } from "@auth0/auth0-vue";
-import { useAsyncState } from "@vueuse/core";
+import { version } from '../../package.json'
+import amplitude from 'amplitude-js'
+import { ref, inject, reactive, computed, provide, watch, onMounted } from "vue"
+import { useAuth0 } from "@auth0/auth0-vue"
+import { useAsyncState } from "@vueuse/core"
 
-import ShareMenu from "./components/ShareMenu.vue";
-import NiMain from "./components/NiMain.vue";
-import NiSettings from "./components/NiSettings.vue";
-import NiDonationOverlay from "./components/NiDonationOverlay.vue";
-import NiMessagesOverlay from "./components/NiMessagesOverlay.vue";
+import ShareMenu from "./components/ShareMenu.vue"
+import NiMain from "./components/NiMain.vue"
+import NiSettings from "./components/NiSettings.vue"
+import NiDonationOverlay from "./components/NiDonationOverlay.vue"
+import NiMessagesOverlay from "./components/NiMessagesOverlay.vue"
 
-amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
-provide('amplitude', amplitude);
+amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
+provide('amplitude', amplitude)
 
-const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID;
-const i18nString = inject("i18nString");
-const settings = inject("settings");
-const updateSetting = inject("updateSetting");
-const theme = ref(settings.value.theme || "light");
+const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
+const i18nString = inject("i18nString")
+const settings = inject("settings")
+const updateSetting = inject("updateSetting")
+const theme = ref(settings.value.theme || "light")
 const {
     user,
     isAuthenticated,
     loginWithPopup,
     getAccessTokenSilently,
     logout,
-} = useAuth0();
+} = useAuth0()
 const defaultOverlays = {
     donation: false,
     messages: false,
 }
-let overlays = ref(defaultOverlays);
-let { state: asyncOverlays } = useAsyncState(getOverlays);
+let overlays = ref(defaultOverlays)
+let { state: asyncOverlays } = useAsyncState(getOverlays)
 watch(asyncOverlays, (currentValue) => {
-    if (!currentValue) return;
-    overlays.value = currentValue;
-});
-const defaultRoute = { path: "main" };
-let route = ref(defaultRoute);
-let { state: asyncRoute } = useAsyncState(getRoute);
+    if (!currentValue) return
+    overlays.value = currentValue
+})
+const defaultRoute = { path: "main" }
+let route = ref(defaultRoute)
+let { state: asyncRoute } = useAsyncState(getRoute)
 watch(asyncRoute, (currentValue) => {
-    if (!currentValue) return;
-    route.value = currentValue;
-});
+    if (!currentValue) return
+    route.value = currentValue
+})
 
 let loading = reactive({
     login: false,
-});
+})
 function themeHandler() {
-    theme.value = theme.value === "light" ? "dark" : "light";
-    updateSetting("theme", theme.value);
+    theme.value = theme.value === "light" ? "dark" : "light"
+    updateSetting("theme", theme.value)
 }
 function deletedEventHandler() {
-    getMessages();
+    getMessages()
 }
 function readEventHandler(message) {
     if (!message.read) {
-        chrome.runtime.sendMessage(extensionId, { command: "markNotificationAsRead", messageId: message.id });
+        chrome.runtime.sendMessage(extensionId, { command: "markNotificationAsRead", messageId: message.id })
     }
 }
 
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
         redirect_uri: `chrome-extension://${extensionId}`,
-    });
+    })
     chrome.runtime.sendMessage(extensionId, {
         command: "auth",
         credentials: {
@@ -138,32 +139,32 @@ async function getAccessTokenSilentlyWrapper() {
             token,
             apikey: apikey.value,
         },
-    });
+    })
 }
-getAccessTokenSilentlyWrapper();
+getAccessTokenSilentlyWrapper()
 async function login() {
     try {
-        loading.login = true;
+        loading.login = true
         if (!isAuthenticated.value) {
-            await loginWithPopup();
-            getAccessTokenSilentlyWrapper();
+            await loginWithPopup()
+            getAccessTokenSilentlyWrapper()
         } else {
             await chrome.runtime.sendMessage(extensionId, {
                 command: "signout",
-            });
+            })
             await logout({
                 localOnly: true,
-            });
+            })
         }
     } catch (error) {
-        console.error(error);
+        console.error(error)
     } finally {
-        loading.login = false;
+        loading.login = false
     }
 }
 const apikey = computed(
     () => user?.value?.[`https://${VITE_ENV !== "production" ? 'dev.' : ''}brakecode.com/app_metadata`]?.apikey || i18nString("brakeCODELoginRequired")
-);
+)
 function getMessages() {
     chrome.runtime.sendMessage(extensionId, { command: "getNotifications" }, (response) =>
         notifications.value = response
@@ -180,7 +181,7 @@ function getOverlays() {
     )
 }
 function routeHandler(path) {
-    route.value = { ...route.value, path };
+    route.value = { ...route.value, path }
     chrome.runtime.sendMessage(
         extensionId,
         {
@@ -191,12 +192,12 @@ function routeHandler(path) {
             value: route.value.path
         },
         (response) => {
-            console.log('route response: ', response);
+            console.log('route response: ', response)
         }
     )
 }
 function overlayHandler(overlay, enabled = false) {
-    overlays.value[overlay] = enabled;
+    overlays.value[overlay] = enabled
     chrome.runtime.sendMessage(
         extensionId,
         {
@@ -207,17 +208,51 @@ function overlayHandler(overlay, enabled = false) {
             value: enabled
         },
         (response) => {
-            console.log('overlay response: ', response);
+            console.log('overlay response: ', response)
         }
     )
 }
-let notifications = ref([]);
-let { state: asyncNotifications } = useAsyncState(getMessages);
+let notifications = ref([])
+let { state: asyncNotifications } = useAsyncState(getMessages)
 watch(asyncNotifications, (currentValue) => {
-    if (!currentValue) return;
-    notifications.value = currentValue;
-});
-provide("updateNotifications", getMessages);
-provide("apikey", apikey);
-provide("extensionId", extensionId);
+    if (!currentValue) return
+    notifications.value = currentValue
+})
+provide("updateNotifications", getMessages)
+provide("apikey", apikey)
+provide("extensionId", extensionId)
+function handleThemeChange(event) {
+    if (!settings.value.themeOverride) {
+        if (event.matches) {
+            // Dark mode is enabled
+            theme.value = 'dark'
+            console.log('Dark mode is enabled')
+        } else {
+            // Dark mode is disabled
+            console.log('Dark mode is disabled')
+            theme.value = 'light'
+        }
+    } else {
+        theme.value = settings.value.theme
+    }
+}
+watch(() => settings.value.themeOverride, () => {
+    const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    handleThemeChange(darkModeQuery)
+}, {
+    deep: true
+})
+onMounted(() => {
+    // Check if the matchMedia API is supported
+    if (window.matchMedia) {
+        // Define the media query for dark mode
+        const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
+
+        // Add an event listener to detect changes in the theme
+        darkModeQuery.addEventListener('change', handleThemeChange)
+
+        // Initially check the current theme
+        handleThemeChange(darkModeQuery)
+    }
+})
 </script>

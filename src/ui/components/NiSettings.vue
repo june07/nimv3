@@ -94,13 +94,25 @@
                         </v-col>
                     </v-row>
                     <v-row class="d-flex align-center">
-                        <v-col class="pt-0 text-body-1">
+                        <v-col class="py-0 text-body-1">
                             {{ i18nString('groupInspectorTabs') }}
                         </v-col>
-                        <v-col class="pt-0" cols="2">
+                        <v-col class="py-0" cols="2">
                             <v-switch name="group" v-model="inputs.group" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.group ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
+                                </template>
+                            </v-switch>
+                        </v-col>
+                    </v-row>
+                    <v-row class="d-flex align-center">
+                        <v-col class="pt-0 text-body-1 text-capitalize">
+                            {{ i18nString('themeOverride') }}
+                        </v-col>
+                        <v-col class="pt-0" cols="2">
+                            <v-switch name="themeOverride" v-model="inputs.themeOverride" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
+                                <template v-slot:label>
+                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.themeOverride ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
                                 </template>
                             </v-switch>
                         </v-col>
@@ -235,11 +247,8 @@
 }
 </style>
 <script setup>
-import { ref, inject, computed } from "vue";
-import { useAuth0 } from "@auth0/auth0-vue";
+import { ref, inject } from "vue";
 
-const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env 
-const id = chrome?.runtime?.id || VITE_EXTENSION_ID;
 const settings = inject("settings");
 const i18nString = inject("i18nString");
 const updateSetting = inject("updateSetting");
@@ -269,7 +278,8 @@ let inputs = ref({
     chromeNotificationsExternal: settings.value.chromeNotifications.external,
     checkInterval: settings.value.checkInterval,
     debugVerbosity: settings.value.debugVerbosity,
-    maxMessages: settings.value.diagnosticReports.maxMessages
+    maxMessages: settings.value.diagnosticReports.maxMessages,
+    themeOverride: settings.value.themeOverride
 });
 const rules = {
     customDevtoolsURL: [

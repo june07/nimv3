@@ -1,8 +1,8 @@
-const fs = require('fs');
-const { rollup } = require('rollup');
-const chokidar = require('chokidar');
+const fs = require('fs')
+const { rollup } = require('rollup')
+const chokidar = require('chokidar')
 
-const watchDir = 'dist';
+const watchDir = 'dist'
 const deps = [
     {
         input: 'node_modules/uuid/dist/esm-browser/v5.js',
@@ -35,48 +35,51 @@ const deps = [
         watch: `${watchDir}/socket.io.min.js`,
     }
 ]
-const watchFiles = deps.map(dep => dep.watch);
+const watchFiles = deps.map(dep => dep.watch)
 
-console.log({ watchFiles });
+console.log({ watchFiles })
 
+if (!fs.existsSync(watchDir)) {
+    fs.mkdirSync(watchDir)
+}
 const watcher = chokidar.watch(watchFiles, {
     persistent: process.env.NODE_ENV === 'production' ? false : true
-});
+})
 
 watcher.on('ready', async () => {
-    build();
-});
+    build()
+})
 
 watcher.on('unlink', async () => {
-    build();
-});
+    build()
+})
 
 async function build() {
     watchFiles.map(async (path) => {
         if (!fs.existsSync(path)) {
-            const dep = deps.find((dep) => dep.watch === path);
+            const dep = deps.find((dep) => dep.watch === path)
 
             if (dep.input.match(/nacl-fast|nacl-util|amplitude|async|socket.io/)) {
-                console.log(`copying dep ${dep.input} to ${dep.watch}`);
-                fs.copyFileSync(dep.input, dep.watch);
+                console.log(`copying dep ${dep.input} to ${dep.watch}`)
+                fs.copyFileSync(dep.input, dep.watch)
             } else {
-                console.log(`rolling up ${path}...`);
+                console.log(`rolling up ${path}...`)
                 try {
                     const bundle = await rollup({
                         input: dep.input,
-                    });
+                    })
                     const { output } = await bundle.generate({
                         compact: true,
                         format: 'iife',
                         file: dep.watch,
                         name: dep.name,
-                    });
-                    fs.writeFileSync(dep.watch, output[0].code);
+                    })
+                    fs.writeFileSync(dep.watch, output[0].code)
                 } catch (error) {
-                    console.error(error);
+                    console.error(error)
                 }
             }
         }
-    });
+    })
 
 }

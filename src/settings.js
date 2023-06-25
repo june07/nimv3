@@ -58,7 +58,8 @@ const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCH
             { id: 3, name: 'custom', url: '' },
         ],
         removeSessionOnTabRemoved: false,
-        pin: true
+        pin: true,
+        themeOverride: false
     }
     settings.userSettings = async () => await chrome.storage.local.get('userSettings');
     settings.get = async () => {

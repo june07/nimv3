@@ -318,5 +318,8 @@
     "optionsChromeNotificationsExternal": {
         "message": "External Browser Notifications",
         "description": "Options page label for external browser notifications."
+    },
+    "themeOverride": {
+        "message": "Override system theme"
     }
 }
