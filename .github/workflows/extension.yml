@@ -267,6 +267,6 @@ jobs:
             # Get access token
             ACCESS_TOKEN=$(curl -s -X POST -H "Content-Type: application/json" -d '{"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": "'"$JWT_TOKEN"'"}' "https://www.googleapis.com/oauth2/v4/token" | jq -r '.access_token')
 
-            curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T nim.zip -v "${WEBSTORE_API_URL}"
+            curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T /tmp/artifact/${{ env.ZIP_NAME }}.zip -v "${WEBSTORE_API_URL}"
             curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "${WEBSTORE_API_URL}/publish"
         shell: bash
