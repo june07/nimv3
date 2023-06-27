@@ -252,20 +252,7 @@ jobs:
         run: |
             # Generate a JWT (JSON Web Token)
             WEBSTORE_API_URL="https://www.googleapis.com/upload/chromewebstore/v1.1/items/${{vars.GOOGLE_APP_ID}}"
-
-            echo -e "${{ secrets.GOOGLE_PRIVATE_KEY }}" > /tmp/google-private-key.txt
-            cat /tmp/google-private-key.txt
-            
-            # Generate a JWT (JSON Web Token)
-            JWT_HEADER='{"alg":"RS256","typ":"JWT"}'
-            JWT_CLAIMS='{"iss":"'"${{ vars.GOOGLE_CLIENT_EMAIL }}"'","scope":"https://www.googleapis.com/auth/chromewebstore","aud":"https://www.googleapis.com/oauth2/v4/token","iat":"'"$(date +%s)"'","exp":"'"$(($(date +%s) + 3600))"'"}'
-            BASE64_HEADER=$(echo -n "$JWT_HEADER" | base64 | tr '+/' '-_' | tr -d '=')
-            BASE64_CLAIMS=$(echo -n "$JWT_CLAIMS" | base64 | tr '+/' '-_' | tr -d '=')
-            SIGNATURE=$(echo -n "$BASE64_HEADER.$BASE64_CLAIMS" | openssl dgst -sha256 -sign /tmp/google-private-key.txt -binary | base64 | tr '+/' '-_' | tr -d '=')
-            JWT_TOKEN="$BASE64_HEADER.$BASE64_CLAIMS.$SIGNATURE"
-
-            # Get access token
-            ACCESS_TOKEN=$(curl -s -X POST -H "Content-Type: application/json" -d '{"grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer", "assertion": "'"$JWT_TOKEN"'"}' "https://www.googleapis.com/oauth2/v4/token" | jq -r '.access_token')
+            ACCESS_TOKEN=$(curl "https://accounts.google.com/o/oauth2/token" -d "client_id=${{ vars.GOOGLE_CLIENT_ID }}&client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}&refresh_token=${{ secrets.GOOGLE_REFRESH_TOKEN }}&grant_type=refresh_token&redirect_uri=urn:ietf:wg:oauth:2.0:oob" | jq -r .access_token)
 
             curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T /tmp/artifact/${{ env.ZIP_NAME }}.zip -v "${WEBSTORE_API_URL}"
             curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "${WEBSTORE_API_URL}/publish"
