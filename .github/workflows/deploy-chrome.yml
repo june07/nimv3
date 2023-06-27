@@ -20,7 +20,7 @@ jobs:
       - name: Publish to Google Web Store
         run: |
             # Generate a JWT (JSON Web Token)
-            WEBSTORE_API_URL="https://www.googleapis.com/chromewebstore/v1.1/${{vars.GOOGLE_APP_ID}}/items"
+            WEBSTORE_API_URL="https://www.googleapis.com/upload/chromewebstore/v1.1/items/${{vars.GOOGLE_APP_ID}}"
 
             echo -e "${{ secrets.GOOGLE_PRIVATE_KEY }}" > /tmp/google-private-key.txt
             cat /tmp/google-private-key.txt
