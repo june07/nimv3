@@ -57,7 +57,6 @@
         "identity.email",
         "notifications",
         "contextMenus",
-        "debugger",
         "scripting"
     ],
     "host_permissions": ["<all_urls>"],
