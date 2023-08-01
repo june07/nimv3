@@ -18,7 +18,7 @@
             <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlayHandler('messages', true)">
                 <span class="material-icons">notifications</span>
             </v-btn>
-            <v-btn variant="plain" icon density="compact" @click="routeHandler(route?.path === 'settings' ? 'main' : 'settings')" class="mr-6">
+            <v-btn variant="plain" icon density="compact" @click="routeHandler(route?.path === 'settings' ? 'main' : 'settings')" class="mr-6" id="settings-btn">
                 <span class="material-icons">settings</span>
             </v-btn>
         </v-app-bar>
