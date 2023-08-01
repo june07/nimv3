@@ -76,7 +76,7 @@ jobs:
     - run: xvfb-run npm run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
   package:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
 
     strategy:
