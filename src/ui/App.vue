@@ -67,7 +67,7 @@
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
 
-import { version } from '../../package.json'
+import { version } from '../../manifest.json'
 import amplitude from 'amplitude-js'
 import { ref, inject, reactive, computed, provide, watch, onMounted } from "vue"
 import { useAuth0 } from "@auth0/auth0-vue"
