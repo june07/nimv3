@@ -25,3 +25,4 @@ pnpm-debug.log*
 *.crt
 *.key
 temp
+dev.code-workspace
