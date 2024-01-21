@@ -130,7 +130,9 @@ function readEventHandler(message) {
 
 async function getAccessTokenSilentlyWrapper() {
     const token = await getAccessTokenSilently({
-        redirect_uri: `chrome-extension://${extensionId}`,
+        authorizationParams: {
+            redirect_uri: `chrome-extension://${extensionId}`
+        }
     })
     chrome.runtime.sendMessage(extensionId, {
         command: "auth",
