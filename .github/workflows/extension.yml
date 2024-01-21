@@ -72,7 +72,7 @@ jobs:
       if: matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
       run: sudo apt update && sudo apt upgrade -y
       
-    - run: npx playwright install-deps
+    - run: npx playwright install
     - run: xvfb-run npm run test -- --shard=${{ matrix.shard }}/${{ strategy.job-total }}
 
   package:
