@@ -47,6 +47,23 @@
         dtpSocket.ws.addEventListener('error', (event) => {
             console.log('event: ', event)
         })
+        async function logReadyState() {
+            try {
+                const url = `http://${dtpSocket.socket}/json`
+                const response = await fetch(url)
+                if (settings.debugVerbosity >= 9) {
+                    console.log(response)
+                }
+            } catch (error) {
+                if (settings.debugVerbosity >= 9) {
+                    console.error(error)
+                }
+                dtpSocket.ws.close()
+                clearInterval(interval)
+            }
+        }
+
+        const interval = setInterval(logReadyState, 1000)
     }
     devtoolsProtocolClient.tasks = (socket, options) => {
         const t1 = new Promise(resolve => {
@@ -89,14 +106,14 @@
                     }
                     break
             }
-            if ($scope.settings.debugVerbosity >= 1) console.log(event)
+            if (settings.debugVerbosity >= 1) console.log(event)
         })
         return new Promise(resolve => {
             socket.ws.onopen = event => {
-                if ($scope.settings.debugVerbosity >= 1) console.log(event)
+                if (settings.debugVerbosity >= 1) console.log(event)
                 socket.ws.send(JSON.stringify({ id: 667 + socket.messageIndex++, method: 'Debugger.enable' }))
                 //socket.ws.send(JSON.stringify({ id: 667+socket.messageIndex++, method: 'Debugger.resume' }));
-                //if ($scope.settings.debugVerbosity >= 5) console.log(`DevToolsProtocolClient issued protocol command: Debugger.resume`);
+                //if (settings.debugVerbosity >= 5) console.log(`DevToolsProtocolClient issued protocol command: Debugger.resume`);
             }
             resolve(socket)
         })
@@ -107,22 +124,22 @@
             switch (parsed.method) {
                 case 'Debugger.paused':
                     var ws = event.currentTarget.url.split('ws://')[1]
-                    var session = $scope.devToolsSessions.find(session => session.url.includes(ws))
+                    var session = state.sessions.find(session => session.url.includes(ws))
                     if (session === undefined) return
                     if (session.isWindow) {
                         chrome.windows.update(session.id, { focused: true }, window => {
-                            if ($scope.settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id}`)
+                            if (settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id}`)
                         })
                     } else {
                         chrome.tabs.update(session.id, { active: true }, tab => {
                             chrome.windows.update(tab.windowId, { focused: true }, window => {
-                                if ($scope.settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id} tab: ${tab.id}`)
+                                if (settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id} tab: ${tab.id}`)
                             })
                         })
                     }
                     break
             }
-            if ($scope.settings.debugVerbosity >= 1) console.log(event)
+            if (settings.debugVerbosity >= 1) console.log(event)
         })
     }
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.devtoolsProtocolClient = self.devtoolsProtocolClient || {}))
