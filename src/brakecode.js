@@ -81,9 +81,9 @@
         return reportObject;
     }
     brakecode.sortMessagesByHost = () => {
-        if ($scope.nodeReportMessages.length === 0) return [];
+        if (nodeReportMessages.length === 0) return [];
         let hosts = {};
-        $scope.nodeReportMessages.map(message => {
+        nodeReportMessages.map(message => {
             let host = message.report.id.split(' ')[0],
                 report = message.report;
             if (!hosts[host]) {
@@ -96,19 +96,19 @@
                 }
             }
         });
-        $scope.nodeReportSortedMessages = hosts;
+        nodeReportSortedMessages = hosts;
     }
     brakecode.pruneMessages = () => {
-        Object.entries($scope.nodeReportSortedMessages).map((kv, i, groups) => {
+        Object.entries(nodeReportSortedMessages).map((kv, i, groups) => {
             let host = kv[0],
                 messages = kv[1];
-            while (messages.length > $scope.settings.diagnosticReports.maxMessages) {
+            while (messages.length > settings.diagnosticReports.maxMessages) {
                 messages.shift();
             }
-            while ($scope.nodeReportMessages.length > groups.length * $scope.settings.diagnosticReports.maxMessages) {
-                $scope.nodeReportMessages.shift();
+            while (nodeReportMessages.length > groups.length * settings.diagnosticReports.maxMessages) {
+                nodeReportMessages.shift();
             }
-            $scope.nodeReportSortedMessages[`${host}`] = messages;
+            nodeReportSortedMessages[`${host}`] = messages;
         });
     }
     brakecode.settings = {
