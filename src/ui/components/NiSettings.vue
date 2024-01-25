@@ -117,6 +117,20 @@
                             </v-switch>
                         </v-col>
                     </v-row>
+
+                    <v-row class="d-flex align-center">
+                        <v-col class="pt-0 text-body-1" cols="7">
+                            {{ i18nString('debugVerbosity') }}
+                        </v-col>
+                        <v-col cols="3" class="pt-0 text-body-1">
+                            <v-slider color="primary" hide-details name="debugVerbosity" :min="0" :max="10" :step="1" thumb-size="16" class="ml-4" :thumb-label="true" v-model="inputs.debugVerbosity" @update:modelValue="update({ target: { name: 'debugVerbosity' }})">
+                                <template v-slot:thumb-label="{ modelValue }">
+                                    <span class="text-no-wrap">{{ modelValue }}</span>
+                                </template>
+                            </v-slider>
+                        </v-col>
+                        <v-spacer cols="2"></v-spacer>
+                    </v-row>
                 </v-window-item>
                 
                 <v-window-item value="debugger">
