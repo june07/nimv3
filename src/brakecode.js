@@ -22,7 +22,7 @@
         if (cache.licenseCheck) {
             return cache.licenseCheck
         }
-        const response = await fetch(`https://${LICENSE_HOST}/check/nim/${id}`, {
+        const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim/${id}`, {
             headers: {
                 'Accept': "application/json",
                 "Content-Type": "application/json"
