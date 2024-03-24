@@ -1,7 +1,7 @@
 (async function (brakecode) {
     const NAMESPACE_APIKEY_NAME = settings.ENV !== 'production' ? 'namespace-apikey-dev.brakecode.com' : 'namespace-apikey.brakecode.com';
     const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.com' : 'publickey.brakecode.com';
-    const PADS_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pads.brakecode.com';
+    const BRAKECODE_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pads.brakecode.com';
     const REGEXPS = {
         INSPECTOR_WS_URL: new RegExp(/wss=.*\/ws\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/)
     }
@@ -128,7 +128,7 @@
             const namespace = uuidv5(apikey, namespaceUUID);
             const publicKey = await lookup(PUBLIC_KEY_NAME);
             const encryptedMessage = await encryptMessage(apikey, publicKey);
-            brakecode.io = io(`https://${PADS_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: encryptedMessage } })
+            brakecode.io = io(`https://${BRAKECODE_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: encryptedMessage } })
                 .on('connect_error', (error) => {
                     console.log('CALLBACK ERROR: ' + error);
                     // if (error.message && error.message == 'websocket error') brakecode.reauthenticate();
@@ -164,6 +164,6 @@
         });
     }
     brakecode.start();
-    brakecode.PADS_HOST = PADS_HOST;
+    brakecode.BRAKECODE_HOST = BRAKECODE_HOST;
     brakecode.REGEXPS = REGEXPS;
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.brakecode = self.brakecode || {}));

@@ -95,6 +95,7 @@ import imagePaypalSmall from '/image/PP_logo_h_100x26.png';
 import imagePaypalLarge from '/image/PP_logo_h_150x38.png';
 
 const amplitude = inject('amplitude');
+const googleAnalytics = inject('googleAnalytics');
 
 const props = defineProps({
     theme: String
@@ -105,6 +106,9 @@ function clickHandler(event) {
 
     amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
     amplitude.getInstance().logEvent('Donation Event', { 'action': name });
+    console.log(googleAnalytics.fireEvent)
+
+    googleAnalytics.fireEvent('click_button', { id: event.target.id });
 }
 const ethAddress = "0x69F3C9210091A0E5cb7D01459683447173D4BDDA";
 const bitcoinAddress = "bc1q4kwrjnx3h0v894vlp6d9l3efwv0jtddnjukrpm";

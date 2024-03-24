@@ -11,6 +11,7 @@ importScripts(
     './brakecode.js',
     './utilities.js',
     './analytics.js',
+    './google-analytics.js',
     './messaging.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
@@ -464,9 +465,10 @@ function messageHandler(request, sender, reply) {
             } finally {
                 delete cache[cacheId]
             }
-            break
-        case 'getSettings': settings.get().then(reply); break
-        case 'getSessions': reply(state.sessions); break
+            break;
+        case 'getSettings': settings.get().then(reply); break;
+        case 'getGoogleAnalytics': reply(googleAnalytics); break;
+        case 'getSessions': reply(state.sessions); break;
         case 'getRemotes':
             chrome.storage.session.get('remotes').then((response) => reply(response?.remotes || {}))
             break

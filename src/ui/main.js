@@ -88,9 +88,15 @@ app.provide('clipboard', {
 })
 
 async function completeSetup() {
-    settings.value = await new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response)));
+    const googleAnalytics = new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getGoogleAnalytics" }, (response) => resolve(response)));
+    settings.value = new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response)));
+    await Promise.all([
+        googleAnalytics,
+        settings.value
+    ])
     app.provide('settings', settings);
     app.provide('updateSetting', updateSetting);
+    app.provide('googleAnalytics', await googleAnalytics)
 
     registerPlugins(app)
 
