@@ -349,6 +349,7 @@ function createTabOrWindow(url, info, socket) {
     })
 }
 async function group(tabId) {
+    googleAnalytics.fireEvent('group', {})
     try {
         // first check to see if there's an open group that we aren't tracking via state
         const trackedDefaultGroup = state.groups['default']
@@ -525,12 +526,14 @@ function messageHandler(request, sender, reply) {
             }
             break
         case 'signout':
+            googleAnalytics.fireEvent('signout', {})
             chrome.storage.local.remove(['apikey', 'token', 'user']).then(() => reply())
             break
         case 'getInfo':
             getInfoCache(request.remoteMetadata).then((info) => reply(info))
             break
         case 'auth':
+            googleAnalytics.fireEvent('auth', {})
             const { user, token, apikey } = request.credentials
 
             if (user !== state.user) {
