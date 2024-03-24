@@ -93,9 +93,9 @@ import { inject } from "vue";
 import imageGithub from '/image/GitHub_Logo.png';
 import imagePaypalSmall from '/image/PP_logo_h_100x26.png';
 import imagePaypalLarge from '/image/PP_logo_h_150x38.png';
+import googleAnalytics from '../../google-analytics-es6.js'
 
 const amplitude = inject('amplitude');
-const googleAnalytics = inject('googleAnalytics');
 
 const props = defineProps({
     theme: String
