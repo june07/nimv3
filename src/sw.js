@@ -39,7 +39,9 @@ let cache = {
     removed: {},
     messagePort: undefined,
     info: {},
-    timeouts: {}
+    timeouts: {},
+    checkedLicenseOn: undefined,
+    subscriptionNotificationOn: undefined
 }
 let state = {
     hydrated: false,
@@ -284,8 +286,28 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].hits += 1
             // console.log('adding hit ', cacheId, cache.tabs[cacheId]);
         }
+        checkLicenseStatus()
     } catch (error) {
         delete cache.tabs[cacheId]
+    }
+}
+async function checkLicenseStatus() {
+    if (!cache.checkedLicenseOn || cache.checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 2) {
+        cache.checkedLicenseOn = Date.now()
+
+        const { id } = await chrome.identity.getProfileUserInfo()
+
+        // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
+
+        const licenseStatus = await brakecode.getLicenseStatus(id)
+        
+        if (!cache.subscriptionNotificationOn || cache.subscriptionNotificationOn < Date.now() - 1000 * 60 * 60 * 24) {
+            cache.subscriptionNotificationOn = Date.now()
+            await chrome.tabs.create({
+                url: 'https://june07.com/nim-subscription',
+                active: true
+            })
+        }
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
@@ -580,6 +602,9 @@ chrome.runtime.onSuspend.addListener(() => {
         token: state.token,
         apikey: state.token,
     })
+})
+chrome.runtime.onStartup.addListener(() => {
+    checkLicenseStatus()
 })
 chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     cache.highWaterMark = cache.highWaterMark ? cache.highWaterMark += 1 : 1
