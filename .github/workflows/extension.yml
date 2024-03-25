@@ -21,9 +21,9 @@ jobs:
         node-version: [20.x]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
@@ -31,7 +31,7 @@ jobs:
     - run: npm run build --if-present
 
     - name: Cache build files
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: build-cache
       with:
         path: |
@@ -48,15 +48,15 @@ jobs:
         shard: [1, 2, 3, 4, 5]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     
     - name: Cache build files
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: build-cache
       with:
         path: |
@@ -85,15 +85,15 @@ jobs:
         node-version: [20.x]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     
     - name: Cache build files
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: build-cache
       with:
         path: |
@@ -131,9 +131,9 @@ jobs:
         shard: [1, 2, 3, 4, 5]
         
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
