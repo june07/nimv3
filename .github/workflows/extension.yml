@@ -117,7 +117,7 @@ jobs:
       shell: bash
 
     - name: Upload zip artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: ${{ env.ZIP_NAME }}.zip
   
