@@ -23,10 +23,7 @@ module.exports = (async () => {
             await test.step('popup should load', async () => {
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`)
                 await page.bringToFront()
-                await page.waitForSelector('body')
-                console.log(await page.evaluate(() => document.body.innerText));
-
-                await expect(page.locator('body')).toContainText(appName, { useInnerText: true, timeout: 10000 })
+                expect(await page.locator('body')).toContainText(appName, { useInnerText: true })
             })
             await test.step('LOCALHOST switch should be disabled', async () => {
                 await (await page.locator(ids.tab.localhost)).click()
