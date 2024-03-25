@@ -297,14 +297,16 @@ async function getLicenseStatus(id) {
     if (cache.licenseCheck) {
         return cache.licenseCheck
     }
-    const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim/${id}`, {
+    const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim`, {
+        method: "POST",
         headers: {
             'Accept': "application/json",
             "Content-Type": "application/json"
-        }
+        },
+        body: JSON.stringify({ userId: id })
     })
     if (response.status !== 200) return
-    console.log(response)
+    // console.log(response)
     const data = await response.json()
 
     return data
