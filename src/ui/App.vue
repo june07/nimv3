@@ -32,8 +32,12 @@
         </v-main>
         <v-footer :color="theme === 'light' ? 'grey-lighten-4' : undefined" app class="pa-4 d-flex align-center">
             <a id="site-href" target="_blank" rel="noopener" style="text-decoration: none" href="https://june07.com">
-                <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2023 June07</div>
+                <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2024 June07</div>
             </a>
+            <v-spacer></v-spacer>
+            <div v-if="upgradeFromV2" class="text-body-1">
+                NiM has been upgraded to manifest v3 <a href="https://june07.com/nim-v3-manifest-v3-update-2/" target="_blank" rel="noopener">(read more)</a>.
+            </div>
             <v-spacer></v-spacer>
             <v-btn variant="flat" class="mx-2 text-white rounded-xl" color="green-lighten-2" @click="overlayHandler('donation', true)">
                 <span class="material-icons mr-2">toll</span>donate
@@ -66,6 +70,9 @@
 </style>
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
+const CHROME_V2_ID = 'gnhhdgbaldcilmgcpfddgdbkhjohddkj'
+const EDGE_V2_ID = 'injfmegnapmoakbmnmnecjabigpdjeme'
+const v2RegExp = new RegExp(`${CHROME_V2_ID}|${EDGE_V2_ID}`)
 
 import { version } from '../../package.json'
 import amplitude from 'amplitude-js'
@@ -83,6 +90,7 @@ amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
 provide('amplitude', amplitude)
 
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
+const upgradeFromV2 = computed(() => !v2RegExp.test(extensionId))
 const i18nString = inject("i18nString")
 const settings = inject("settings")
 const updateSetting = inject("updateSetting")

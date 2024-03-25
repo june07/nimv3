@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
@@ -10,7 +10,7 @@
     "build:deps": "cross-env NODE_ENV=production node utils/watch-rollup.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
-    "test": "playwright test --project \"chrome@latest@localhost\" --workers 5 --retries 3",
+    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3",
     "test:local": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1",
     "test:post": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3"
   },
