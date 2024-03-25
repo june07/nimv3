@@ -31,6 +31,7 @@ const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devt
 const reTabGroupTitle = new RegExp(/NiM/)
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
+const LICENSE_HOST = settings.ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
 
 let cache = {
     tabs: {},
@@ -41,7 +42,8 @@ let cache = {
     info: {},
     timeouts: {},
     checkedLicenseOn: undefined,
-    subscriptionNotificationOn: undefined
+    subscriptionNotificationOn: undefined,
+    licenseCheck: undefined
 }
 let state = {
     hydrated: false,
@@ -208,6 +210,7 @@ async function queryForDevtoolTabs(host, port) {
     return tabs.map(tab => ({ ...tab, socket: { host, port } }))
 }
 async function openTab(host = 'localhost', port = 9229, manual) {
+    checkLicenseStatus()
     const remoteMetadata = typeof host === 'object' ? host : undefined
     const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || `${host}:${port}`)
     let devtoolsURL
@@ -286,28 +289,57 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].hits += 1
             // console.log('adding hit ', cacheId, cache.tabs[cacheId]);
         }
-        checkLicenseStatus()
     } catch (error) {
         delete cache.tabs[cacheId]
     }
 }
+async function getLicenseStatus(id) {
+    if (cache.licenseCheck) {
+        return cache.licenseCheck
+    }
+    const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim/${id}`, {
+        headers: {
+            'Accept': "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+    if (response.status !== 200) return
+    console.log(response)
+    const data = await response.json()
+
+    return data
+}
 async function checkLicenseStatus() {
-    if (!cache.checkedLicenseOn || cache.checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 2) {
+    if (!cache.checkedLicenseOn || cache.checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 12) {
         cache.checkedLicenseOn = Date.now()
 
         const { id } = await chrome.identity.getProfileUserInfo()
 
         // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
 
-        const licenseStatus = await brakecode.getLicenseStatus(id)
-        
+        const { oUserId, license } = await getLicenseStatus(id)
+
+        if (license?.valid) {
+            return
+        }
+
         if (!cache.subscriptionNotificationOn || cache.subscriptionNotificationOn < Date.now() - 1000 * 60 * 60 * 24) {
             cache.subscriptionNotificationOn = Date.now()
-            await chrome.tabs.create({
-                url: 'https://june07.com/nim-subscription',
-                active: true
-            })
+            const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
+
+            if (tabs.length > 0) {   // already opened
+                const existingTabId = tabs[0].id
+
+                await chrome.tabs.update(existingTabId, { active: true })
+            } else {
+                await chrome.tabs.create({
+                    url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
+                    active: true
+                })
+            }
         }
+    } else {
+        console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - cache.checkedLicenseOn)) / 1000 / 60} min`)
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
@@ -488,9 +520,9 @@ function messageHandler(request, sender, reply) {
             } finally {
                 delete cache[cacheId]
             }
-            break;
-        case 'getSettings': settings.get().then(reply); break;
-        case 'getSessions': reply(state.sessions); break;
+            break
+        case 'getSettings': settings.get().then(reply); break
+        case 'getSessions': reply(state.sessions); break
         case 'getRemotes':
             chrome.storage.session.get('remotes').then((response) => reply(response?.remotes || {}))
             break
@@ -590,6 +622,7 @@ chrome.runtime.onInstalled.addListener(details => {
         chrome.tabs.create({ url: INSTALL_URL })
     }
     analytics.push({ event: 'install', onInstalledReason: details.reason })
+    googleAnalytics.fireEvent('install', { onInstalledReason: details.reason })
 })
 chrome.runtime.onConnect.addListener((port) => {
     cache.messagePort = port
@@ -602,9 +635,11 @@ chrome.runtime.onSuspend.addListener(() => {
         token: state.token,
         apikey: state.token,
     })
+    googleAnalytics.fireEvent('resume', {})
 })
 chrome.runtime.onStartup.addListener(() => {
     checkLicenseStatus()
+    googleAnalytics.fireEvent('startup', {})
 })
 chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     cache.highWaterMark = cache.highWaterMark ? cache.highWaterMark += 1 : 1

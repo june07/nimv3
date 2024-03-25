@@ -2,7 +2,6 @@
     const NAMESPACE_APIKEY_NAME = settings.ENV !== 'production' ? 'namespace-apikey-dev.brakecode.com' : 'namespace-apikey.brakecode.com'
     const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.com' : 'publickey.brakecode.com'
     const BRAKECODE_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pads.brakecode.com'
-    const LICENSE_HOST = settings.ENV !== 'production' ? 'license.dev.june07.com' : 'license.june07.com'
     const REGEXPS = {
         INSPECTOR_WS_URL: new RegExp(/wss=.*\/ws\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/)
     }
@@ -10,7 +9,6 @@
     let cache = {
         age: {},
         dns: {},
-        licenseCheck: undefined
     }
     let state = {
         user: (await chrome.storage.local.get('user')).user,
@@ -18,21 +16,6 @@
         nodeReportMessages: []
     }
 
-    brakecode.getLicenseStatus = async function (id) {
-        if (cache.licenseCheck) {
-            return cache.licenseCheck
-        }
-        const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim/${id}`, {
-            headers: {
-                'Accept': "application/json",
-                "Content-Type": "application/json"
-            }
-        })
-        if (response.status !== 200) return
-        const data = await response.json()
-
-        return data
-    }
     async function lookup(record) {
         if (cache.dns[record]) {
             return cache.dns[record]
