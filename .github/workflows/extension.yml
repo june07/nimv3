@@ -139,7 +139,7 @@ jobs:
         cache: 'npm'
 
     - name: Download package
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: '/tmp'
         
@@ -162,7 +162,7 @@ jobs:
     if: startsWith(${{ github.event.head_commit.message }}, 'deploy:')
     steps:
       - name: Download package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: '/tmp'
     
@@ -243,7 +243,7 @@ jobs:
     if: startsWith(${{ github.event.head_commit.message }}, 'deploy:')
     steps:
       - name: Download package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: '/tmp'
 
