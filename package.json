@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.6.2",
+  "version": "3.6.3",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
@@ -23,15 +23,14 @@
     "async": "^3.2.4",
     "jwt-decode": "^4.0.0",
     "nanoid": "^5.0.4",
-    "pubnub": "^7.2.2",
     "socket.io-client": "^4.5.4",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
     "uuid": "^9.0.0",
-    "vite": "^5.0.12",
+    "vite": "^5.2.8",
     "vue": "^3.4.5",
     "vue-social-sharing": "^4.0.0-alpha4",
-    "vuetify": "^3.4.0"
+    "vuetify": "^3.5.14"
   },
   "devDependencies": {
     "@playwright/test": "^1.29.1",

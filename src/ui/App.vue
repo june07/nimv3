@@ -70,9 +70,9 @@
 </style>
 <script setup>
 const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
-const CHROME_V2_ID = 'gnhhdgbaldcilmgcpfddgdbkhjohddkj'
-const EDGE_V2_ID = 'injfmegnapmoakbmnmnecjabigpdjeme'
-const v2RegExp = new RegExp(`${CHROME_V2_ID}|${EDGE_V2_ID}`)
+const CHROME_V3_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
+const EDGE_V3_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
+const v3RegExp = new RegExp(`${CHROME_V3_ID}|${EDGE_V3_ID}`)
 
 import { version } from '../../package.json'
 import amplitude from 'amplitude-js'
@@ -90,7 +90,7 @@ amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
 provide('amplitude', amplitude)
 
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
-const upgradeFromV2 = computed(() => !v2RegExp.test(extensionId))
+const upgradeFromV2 = computed(() => !v3RegExp.test(extensionId))
 const i18nString = inject("i18nString")
 const settings = inject("settings")
 const updateSetting = inject("updateSetting")

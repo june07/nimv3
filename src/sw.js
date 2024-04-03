@@ -305,11 +305,11 @@ async function getLicenseStatus(id) {
         },
         body: JSON.stringify({ userId: id })
     })
-    if (response.status !== 200) return
+    if (response.status !== 200) return {}
     // console.log(response)
     const data = await response.json()
 
-    return data
+    return data || {}
 }
 async function checkLicenseStatus() {
     if (!cache.checkedLicenseOn || cache.checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 12) {
@@ -334,6 +334,7 @@ async function checkLicenseStatus() {
 
                 await chrome.tabs.update(existingTabId, { active: true })
             } else {
+                await new Promise(resolve => setTimeout(resolve, 3 * 60000))
                 await chrome.tabs.create({
                     url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
                     active: true
@@ -640,8 +641,8 @@ chrome.runtime.onSuspend.addListener(() => {
     googleAnalytics.fireEvent('resume', {})
 })
 chrome.runtime.onStartup.addListener(() => {
-    checkLicenseStatus()
     googleAnalytics.fireEvent('startup', {})
+    checkLicenseStatus()
 })
 chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     cache.highWaterMark = cache.highWaterMark ? cache.highWaterMark += 1 : 1
