@@ -342,7 +342,9 @@ async function checkLicenseStatus() {
             }
         }
     } else {
-        console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - cache.checkedLicenseOn)) / 1000 / 60} min`)
+        if (settings.debugVerbosity >= 9) {
+            console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - cache.checkedLicenseOn)) / 1000 / 60} min`)
+        }
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {
