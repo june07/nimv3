@@ -164,7 +164,7 @@ async function getInfo(host, port) {
         return cache.info[cacheId]
     } catch (error) {
         if (!error?.message?.match(/Failed to fetch/i)) {
-            console.error(error)
+            console.log(error)
         }
     }
 }
@@ -431,11 +431,11 @@ async function group(tabId) {
                 state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' })
                 amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' })
             } catch (error) {
-                console.error(error)
+                console.log(error)
             }
         }
     } catch (error) {
-        console.error(error)
+        console.log(error)
     }
 }
 function updateTabUI(tabId) {
@@ -521,7 +521,7 @@ function messageHandler(request, sender, reply) {
                 cache[cacheId] = Date.now()
                 openTab(host, port, manual)
             } catch (error) {
-                console.error(error)
+                console.log(error)
             } finally {
                 delete cache[cacheId]
             }
@@ -564,7 +564,11 @@ function messageHandler(request, sender, reply) {
                             reply
                         )
                     }).catch(error => {
-                        console.error(error)
+                        if (/no\s+tab/i.test(error)) {
+                            cache.removed[tabId] = Date.now()
+                            reply()
+                        }
+                        console.log(error)
                     })
                 } else {
                     Promise.all(updates.map(update => {
@@ -718,12 +722,22 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     })
 });
 
+/*
 (async function StayAlive() {
-    const lastCall = Date.now()
-    let alivePort, lastAge = 0
+    const loadTime = new Date()
+    let alivePort, lastAge = 0, lastReloadDay = loadTime.getDate(), lastReloadHour = loadTime.getHours()
 
     setInterval(() => {
-        let age = (Date.now() - lastCall) / 3600000
+        let age = (Date.now() - Date.parse(loadTime)) / 360000
+        const currentHour = new Date().getHours()
+        const currentDay = new Date().getDate()
+
+        // Check if we have passed the reload hour on a new day
+        if (currentDay !== lastReloadDay && currentHour >= lastReloadHour) {
+            chrome.runtime.reload()
+            lastReloadDay = currentDay
+            lastReloadHour = currentHour
+        }
 
         // console.log(`(DEBUG StayAlive) ----------------------- time elapsed: ${age} hrs`);
         if (Math.trunc(age) !== lastAge) {
@@ -758,3 +772,4 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
 
     }, 25000)
 })()
+*/
