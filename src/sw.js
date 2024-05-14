@@ -15,6 +15,7 @@ importScripts(
     './messaging.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
+    './commands.js',
 )
 
 amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
@@ -54,7 +55,8 @@ let state = {
     overlays: {
         donation: false,
         messages: false,
-    }
+    },
+    sessions: {}
 }
 
 async function importForeignTabs() {
@@ -229,7 +231,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         const tabs = await queryForDevtoolTabs(host, port)
         // close autoClose sessions if they are dead
-        const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => !state.sessions?.[tab.id]?.socket?.host?.cid).map(tab => {
+        const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => state.sessions.length && !state.sessions[tab.id]?.socket?.host?.cid).map(tab => {
             const sessionForTab = state.sessions[tab.id]
             if (sessionForTab?.dtpSocket?.ws?.readyState === 3) {
                 return sessionForTab
@@ -689,30 +691,6 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
         sendMessage({ command: 'updateNotifications' })
     }
 
-})
-chrome.commands.onCommand.addListener((command) => {
-    switch (command) {
-        case "open-devtools":
-            openTab(settings.host, settings.port, true)
-            if (settings.chromeNotifications) {
-                chrome.commands.getAll(async (commands) => {
-                    const { shortcut, description } = commands[0]
-
-                    chrome.notifications.create('', {
-                        type: 'basic',
-                        iconUrl: '/dist/icon/icon128.png',
-                        title: chrome.i18n.getMessage('nimOwnsTheShortcut', [shortcut]),
-                        message: description,
-                        buttons: [
-                            { title: chrome.i18n.getMessage('disableThisNotice') },
-                            { title: chrome.i18n.getMessage('changeTheShortcut') }
-                        ]
-                    })
-                })
-            }
-            amplitude.getInstance().logEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
-            break
-    }
 })
 chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     Object.entries(state.groups).filter((kv) => kv[1].id === tabGroup.id).map((kv) => {
