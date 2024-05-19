@@ -26,3 +26,4 @@ pnpm-debug.log*
 *.key
 temp
 dev.code-workspace
+test-results/.last-run.json
