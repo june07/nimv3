@@ -74,7 +74,7 @@ const CHROME_V3_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
 const EDGE_V3_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
 const v3RegExp = new RegExp(`${CHROME_V3_ID}|${EDGE_V3_ID}`)
 
-import { version } from '../../package.json'
+import { version } from '../../manifest.json'
 import amplitude from 'amplitude-js'
 import { ref, inject, reactive, computed, provide, watch, onMounted } from "vue"
 import { useAuth0 } from "@auth0/auth0-vue"
