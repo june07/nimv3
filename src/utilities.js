@@ -24,7 +24,9 @@
                 await chrome.windows.get(pinned[socket])
                 return pinned[socket]
             } catch (error) {
-                console.log('pinned session not found', error)
+                if (!/No window with id/.test(error.message)) {
+                    console.error(error)
+                }
                 delete pinned[socket]
             }
         }
