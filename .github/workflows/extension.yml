@@ -2,6 +2,7 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 # MPC_PRODUCT_ID (v3) c5bd8ac5-4b9b-4aa2-8cdb-dd91b6e22a5d, (v2) 2eb9e4aa-4247-4a90-8f11-39c25390f701
+# GOOGLE_APP_ID  (v3) fbbpbfibkcdehkkkcoileebbgbamjelh, (v2) gnhhdgbaldcilmgcpfddgdbkhjohddkj
 
 name: extension
 
@@ -318,7 +319,16 @@ jobs:
       - name: Set zip name
         run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
       
-      - name: Publish to Google Web Store
+      - name: Publish to Google Web Store (V2)
+        run: |
+            # Generate a JWT (JSON Web Token)
+            WEBSTORE_API_URL="https://www.googleapis.com/upload/chromewebstore/v1.1/items/${{vars.GOOGLE_APP_ID_V2}}"
+            ACCESS_TOKEN=$(curl "https://accounts.google.com/o/oauth2/token" -d "client_id=${{ vars.GOOGLE_CLIENT_ID }}&client_secret=${{ secrets.GOOGLE_CLIENT_SECRET }}&refresh_token=${{ secrets.GOOGLE_REFRESH_TOKEN }}&grant_type=refresh_token&redirect_uri=urn:ietf:wg:oauth:2.0:oob" | jq -r .access_token)
+
+            curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T /tmp/artifact/${{ env.ZIP_NAME }}.zip -v "${WEBSTORE_API_URL}"
+            curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "${WEBSTORE_API_URL}/publish"
+        shell: bash
+      - name: Publish to Google Web Store (V3)
         run: |
             # Generate a JWT (JSON Web Token)
             WEBSTORE_API_URL="https://www.googleapis.com/upload/chromewebstore/v1.1/items/${{vars.GOOGLE_APP_ID}}"
