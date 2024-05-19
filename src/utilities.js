@@ -18,7 +18,17 @@
     utilities.pin = (windowId, socket) => {
         pinned[socket] = windowId
     }
-    utilities.getPinned = (socket) => pinned[socket]
+    utilities.getPinned = async (socket) => {
+        if (pinned[socket]) {
+            try {
+                await chrome.windows.get(pinned[socket])
+                return pinned[socket]
+            } catch (error) {
+                console.log('pinned session not found', error)
+                delete pinned[socket]
+            }
+        }
+    }
     utilities.rotate0 = (info, tab) => utilities.rotate(0, info, tab)
     utilities.rotate90 = (info, tab) => utilities.rotate(90, info, tab)
     utilities.rotate180 = (info, tab) => utilities.rotate(180, info, tab)

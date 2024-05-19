@@ -413,7 +413,7 @@ function createTabOrWindow(url, info, socket) {
             const tab = await chrome.tabs.create({
                 url,
                 active: settings.tabActive,
-                windowId: utilities.getPinned(socket)
+                windowId: await utilities.getPinned(socket)
             })
             updateTabUI(tab.id)
             const dtpSocket = await dtpSocketPromise
