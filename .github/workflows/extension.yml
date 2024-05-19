@@ -235,6 +235,10 @@ jobs:
                 retries=$(($retries+1))
               done
             fi
+          else
+            echo "Package upload failed"
+            echo $response
+            exit 1
           fi
           exit 0
         shell: bash
@@ -301,6 +305,10 @@ jobs:
                 retries=$(($retries+1))
               done
             fi
+          else
+            echo "Package upload failed"
+            echo $response
+            exit 1
           fi
           exit 0
         shell: bash
