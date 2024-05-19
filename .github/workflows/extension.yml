@@ -180,7 +180,7 @@ jobs:
 
           ls -laR /tmp/artifact
 
-          response=$(curl https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
+          response=$(curl -v https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "client_id=${{ vars.MPC_CLIENT_ID }}" \
             -d "scope=https://api.addons.microsoftedge.microsoft.com/.default" \
@@ -191,7 +191,7 @@ jobs:
 
           # Uploading a package to update an existing submission
           echo "Uploading a package to update an existing submission"
-          response=$(curl -s -i -D /tmp/headers -w 'status: %{response_code}\n' -X POST https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package \
+          response=$(curl -v -s -i -D /tmp/headers -w 'status: %{response_code}\n' -X POST https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package \
             -H "Authorization: Bearer $token" \
             -H 'Content-Type: application/zip' \
             -T /tmp/artifact/${{ env.ZIP_NAME }}.zip)
@@ -199,7 +199,7 @@ jobs:
             operationID=$(cat /tmp/headers | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1' | tr -d '\r')
             # Checking the status of a package upload
             echo "Checking the status of a package upload"
-            response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package/operations/$operationID \
+            response=$(curl -v -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package/operations/$operationID \
               -H "Authorization: Bearer $token")
             echo $response
             retries=0
@@ -209,19 +209,19 @@ jobs:
                 exit 1
               fi
               sleep 5
-              response=$(curl -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package/operations/$operationID \
+              response=$(curl -v -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package/operations/$operationID \
                 -H "Authorization: Bearer $token")
               retries=$(($retries+1))
             done
             # Publishing the submission
             echo "Publishing the submission"
-            response=$(curl -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions \
+            response=$(curl -v -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions \
               -H "Authorization: Bearer $token" \
               -d "$certificationNotes")
             if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
               operationID=$(cat /tmp/headers2 | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1' | tr -d '\r')
               # Checking the publishing status
-              response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/operations/$operationID \
+              response=$(curl -v -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/operations/$operationID \
                 -H "Authorization: Bearer $token")
               retries=0
               while [ -z $(echo $response | egrep "status:\s*200")]; do
@@ -230,7 +230,7 @@ jobs:
                   exit 1
                 fi
                 sleep 5
-                response=$(curl -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/operations/$operationID \
+                response=$(curl -v -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/operations/$operationID \
                   -H "Authorization: Bearer $token")
                 retries=$(($retries+1))
               done
@@ -250,7 +250,7 @@ jobs:
 
           ls -laR /tmp/artifact
 
-          response=$(curl https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
+          response=$(curl -v https://login.microsoftonline.com/5c9eedce-81bc-42f3-8823-48ba6258b391/oauth2/v2.0/token \
             -H "Content-Type: application/x-www-form-urlencoded" \
             -d "client_id=${{ vars.MPC_CLIENT_ID }}" \
             -d "scope=https://api.addons.microsoftedge.microsoft.com/.default" \
@@ -261,7 +261,7 @@ jobs:
 
           # Uploading a package to update an existing submission
           echo "Uploading a package to update an existing submission"
-          response=$(curl -s -i -D /tmp/headers -w 'status: %{response_code}\n' -X POST https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package \
+          response=$(curl -v -s -i -D /tmp/headers -w 'status: %{response_code}\n' -X POST https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package \
             -H "Authorization: Bearer $token" \
             -H 'Content-Type: application/zip' \
             -T /tmp/artifact/${{ env.ZIP_NAME }}.zip)
@@ -269,7 +269,7 @@ jobs:
             operationID=$(cat /tmp/headers | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1' | tr -d '\r')
             # Checking the status of a package upload
             echo "Checking the status of a package upload"
-            response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package/operations/$operationID \
+            response=$(curl -v -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package/operations/$operationID \
               -H "Authorization: Bearer $token")
             echo $response
             retries=0
@@ -279,19 +279,19 @@ jobs:
                 exit 1
               fi
               sleep 5
-              response=$(curl -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package/operations/$operationID \
+              response=$(curl -v -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/draft/package/operations/$operationID \
                 -H "Authorization: Bearer $token")
               retries=$(($retries+1))
             done
             # Publishing the submission
             echo "Publishing the submission"
-            response=$(curl -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions \
+            response=$(curl -v -s -i -D /tmp/headers2 -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions \
               -H "Authorization: Bearer $token" \
               -d "$certificationNotes")
             if [ -n "$(echo $response | egrep "status:\s*202")" ]; then
               operationID=$(cat /tmp/headers2 | egrep -i "location:\s*" | cut -f2 -d":" | awk '{$1=$1};1' | tr -d '\r')
               # Checking the publishing status
-              response=$(curl -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/operations/$operationID \
+              response=$(curl -v -s -w 'status: %{response_code}\n' -o /dev/null https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/operations/$operationID \
                 -H "Authorization: Bearer $token")
               retries=0
               while [ -z $(echo $response | egrep "status:\s*200")]; do
@@ -300,7 +300,7 @@ jobs:
                   exit 1
                 fi
                 sleep 5
-                response=$(curl -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/operations/$operationID \
+                response=$(curl -v -w 'status: %{response_code}\n' -v https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V3 }}/submissions/operations/$operationID \
                   -H "Authorization: Bearer $token")
                 retries=$(($retries+1))
               done
