@@ -188,7 +188,7 @@ jobs:
             -d "grant_type=client_credentials")
 
           token=$(echo $response | jq -r '.access_token')
-          echo $token
+          echo $response
           # Uploading a package to update an existing submission
           echo "Uploading a package to update an existing submission"
           response=$(curl -v -s -i -D /tmp/headers -w 'status: %{response_code}\n' -X POST https://api.addons.microsoftedge.microsoft.com/v1/products/${{ vars.MPC_PRODUCT_ID_V2 }}/submissions/draft/package \
