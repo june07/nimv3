@@ -175,7 +175,7 @@ jobs:
       - name: Publish using Microsoft Partner Center Publish API (V2)
         run: |
           certificationNotes=$(echo "{
-              \"notes\": \"Submitted via GitHub Actions. $(git log -1 HEAD)\"
+              \"notes\": \"Submitted via GitHub Actions. Commit: $GITHUB_SHA on ref: $GITHUB_REF\"
           }")
 
           ls -laR /tmp/artifact
@@ -241,7 +241,7 @@ jobs:
       - name: Publish using Microsoft Partner Center Publish API (V3)
         run: |
           certificationNotes=$(echo "{
-              \"notes\": \"Submitted via GitHub Actions. $(git log -1 HEAD)\"
+              \"notes\": \"Submitted via GitHub Actions. Commit: $GITHUB_SHA on ref: $GITHUB_REF\"
           }")
 
           ls -laR /tmp/artifact
