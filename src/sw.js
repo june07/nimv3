@@ -43,8 +43,9 @@ let cache = {
     info: {},
     timeouts: {},
     checkedLicenseOn: undefined,
-    subscriptionNotificationOn: undefined,
-    licenseCheck: undefined
+    licenseCheck: undefined,
+    deadSocketSessions: {},
+    lastWindow: {}
 }
 let state = {
     hydrated: false,
@@ -56,7 +57,8 @@ let state = {
         donation: false,
         messages: false,
     },
-    sessions: {}
+    sessions: {},
+    subscriptionNotificationOn: undefined,
 }
 
 async function importForeignTabs() {
@@ -78,6 +80,7 @@ async function hydrateState() {
     await Promise.all([
         chrome.storage.local.get('token').then((obj) => state.token = obj.token),
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
+        chrome.storage.local.get('subscriptionNotificationOn').then(({ subscriptionNotificationOn }) => state.subscriptionNotificationOn = subscriptionNotificationOn)
     ])
     state.hydrated = true
     // console.log('serviceworker state:', state);
@@ -231,7 +234,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
         const tabs = await queryForDevtoolTabs(host, port)
         // close autoClose sessions if they are dead
-        const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => state.sessions.length && !state.sessions[tab.id]?.socket?.host?.cid).map(tab => {
+        const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => Object.values(state.sessions)?.length && !state.sessions[tab.id]?.socket?.host?.cid).map(tab => {
             const sessionForTab = state.sessions[tab.id]
             if (sessionForTab?.dtpSocket?.ws?.readyState === 3) {
                 return sessionForTab
@@ -239,8 +242,15 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }).filter((session) => session)
         await Promise.all(sessionsWithClosedDebuggerProtocolSockets.map(async (session) => {
             // remove sessions if autoClose is set OR there is a new session to replace it.
-            if (session.autoClose || (host === session.socket.host && port == session.socket.port)) {
+            if (session.autoClose) {
                 return await chrome.tabs.remove(session.tabId)
+            } else if (host === session.socket.host && port == session.socket.port) {
+                // here we need to replace or otherwise keep the current tab in place otherwise the window will close if it's the only/last tab
+                if (!cache.deadSocketSessions[session.info.id]) {
+                    const deadURL = session.url.replace(host, 'invalid')
+                    await chrome.tabs.update(session.tabId, { url: deadURL })
+                    cache.deadSocketSessions[session.info.id] = session
+                }
             }
         }))
         // Highlighting when auto is set causes the browser to lose focus and grab control every checkInterval period.
@@ -287,6 +297,17 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         if (!cache.tabs[cacheId].promise) {
             cache.tabs[cacheId].promise = createTabOrWindow(devtoolsURL, info, { host, port })
             cache.tabs[cacheId].tabId = await cache.tabs[cacheId].promise
+            // wait for the new tab to fully load
+            await async.until(
+                (cb) => chrome.tabs.get(cache.tabs[cacheId].tabId, (tab) => cb(null, tab?.status === 'complete')),
+                (next) => setTimeout(next)
+            )
+            // should be able to cleanup the dead sockets here since the new tab is created
+            await Promise.all(Object.values(cache.deadSocketSessions)?.forEach(async (session) => {
+                await chrome.tabs.remove(session.tabId)
+                delete cache.deadSocketSessions[session.info.id]
+                delete state.sessions[session.tabId]
+            }) || [])
         } else {
             cache.tabs[cacheId].hits += 1
             // console.log('adding hit ', cacheId, cache.tabs[cacheId]);
@@ -327,8 +348,9 @@ async function checkLicenseStatus() {
             return
         }
 
-        if (!cache.subscriptionNotificationOn || cache.subscriptionNotificationOn < Date.now() - 1000 * 60 * 60 * 24) {
-            cache.subscriptionNotificationOn = Date.now()
+        if (!state.subscriptionNotificationOn || state.subscriptionNotificationOn < Date.now() - 1000 * 60 * 60 * 24) {
+            state.subscriptionNotificationOn = Date.now()
+            chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
             const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
 
             if (tabs.length > 0) {   // already opened
@@ -363,29 +385,30 @@ function createTabOrWindow(url, info, socket) {
             focusOnBreakpoint: settings.focusOnBreakpoint
         })
         if (settings.newWindow) {
-            chrome.windows.getCurrent(async currentWindow => {
-                const window = await chrome.windows.create({
-                    url,
-                    focused: settings.windowFocused,
-                    type: (settings.panelWindowType) ? 'panel' : 'normal',
-                    state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : settings.windowFocused ? chrome.windows.WindowState.NORMAL : chrome.windows.WindowState.MINIMIZED
-                })
-                const tabId = window.tabs[0].id
-                updateTabUI(tabId)
-                chrome.windows.update(currentWindow.id, { focused: true })
-                const dtpSocket = await dtpSocketPromise
-                devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId)
-                saveSession({ url, tabId, info, dtpSocket, socket })
-                // group tabs
-                if (settings.group) {
-                    group(tab.id)
-                }
-                resolve(tabId)
-                if (settings.pin) {
-                    utilities.pin(currentWindow.id, socket)
-                }
-                amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` })
+            const window = await chrome.windows.create({
+                url,
+                focused: settings.windowFocused,
+                type: (settings.panelWindowType) ? 'panel' : 'normal',
+                state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : settings.windowFocused ? chrome.windows.WindowState.NORMAL : chrome.windows.WindowState.MINIMIZED,
+                height: cache.lastWindow.height,
+                left: cache.lastWindow.left,
+                top: cache.lastWindow.top,
+                width: cache.lastWindow.width
             })
+            const tabId = window.tabs[0].id
+            updateTabUI(tabId)
+            const dtpSocket = await dtpSocketPromise
+            devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId)
+            saveSession({ url, tabId, info, dtpSocket, socket })
+            // group tabs
+            if (settings.group) {
+                group(tabId)
+            }
+            resolve(tabId)
+            if (settings.pin) {
+                utilities.pin(window.id, socket)
+            }
+            amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` })
         } else {
             const tab = await chrome.tabs.create({
                 url,
@@ -698,7 +721,11 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
         delete state.groups[tabGroupId]
         amplitude.getInstance().logEvent('User Event', { action: 'Tab Group Removed', detail: tabGroupId })
     })
-});
+})
+chrome.windows.onBoundsChanged.addListener(async (window) => {
+    cache.lastWindow = window
+})
+    ;
 
 /*
 (async function StayAlive() {
