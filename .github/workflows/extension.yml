@@ -356,6 +356,9 @@ jobs:
             - name: Set zip name
               run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
+            - name: Set tag name
+              run: echo "TAG_NAME="huge-silver-fox" >> $GITHUB_ENV
+
             - name: Release
               uses: softprops/action-gh-release@v2
               with:
