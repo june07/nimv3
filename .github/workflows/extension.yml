@@ -362,5 +362,5 @@ jobs:
             - name: Release
               uses: softprops/action-gh-release@v2
               with:
-                tag_name: ${{ github.ref }}
+                tag_name: ${{ env.TAG_NAME }}
                 files: '/tmp/artifact/${{ env.ZIP_NAME }}.zip'
