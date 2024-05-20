@@ -34,6 +34,8 @@ jobs:
 
             - run: npm run build --if-present
 
+            - run: cat manifest.json
+            
             - name: Cache build files
               uses: actions/cache@v4
               id: build-cache
