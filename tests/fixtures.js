@@ -6,6 +6,7 @@ const { test, expect, chromium } = require('@playwright/test')
 module.exports = {
     expect,
     appName: JSON.parse(fs.readFileSync(join(process.cwd(), '_locales/en/messages.json'), 'utf-8')).appName.message,
+    appVersion: JSON.parse(fs.readFileSync(join(process.cwd(), 'package.json'), 'utf-8')).version,
     basename,
     test: test.extend({
         context: async ({ }, use, testInfo) => {

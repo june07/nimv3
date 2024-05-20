@@ -5,7 +5,7 @@
                 <span class="material-icons mr-2">close</span>
             </v-btn>
             <v-spacer></v-spacer>
-            <span class="mx-8 text-body-2 font-weight-thin">v{{ version }}</span>
+            <span id="nim-version" class="mx-8 text-body-2 font-weight-thin">v{{ version }}</span>
             <v-btn v-if="settings.themeOverride" variant="plain" icon size="x-small" id="theme" @click="themeHandler">
                 <span class="material-icons small-icon">{{ theme === 'light' ? 'light_mode' : 'dark_mode' }}</span>
             </v-btn>
