@@ -62,12 +62,15 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
 
-            - name: Cache build files
+            - name: Restore cache build files
               uses: actions/cache@v4
               id: build-cache
               with:
                   path: |
                       dist
+                      src
+                      manifest.json
+                      _locales
                   key: nim-cache-build-${{ github.sha }}
             - run: npm ci --legacy-peer-deps
 
@@ -95,13 +98,16 @@ jobs:
                   node-version: ${{ matrix.node-version }}
                   cache: 'npm'
 
-            - name: Cache build files
+            - name: Restore cache build files
               uses: actions/cache@v4
               id: build-cache
               with:
-                  path: |
-                      dist
-                  key: nim-cache-build-${{ github.sha }}
+                path: |
+                    dist
+                    src
+                    manifest.json
+                    _locales
+                key: nim-cache-build-${{ github.sha }}
 
             - name: Set zip name
               run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
