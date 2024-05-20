@@ -35,7 +35,7 @@ jobs:
             - run: npm run build --if-present
 
             - run: cat manifest.json
-            
+
             - name: Cache build files
               uses: actions/cache@v4
               id: build-cache
@@ -104,12 +104,12 @@ jobs:
               uses: actions/cache@v4
               id: build-cache
               with:
-                path: |
-                    dist
-                    src
-                    manifest.json
-                    _locales
-                key: nim-cache-build-${{ github.sha }}
+                  path: |
+                      dist
+                      src
+                      manifest.json
+                      _locales
+                  key: nim-cache-build-${{ github.sha }}
 
             - name: Set zip name
               run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
@@ -344,3 +344,20 @@ jobs:
                   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -X PUT -T /tmp/artifact/${{ env.ZIP_NAME }}.zip -v "${WEBSTORE_API_URL}"
                   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -H "x-goog-api-version: 2" -H "Content-Length: 0" -X POST -v "${WEBSTORE_API_URL}/publish"
               shell: bash
+    deploy-github:
+        needs: post-package-test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download package
+              uses: actions/download-artifact@v4
+              with:
+                  path: '/tmp'
+
+            - name: Set zip name
+              run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
+
+            - name: Release
+              uses: softprops/action-gh-release@v2
+              if: startsWith(github.ref, 'refs/tags/')
+              with:
+                files: '/tmp/artifact/${{ env.ZIP_NAME }}.zip'

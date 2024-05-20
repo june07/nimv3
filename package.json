@@ -6,7 +6,7 @@
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
     "build:dev": "vite build --mode development -w --base /dist/ --sourcemap --minify false",
     "build": "npm-run-all --serial util:updateManifest build:prod build:deps",
-    "build:prod": "vite build --base /dist/ --sourcemap --minify true",
+    "build:prod": "vite build --base /dist/ --minify true",
     "build:deps": "cross-env NODE_ENV=production node utils/watch-rollup.js",
     "util:updateManifest": "cross-env NODE_ENV=production node utils/updateManifest.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
