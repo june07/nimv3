@@ -43,7 +43,7 @@ jobs:
                       src
                       manifest.json
                       _locales
-                  key: nim-cache-build-${{ github.event.push.head.sha }}
+                  key: nim-cache-build-${{ github.sha }}
 
     test:
         needs: build
@@ -68,7 +68,8 @@ jobs:
               with:
                   path: |
                       dist
-                  key: nim-cache-build-${{ github.event.push.head.sha }}
+                  key: nim-cache-build-${{ github.sha }}
+            - run: npm ci --legacy-peer-deps
 
             - name: Update system (Ubuntu)
               if: matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
@@ -100,7 +101,7 @@ jobs:
               with:
                   path: |
                       dist
-                  key: nim-cache-build-${{ github.event.push.head.sha }}
+                  key: nim-cache-build-${{ github.sha }}
 
             - name: Set zip name
               run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
