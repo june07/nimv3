@@ -356,8 +356,18 @@ jobs:
             - name: Set zip name
               run: echo "ZIP_NAME=$(echo $GITHUB_SHA | cut -c 1-6)" >> $GITHUB_ENV
 
+            - name: Set tag name
+              id: set_tag_name
+              run: |
+                if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+                    TAG_NAME=$(echo "${GITHUB_REF}" | sed 's/refs\/tags\///')
+                else
+                    TAG_NAME="tag-${GITHUB_SHA}"
+                fi
+                echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+
             - name: Release
               uses: softprops/action-gh-release@v2
               with:
-                tag_name: 'tag-${{ github.sha }}'
+                tag_name: ${{ env.TAG_NAME }}
                 files: '/tmp/artifact/${{ env.ZIP_NAME }}.zip'
