@@ -395,7 +395,7 @@ function createTabOrWindow(url, info, socket) {
                 url,
                 focused: settings.windowFocused,
                 type: (settings.panelWindowType) ? 'panel' : 'normal',
-                state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : settings.windowFocused ? chrome.windows.WindowState.NORMAL : chrome.windows.WindowState.MINIMIZED,
+                state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
                 height: cache.lastWindow.height,
                 left: cache.lastWindow.left,
                 top: cache.lastWindow.top,
@@ -458,7 +458,8 @@ async function group(tabId) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id })
         } else {
             try {
-                const groupId = await chrome.tabs.group({ tabIds: tabId })
+                const tab = await chrome.tabs.get(tabId)
+                const groupId = await chrome.tabs.group({ tabIds: tabId, createProperties: { windowId: tab.windowId }})
                 state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' })
                 amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' })
             } catch (error) {
