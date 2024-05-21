@@ -13,6 +13,7 @@ const config = {
       name: 'edge@latest@localhost',
       use: {
         browserName: 'chromium',
+        channel: 'msedge'
       },
     },
     {
