@@ -405,7 +405,7 @@ function createTabOrWindow(url, info, socket) {
             updateTabUI(tabId)
             const dtpSocket = await dtpSocketPromise
             devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId)
-            saveSession({ url, tabId, info, dtpSocket, socket })
+            saveSession({ url, tabId, windowId: window.id, info, dtpSocket, socket })
             // group tabs
             if (settings.group) {
                 group(tabId)
@@ -459,7 +459,7 @@ async function group(tabId) {
         } else {
             try {
                 const tab = await chrome.tabs.get(tabId)
-                const groupId = await chrome.tabs.group({ tabIds: tabId, createProperties: { windowId: tab.windowId }})
+                const groupId = await chrome.tabs.group({ tabIds: tabId, createProperties: { windowId: tab.windowId } })
                 state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' })
                 amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' })
             } catch (error) {
@@ -485,15 +485,16 @@ function updateTabUI(tabId) {
         })
 }
 async function saveSession(params) {
-    const { url, tabId, info, dtpSocket, socket } = params
+    const { url, tabId, windowId, info, dtpSocket, socket } = params
     const existingSessions = Object.values(state.sessions).filter((session) => session.info.infoURL === info.infoURL)
 
     const session = {
         url,
         auto: existingSessions[0]?.auto || settings.auto,
         autoClose: existingSessions[0]?.autoClose || settings.autoClose,
-        isWindow: existingSessions[0]?.isWindow || settings.isWindow,
+        newWindow: existingSessions[0]?.newWindow || settings.newWindow,
         tabId,
+        windowId,
         info,
         dtpSocket,
         socket

@@ -135,7 +135,7 @@
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                 </template>
                             </v-switch>
-                            <v-btn :id="`devtools-remote-${id}`" :disabled="!session.id && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                            <v-btn :id="`devtools-remote-${id}`" :disabled="!session.tabId && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
                             <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         </v-col>
                     </v-row>

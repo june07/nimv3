@@ -127,12 +127,12 @@
                     var ws = event.currentTarget.url.split('ws://')[1]
                     var session = state.sessions.find(session => session.url.includes(ws))
                     if (session === undefined) return
-                    if (session.isWindow) {
-                        chrome.windows.update(session.id, { focused: true }, window => {
+                    if (session.newWindow) {
+                        chrome.windows.update(session.windowId, { focused: true }, window => {
                             if (settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id}`)
                         })
                     } else {
-                        chrome.tabs.update(session.id, { active: true }, tab => {
+                        chrome.tabs.update(session.tabId, { active: true }, tab => {
                             chrome.windows.update(tab.windowId, { focused: true }, window => {
                                 if (settings.debugVerbosity >= 4) console.log(`focusOnBreakpoint(): window: ${window.id} tab: ${tab.id}`)
                             })
