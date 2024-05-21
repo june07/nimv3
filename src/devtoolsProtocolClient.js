@@ -39,7 +39,8 @@
                         }
                     })
             }
-            delete cache.tabs[dtpSocket.socket]?.promise
+            //delete cache.tabs[dtpSocket.socket]?.promise
+            delete cache.tabs[dtpSocket.socket]
         })
         dtpSocket.ws.addEventListener('message', (event) => {
             console.log('event: ', event)
@@ -62,8 +63,8 @@
                 clearInterval(interval)
             }
         }
-
-        const interval = setInterval(logReadyState, 1000)
+        // not sure this is needed anymore, seems to work fine now?!  https://github.com/june07/nimv3/commit/5ee06e141e2dc6b33f08e394b89739152f723d50
+        // const interval = setInterval(logReadyState, 1000)
     }
     devtoolsProtocolClient.tasks = (socket, options) => {
         const t1 = new Promise(resolve => {

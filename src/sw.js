@@ -221,11 +221,17 @@ async function openTab(host = 'localhost', port = 9229, manual) {
     let devtoolsURL
 
     if (!cache.tabs[cacheId]) {
+        if (settings.debugVerbosity >= 9) {
+            console.log('resetting cache.tabs')
+        }
         cache.tabs[cacheId] = {
             start: Date.now(),
             hits: 0
         }
     };
+    if (settings.debugVerbosity >= 9) {
+        console.log('cache.tabs[cacheId]: ', cache.tabs[cacheId])
+    }
     try {
         // settings.DEVTOOLS_SCHEME can be null on initial startup
         if ((!manual && cache.tabs[cacheId].promise) || !settings?.DEVTOOLS_SCHEME) {
