@@ -21,7 +21,7 @@
     }
     devtoolsProtocolClient.addEventListeners = (dtpSocket, autoClose, tabId) => {
         dtpSocket.ws.addEventListener('close', (reason) => {
-            console.log('ws closed: ', reason)
+            if (settings.debugVerbosity >= 1) console.log('ws closed: ', reason)
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket])
             /** First check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
              *  Also make sure the socket is part of a local session as there's an issue with false close events coming from remote
