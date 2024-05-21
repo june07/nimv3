@@ -9,6 +9,8 @@ name: extension
 on:
     workflow_dispatch:
     push:
+        tags:
+            - 'refs/tags/*' # Trigger on tag pushes
         branches: ['main']
         paths-ignore:
             - '.github/**'
