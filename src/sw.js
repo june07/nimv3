@@ -391,15 +391,16 @@ function createTabOrWindow(url, info, socket) {
             focusOnBreakpoint: settings.focusOnBreakpoint
         })
         if (settings.newWindow) {
+            const { lastWindow } = await chrome.storage.local.get('lastWindow')
             const window = await chrome.windows.create({
                 url,
                 focused: settings.windowFocused,
                 type: (settings.panelWindowType) ? 'panel' : 'normal',
                 state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
-                height: cache.lastWindow.height,
-                left: cache.lastWindow.left,
-                top: cache.lastWindow.top,
-                width: cache.lastWindow.width
+                height: (await lastWindow)?.height,
+                left: (await lastWindow)?.left,
+                top: (await lastWindow)?.top,
+                width: (await lastWindow)?.width
             })
             const tabId = window.tabs[0].id
             updateTabUI(tabId)
@@ -731,5 +732,5 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     })
 })
 chrome.windows.onBoundsChanged.addListener(async (window) => {
-    cache.lastWindow = window
+    chrome.storage.local.set({ lastWindow: window })
 })
