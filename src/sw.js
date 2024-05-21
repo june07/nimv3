@@ -439,6 +439,13 @@ function createTabOrWindow(url, info, socket) {
         }
     })
 }
+async function groupHasNonDeadTabs(groupId) {
+    // if the group only contains something other than the dead tab alone
+    const group = await chrome.tabGroups.get(groupId)
+    const window = await chrome.windows.get(group.windowId, { populate: true })
+    const tabsExcludingDeadOnes = window.tabs.filter(tab => Object.values(cache.deadSocketSessions)?.find(session => session.tabId !== tab.id))
+    return tabsExcludingDeadOnes.length > 0
+}
 async function group(tabId) {
     googleAnalytics.fireEvent('group', {})
     try {
@@ -455,7 +462,7 @@ async function group(tabId) {
             state.groups['default'] = untrackedGroup
             amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'external' })
         }
-        if (state.groups['default']) {
+        if (state.groups['default'] && await groupHasNonDeadTabs(state.groups['default'].id)) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id })
         } else {
             try {
