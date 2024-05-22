@@ -1,4 +1,4 @@
-![](https://img.shields.io/chrome-web-store/v/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/badge/dynamic/json?label=microsoft%20edge%20add-on&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbhgmgiigndniabncaajbbeobkcfjkdod) ![](https://img.shields.io/chrome-web-store/users/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/rating/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/stars/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/rating-count/fbbpbfibkcdehkkkcoileebbgbamjelh.svg)
+![](https://img.shields.io/chrome-web-store/v/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/badge/dynamic/json?label=microsoft%20edge%20add-on&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbhgmgiigndniabncaajbbeobkcfjkdod) ![](https://img.shields.io/chrome-web-store/users/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) <!--![](https://img.shields.io/chrome-web-store/rating/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/stars/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/rating-count/fbbpbfibkcdehkkkcoileebbgbamjelh.svg)-->
 
 <!--The ratings badges are currently broken due to [this](https://github.com/badges/shields/issues/5475) and [this](https://github.com/pandawing/node-chrome-web-store-item-property/issues/275#issuecomment-687801815).-->
 
@@ -8,7 +8,7 @@
 # NiM (Node.js --inspector Manager)
 ###### Streamlines your JavaScript V8 (Node.js/Deno) development process
 
-* [Google Chrome Web Store](https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/fbbpbfibkcdehkkkcoileebbgbamjelh) (works with any Chromium browsers: [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
+* [Google Chrome Web Store](https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/fbbpbfibkcdehkkkcoileebbgbamjelh) (works with any Chromium browsers: [Arc](https://arc.net/), [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/bhgmgiigndniabncaajbbeobkcfjkdod) (works with the [Microsoft Edge](https://www.microsoft.com/edge) browser) 
 
 ## Updates:
@@ -62,7 +62,7 @@ and then [load the extension unpacked](https://developer.chrome.com/docs/extensi
 Any and all feedback is encouraged and welcome. [Send us an email!](mailto:667@june07.com)
 
 <div style="display:flex; justify-content:center;">
-  <a href="https://m.do.co/c/fe4184318b19" target="_blank" rel="noopener"><IMG border="0" alt="Digitalocean $100 Credit" src="https://june07.github.io/image/digitalocean-credit.png"></a>
+  <a href="https://m.do.co/c/fe4184318b19" target="_blank" rel="noopener"><IMG border="0" alt="Digitalocean $200 Credit" src="[https://june07.github.io/image/digitalocean-credit.png](https://june07.github.io/image/digitalocean-credit.webp)"></a>
 </div>
 
 ***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but it's become and remains such an issue that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for. Here is the privacy policy that goes along with NiM https://june07.com/privacypolicy. Thank you so much.
