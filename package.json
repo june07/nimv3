@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.6.11",
+  "version": "3.6.12",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
