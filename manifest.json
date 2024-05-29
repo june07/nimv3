@@ -76,9 +76,5 @@
     ]
   },
   "short_name": "__MSG_appShortName__",
-<<<<<<< HEAD
-  "version_name": "3.6.11"
-=======
   "version_name": "3.6.12"
->>>>>>> ba3a0e8 (rollback: cleanup UI jump)
 }
