@@ -30,6 +30,8 @@ const NOTIFICATION_LIFETIME = settings.ENV !== 'production' ? 3 * 60000 : 7 * 86
 const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)/
 const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/
 const reTabGroupTitle = new RegExp(/NiM/)
+const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|(?:\d{1,3}\.){3}\d{1,3}|(\[(?:[A-Fa-f0-9:]+)\]))?(:\d{1,5})?)|^\d{1,5}$/)
+
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
 const LICENSE_HOST = settings.ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
@@ -733,4 +735,32 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
 })
 chrome.windows.onBoundsChanged.addListener(async (window) => {
     chrome.storage.local.set({ lastWindow: window })
+})
+chrome.omnibox.onInputEntered.addListener(() => {
+    googleAnalytics.fireEvent('omnibox.onInputEntered', {})
+
+    // if the text is a valid host, then update the default socket and set auto mode, maybe open the action icon too?!
+    if (reSocket.test(cache.omniboxText)) {
+        const host = cache.omniboxText.split(':')[0]
+        const port = Number(cache.omniboxText.split(':')[1]) ? cache.omniboxText.split(':')[1] : settings.port
+        const auto = true
+        settings.update({ host, port, auto }).then(() => {
+            messaging.addNotification({
+                topic: 'omnibox',
+                title: `Settings Updated`,
+                content: `${host}:${port}, auto mode enabled`,
+                badge: {
+                    text: `${host}:${port}, auto mode enabled`,
+                    speed: 200,
+                    skipId: true
+                }
+            })
+        })
+    } else {
+        googleAnalytics.fireEvent('omnibox.onInputEntered', { invalidHost: cache.omniboxText })
+    }
+})
+chrome.omnibox.onInputChanged.addListener(function (text) {
+    cache.omniboxText = Number(text) ? `localhost:${text}` : (text || 'localhost:9229')
+    chrome.omnibox.setDefaultSuggestion({ description: `Listen for the debugger on ${cache.omniboxText} and auto manage DevTools.` })
 })
