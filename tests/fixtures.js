@@ -70,7 +70,7 @@ module.exports = {
         },
         inputs: {
             port: 'input[id="port"]',
-            host: 'input[id="hostname"]'
+            host: 'input[id="host"]'
         }
     }
 }
