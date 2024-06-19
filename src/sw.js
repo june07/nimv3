@@ -20,13 +20,14 @@ importScripts(
 
 amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
 
+const ENV = 'production'
 const VERSION = '0.0.0'
 const INSTALL_URL = "https://blog.june07.com/nim-install/?utm_source=nim&utm_medium=chrome_extension&utm_campaign=extension_install&utm_content=1"
 const UNINSTALL_URL = "https://bit.ly/2vUcRNn"
 const SHORTNER_SERVICE_URL = 'https://shortnr.june07.com/api'
-const NOTIFICATION_CHECK_INTERVAL = settings.ENV !== 'production' ? 60000 : 60 * 60000 // Check every hour
-const NOTIFICATION_PUSH_INTERVAL = settings.ENV !== 'production' ? 60000 : 60 * 60000 // Push new notifications no more than 1 every hour if there is a queue.
-const NOTIFICATION_LIFETIME = settings.ENV !== 'production' ? 3 * 60000 : 7 * 86400000
+const NOTIFICATION_CHECK_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Check every hour
+const NOTIFICATION_PUSH_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Push new notifications no more than 1 every hour if there is a queue.
+const NOTIFICATION_LIFETIME = ENV !== 'production' ? 3 * 60000 : 7 * 86400000
 const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)/
 const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/
 const reTabGroupTitle = new RegExp(/NiM/)
@@ -34,7 +35,7 @@ const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9]
 
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
-const LICENSE_HOST = settings.ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
+const LICENSE_HOST = ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
 
 let cache = {
     tabs: {},
@@ -70,7 +71,7 @@ async function hydrateState() {
     /** this function will generally not be useful during testing because the session is restarted every time a reload is done
      *  So as a workaround use importForeignTabs() during development... might be useful to just keep period?!
      */
-    if (settings.ENV !== 'production') {
+    if (ENV !== 'production') {
         const foreignTabSessions = await importForeignTabs()
         await chrome.tabs.remove(foreignTabSessions.map((tab) => tab.id))
         foreignTabSessions.forEach((foreignTabSessions) => {
