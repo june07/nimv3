@@ -22,8 +22,8 @@ amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
 
 const ENV = 'production'
 const VERSION = '0.0.0'
-const INSTALL_URL = "https://blog.june07.com/nim-install/?utm_source=nim&utm_medium=chrome_extension&utm_campaign=extension_install&utm_content=1"
-const UNINSTALL_URL = "https://bit.ly/2vUcRNn"
+const INSTALL_URL = "https://june07.com/nim-install/?utm_source=nim&utm_medium=chrome_extension&utm_campaign=extension_install&utm_content=1"
+const UNINSTALL_URL = "https://june07.com/uninstall"
 const SHORTNER_SERVICE_URL = 'https://shortnr.june07.com/api'
 const NOTIFICATION_CHECK_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Check every hour
 const NOTIFICATION_PUSH_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Push new notifications no more than 1 every hour if there is a queue.
