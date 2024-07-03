@@ -1,11 +1,11 @@
-const CHROME_VERSION = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0]
-const DEVTOOLS_SCHEMES = [
-    'chrome-devtools://',
-    'devtools://'
-]
-const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCHEMES[0];
-
 (async function (settings) {
+    const CHROME_VERSION = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0]
+    const DEVTOOLS_SCHEMES = [
+        'chrome-devtools://',
+        'devtools://'
+    ]
+    const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCHEMES[0]
+
     settings.defaultSettings = {
         DEVTOOLS_SCHEME,
         host: "localhost",
