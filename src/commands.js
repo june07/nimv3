@@ -1,4 +1,4 @@
-(async function (commands) {
+(async function () {
     chrome.commands.onCommand.addListener((command) => {
         switch (command) {
             case "open-devtools":
@@ -21,7 +21,9 @@
                 }
                 amplitude.getInstance().logEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
                 break
-            case "fifo-copy-paste":
+            case "open-devtools-repl":
+                openDevToolsREPL()
+                googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools-repl' })
                 break
         }
     })

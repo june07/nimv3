@@ -36,6 +36,7 @@ const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9]
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
 const LICENSE_HOST = ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
+const NODEJS_INSPECT_HOST = 'nodejs.june07.com'
 
 let cache = {
     tabs: {},
@@ -145,7 +146,14 @@ async function hydrateState() {
 async function getInfo(host, port) {
     const remoteMetadata = typeof host === 'object' ? host : undefined
     const cacheId = remoteMetadata?.cid || `${host}:${port}`
-    const url = remoteMetadata?.cid ? `https://${brakecode.PADS_HOST}/json/${remoteMetadata.cid}` : `http://${host}:${port}/json`
+    let url
+    if (/nodejs\.june07\.com/.test(host)) {
+        url = `https://${host}/json`
+    } else if (remoteMetadata?.cid) {
+        url = `https://${brakecode.PADS_HOST}/json/${remoteMetadata.cid}`
+    } else {
+        url = `http://${host}:${port}/json`
+    }
     const defaultOptions = {
         headers: {
             'content-type': 'application/json',
@@ -184,16 +192,16 @@ async function getInfoCache(remoteMetadata) {
     return await getInfo(remoteMetadata)
 }
 async function queryForDevtoolTabs(host, port) {
-    const remoteMetadata = typeof host === 'object' ? host : undefined
-    const devtoolsBasePatterns = [
-        `${settings.DEVTOOLS_SCHEME}*/*`,
-        `https://chrome-devtools-frontend.june07.com/*:*`,
-        `https://chrome-devtools-frontend.appspot.com/*:*`,
-    ]
+    const remoteMetadata = typeof host === 'object' ? host : {}
     let devtoolsLocalPatterns = [],
-        devtoolsRemotePatterns = []
+        devtoolsRemotePatterns = [],
+        url
 
-    if (!remoteMetadata) {
+    await async.until(
+        (cb) => cb(null, settings.DEVTOOLS_SCHEME),
+        (next) => setTimeout(next)
+    )
+    if (!remoteMetadata?.cid && host && port) {
         devtoolsLocalPatterns = [
             `${settings.DEVTOOLS_SCHEME}*/*${host}:${port}*`,
             `${settings.DEVTOOLS_SCHEME}*/*${host}/ws/${port}*`,
@@ -204,18 +212,60 @@ async function queryForDevtoolTabs(host, port) {
             `https://chrome-devtools-frontend.appspot.com/*${host}:${port}*`,
             `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
         ]
+        url = devtoolsLocalPatterns
     } else {
         const { cid } = remoteMetadata
-        devtoolsRemotePatterns = [
-            `${settings.DEVTOOLS_SCHEME}*/*/${cid}/*`,
-            `https://chrome-devtools-frontend.june07.com/*/${cid}/*`,
-            `https://chrome-devtools-frontend.appspot.com/*/${cid}/*`,
-        ]
+
+        if (cid) {
+            devtoolsRemotePatterns = [
+                `${settings.DEVTOOLS_SCHEME}*/*/${cid}/*`,
+                `https://chrome-devtools-frontend.june07.com/*/${cid}/*`,
+                `https://chrome-devtools-frontend.appspot.com/*/${cid}/*`,
+            ]
+            url = devtoolsRemotePatterns
+        } else {
+            url = [
+                `${settings.DEVTOOLS_SCHEME}*/*`
+            ]
+        }
     }
-    const tabs = await chrome.tabs.query({
-        url: !remoteMetadata ? devtoolsLocalPatterns : devtoolsRemotePatterns
-    })
+    const tabs = await chrome.tabs.query({ url })
     return tabs.map(tab => ({ ...tab, socket: { host, port } }))
+}
+async function openDevToolsREPL() {
+    googleAnalytics.fireEvent('openDevToolsREPL', {})
+    const { devtoolsWindow } = await chrome.storage.local.get('devtoolsWindow')
+
+    if (devtoolsWindow?.id) {
+        try {
+            await chrome.windows.update(devtoolsWindow.id, { focused: true })
+            return
+        } catch (error) {
+            if (!error?.message?.match(/No window with id/i)) {
+                console.log(error)
+            }
+        }
+    }
+    const { lastDevtoolsREPLWindow } = await chrome.storage.local.get('lastDevtoolsREPLWindow')
+    const info = await getInfo(NODEJS_INSPECT_HOST)
+    const url = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
+
+    if (!url) return
+    /**
+     *  Should the host part be changed settings.localDevtoolsOptions[0].url or will this always be equal (i.e. "devtools://devtools/bundled/inspector.html")?!
+     */
+    await chrome.storage.local.set({
+        devtoolsWindow: await chrome.windows.create({
+            url,
+            focused: true,
+            type: 'popup',
+            state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
+            height: (await lastDevtoolsREPLWindow)?.height,
+            left: (await lastDevtoolsREPLWindow)?.left,
+            top: (await lastDevtoolsREPLWindow)?.top,
+            width: (await lastDevtoolsREPLWindow)?.width
+        })
+    })
 }
 async function openTab(host = 'localhost', port = 9229, manual) {
     checkLicenseStatus()
@@ -663,6 +713,7 @@ function sendMessage(message) {
         }
     }
 }
+
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason === 'install') {
         chrome.tabs.create({ url: INSTALL_URL })
@@ -735,7 +786,13 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     })
 })
 chrome.windows.onBoundsChanged.addListener(async (window) => {
-    chrome.storage.local.set({ lastWindow: window })
+    const tab = (await chrome.tabs.query({ windowId: window.id }))[0]
+
+    if (settings.localDevtoolsOptions[0].url === tab.url) {
+        chrome.storage.local.set({ lastDevtoolsREPLWindow: window })
+    } else {
+        chrome.storage.local.set({ lastWindow: window })
+    }
 })
 chrome.omnibox.onInputEntered.addListener(() => {
     googleAnalytics.fireEvent('omnibox.onInputEntered', {})

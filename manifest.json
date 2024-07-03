@@ -12,11 +12,12 @@
       },
       "description": "__MSG_keyCtrlI__"
     },
-    "fifo-copy-paste": {
+    "open-devtools-repl": {
       "suggested_key": {
-        "default": "Alt+C"
+        "default": "Ctrl+Shift+9"
       },
-      "description": "Fifo copy and paste"
+      "description": "Open a JavaScript REPL.",
+      "global": true
     }
   },
   "action": {
