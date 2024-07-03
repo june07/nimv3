@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.7.2",
+  "version": "3.8.0",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
@@ -14,6 +14,7 @@
     "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3",
     "test:local": "npm-run-all --serial build test:singleWorker",
     "test:singleWorker": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1",
+    "test:singleWorker:singleSpec": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1 no-tab-run-away.spec.js",
     "test:singleWorker:chrome": "playwright test --project \"chrome@latest@localhost\" --workers 1",
     "test:post": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3"
   },
