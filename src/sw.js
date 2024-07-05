@@ -372,22 +372,27 @@ async function openTab(host = 'localhost', port = 9229, manual) {
     }
 }
 async function getLicenseStatus(id) {
-    if (cache.licenseCheck) {
-        return cache.licenseCheck
-    }
-    const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim`, {
-        method: "POST",
-        headers: {
-            'Accept': "application/json",
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ userId: id })
-    })
-    if (response.status !== 200) return {}
-    // console.log(response)
-    const data = await response.json()
+    try {
+        if (cache.licenseCheck) {
+            return cache.licenseCheck
+        }
+        const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim`, {
+            method: "POST",
+            headers: {
+                'Accept': "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ userId: id })
+        })
+        if (response.status !== 200) return {}
+        // console.log(response)
+        const data = await response.json()
 
-    return data || {}
+        return data || {}
+    } catch (error) {
+        googleAnalytics.fireEvent('license_error', { id, 'error': error.message })
+        return { error: new Error('unable to get license status') }
+    }
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = chrome.storage.local.get('checkedLicenseOn')
@@ -398,9 +403,9 @@ async function checkLicenseStatus() {
 
         // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
 
-        const { oUserId, license } = await getLicenseStatus(id)
+        const { oUserId, license, error } = await getLicenseStatus(id)
 
-        if (license?.valid) {
+        if (license?.valid || error) {
             return
         }
 
