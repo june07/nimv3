@@ -391,7 +391,7 @@ async function getLicenseStatus(id) {
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = chrome.storage.local.get('checkedLicenseOn')
-    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 12) {
+    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 24) {
         await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
 
         const { id } = await chrome.identity.getProfileUserInfo()
