@@ -2,7 +2,6 @@ importScripts(
     '../dist/uuidv5.min.js',
     '../dist/nacl-fast.min.js',
     '../dist/nacl-util.min.js',
-    '../dist/amplitude.umd.min.js',
     '../dist/async.min.js',
     '../dist/socket.io.min.js',
     '../dist/nanoid.min.js',
@@ -17,8 +16,6 @@ importScripts(
     './devtoolsProtocolClient.js',
     './commands.js',
 )
-
-amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
 
 const ENV = 'production'
 const VERSION = '0.0.0'
@@ -468,7 +465,7 @@ function createTabOrWindow(url, info, socket) {
             if (settings.pin) {
                 utilities.pin(window.id, socket)
             }
-            amplitude.getInstance().logEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` })
+            googleAnalytics.fireEvent('Program Event', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` })
         } else {
             const tab = await chrome.tabs.create({
                 url,
@@ -488,7 +485,7 @@ function createTabOrWindow(url, info, socket) {
             if (settings.pin) {
                 utilities.pin(currentWindow.id, socket)
             }
-            amplitude.getInstance().logEvent('Program Event', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` })
+            googleAnalytics.fireEvent('Program Event', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` })
         }
     })
 }
@@ -506,7 +503,7 @@ async function group(tabId) {
             )
         } else if (untrackedGroup) {
             state.groups['default'] = untrackedGroup
-            amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'external' })
+            googleAnalytics.fireEvent('Program Event', { action: 'Tab Group Added', detail: 'external' })
         }
         if (state.groups['default']) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id })
@@ -515,7 +512,7 @@ async function group(tabId) {
                 const tab = await chrome.tabs.get(tabId)
                 const groupId = await chrome.tabs.group({ tabIds: tabId, createProperties: { windowId: tab.windowId } })
                 state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' })
-                amplitude.getInstance().logEvent('Program Event', { action: 'Tab Group Added', detail: 'default' })
+                googleAnalytics.fireEvent('Program Event', { action: 'Tab Group Added', detail: 'default' })
             } catch (error) {
                 console.log(error)
             }
@@ -743,7 +740,7 @@ chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
     if (cache.highWaterMark > HIGH_WATER_MARK_MAX) {
         settings.auto = false
     }
-    amplitude.getInstance().logEvent('Program Event', { 'action': 'onCreated' })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'onCreated' })
 })
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     cache.removed[tabId] = Date.now()
@@ -764,10 +761,10 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
     delete cache.forceRemoveSession[tabId]
     delete state.sessions[tabId]
     await chrome.storage.session.set({ sessions: state.sessions })
-    amplitude.getInstance().logEvent('Program Event', { 'action': 'onRemoved' })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'onRemoved' })
 })
 chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
-    amplitude.getInstance().logEvent('Program Event', { 'action': 'onActivated' })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'onActivated' })
 })
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
@@ -782,7 +779,7 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     Object.entries(state.groups).filter((kv) => kv[1].id === tabGroup.id).map((kv) => {
         const tabGroupId = kv[0]
         delete state.groups[tabGroupId]
-        amplitude.getInstance().logEvent('User Event', { action: 'Tab Group Removed', detail: tabGroupId })
+        googleAnalytics.fireEvent('User Event', { action: 'Tab Group Removed', detail: tabGroupId })
     })
 })
 chrome.windows.onBoundsChanged.addListener(async (window) => {

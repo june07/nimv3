@@ -44,35 +44,32 @@
     padding-top: 4px;
     padding-bottom: 4px;
 }
+
 .logo {
     background-color: white;
     border-radius: 12px;
 }
 </style>
 <script setup>
-import { inject, computed } from "vue";
+import { inject, computed } from "vue"
 
-const extensionId = inject("extensionId");
-const amplitude = inject("amplitude");
+const extensionId = inject("extensionId")
 
-const emit = defineEmits(["read", "deleted"]);
+const emit = defineEmits(["read", "deleted"])
 const props = defineProps({
     theme: String,
     messages: Array,
-});
+})
 const unread = computed(() =>
     props.messages.filter((message) => !message.read)
-);
+)
 async function deleteMessageHandler(message) {
     await chrome.runtime.sendMessage(extensionId, {
         command: "deleteNotification",
         message
-    });
-    amplitude
-        .getInstance()
-        .logEvent("Delete Message Event", { action: message });
-    emit("deleted", message);
+    })
+    googleAnalytics.fireEvent("Delete Message Event", { action: message })
+    emit("deleted", message)
 }
-const clipboard = inject("clipboard");
-const i18nString = inject("i18nString");
+const i18nString = inject("i18nString")
 </script>

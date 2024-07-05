@@ -22,7 +22,6 @@
     "@auth0/auth0-vue": "^2.3.3",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vueuse/core": "^10.11.0",
-    "amplitude-js": "^8.21.9",
     "animejs": "^3.2.2",
     "async": "^3.2.5",
     "jwt-decode": "^4.0.0",

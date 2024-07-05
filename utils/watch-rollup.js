@@ -23,10 +23,6 @@ const deps = [
         watch: `${watchDir}/nacl-util.min.js`,
     },
     {
-        input: 'node_modules/amplitude-js/amplitude.umd.min.js',
-        watch: `${watchDir}/amplitude.umd.min.js`,
-    },
-    {
         input: 'node_modules/async/dist/async.min.js',
         watch: `${watchDir}/async.min.js`,
     },
@@ -59,7 +55,7 @@ async function build() {
         if (!fs.existsSync(path)) {
             const dep = deps.find((dep) => dep.watch === path)
 
-            if (dep.input.match(/nacl-fast|nacl-util|amplitude|async|socket.io/)) {
+            if (dep.input.match(/nacl-fast|nacl-util|async|socket.io/)) {
                 console.log(`copying dep ${dep.input} to ${dep.watch}`)
                 fs.copyFileSync(dep.input, dep.watch)
             } else {

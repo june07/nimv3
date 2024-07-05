@@ -25,7 +25,7 @@
                             <v-col class="d-flex justify-center">
                                 <div>
                                     <a name="paypal-recurring" href="https://www.paypal.com/donate/?hosted_button_id=CKAXEZWZDP8DC" target="_blank" rel="noreferrer" @click="clickHandler">
-                                        <v-img contain width="150" :src="imagePaypalLarge" alt="PayPal - The safer, easier way to pay online!"/>
+                                        <v-img contain width="150" :src="imagePaypalLarge" alt="PayPal - The safer, easier way to pay online!" />
                                     </a>
                                 </div>
                             </v-col>
@@ -39,7 +39,7 @@
                             <v-col class="d-flex justify-center">
                                 <div>
                                     <a name="paypal-one-time" href="https://www.paypal.com/donate/?hosted_button_id=CKAXEZWZDP8DC" target="_blank" rel="noreferrer" @click="clickHandler">
-                                        <v-img contain width="100" :src="imagePaypalSmall" alt="PayPal - The safer, easier way to pay online!"/>
+                                        <v-img contain width="100" :src="imagePaypalSmall" alt="PayPal - The safer, easier way to pay online!" />
                                     </a>
                                 </div>
                             </v-col>
@@ -83,35 +83,31 @@
     background-color: white;
     border-radius: 12px;
 }
+
 :deep() #bitcoin.v-field__input {
     padding-top: 0;
     padding-bottom: 0;
 }
 </style>
 <script setup>
-import { inject } from "vue";
-import imageGithub from '/image/GitHub_Logo.png';
-import imagePaypalSmall from '/image/PP_logo_h_100x26.png';
-import imagePaypalLarge from '/image/PP_logo_h_150x38.png';
+import { inject } from "vue"
+import imageGithub from '/image/GitHub_Logo.png'
+import imagePaypalSmall from '/image/PP_logo_h_100x26.png'
+import imagePaypalLarge from '/image/PP_logo_h_150x38.png'
 import googleAnalytics from '../../google-analytics-es6.js'
-
-const amplitude = inject('amplitude');
 
 const props = defineProps({
     theme: String
-});
+})
 
 function clickHandler(event) {
-    const { name } = event.target;
+    const { name } = event.target
 
-    amplitude.getInstance().init("0475f970e02a8182591c0491760d680a");
-    amplitude.getInstance().logEvent('Donation Event', { 'action': name });
-    console.log(googleAnalytics.fireEvent)
-
-    googleAnalytics.fireEvent('click_button', { id: event.target.id });
+    googleAnalytics.fireEvent('Donation Event', { 'action': name })
+    googleAnalytics.fireEvent('click_button', { id: event.target.id })
 }
-const ethAddress = "0x69F3C9210091A0E5cb7D01459683447173D4BDDA";
-const bitcoinAddress = "bc1q4kwrjnx3h0v894vlp6d9l3efwv0jtddnjukrpm";
-const clipboard = inject("clipboard");
-const i18nString = inject("i18nString");
+const ethAddress = "0x69F3C9210091A0E5cb7D01459683447173D4BDDA"
+const bitcoinAddress = "bc1q4kwrjnx3h0v894vlp6d9l3efwv0jtddnjukrpm"
+const clipboard = inject("clipboard")
+const i18nString = inject("i18nString")
 </script>

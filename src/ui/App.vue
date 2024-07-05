@@ -75,7 +75,6 @@ const EDGE_V3_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
 const v3RegExp = new RegExp(`${CHROME_V3_ID}|${EDGE_V3_ID}`)
 
 import { version } from '../../manifest.json'
-import amplitude from 'amplitude-js'
 import { ref, inject, reactive, computed, provide, watch, onMounted } from "vue"
 import { useAuth0 } from "@auth0/auth0-vue"
 import { useAsyncState } from "@vueuse/core"
@@ -85,9 +84,6 @@ import NiMain from "./components/NiMain.vue"
 import NiSettings from "./components/NiSettings.vue"
 import NiDonationOverlay from "./components/NiDonationOverlay.vue"
 import NiMessagesOverlay from "./components/NiMessagesOverlay.vue"
-
-amplitude.getInstance().init("0475f970e02a8182591c0491760d680a")
-provide('amplitude', amplitude)
 
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
 const upgradeFromV2 = computed(() => !v3RegExp.test(extensionId))

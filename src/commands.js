@@ -19,7 +19,7 @@
                         })
                     })
                 }
-                amplitude.getInstance().logEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
+                googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
                 break
             case "open-devtools-repl":
                 openDevToolsREPL()

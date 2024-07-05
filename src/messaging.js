@@ -180,26 +180,27 @@
                 // buttonIndex 0 is to disable this alert
                 const update = { chromeNotifications: { ...settings.chromeNotifications, general: false } }
                 await settings.update(update)
-                amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update })
+                googleAnalytics.fireEvent('User Event', { action: 'Updated Settings', detail: update })
+                
             } else if (buttonIndex === 1) {
                 // buttonIndex 1 is to change the shortcut
                 chrome.tabs.create({ url: 'chrome://extensions/configureCommands' })
-                amplitude.getInstance().logEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' })
+                googleAnalytics.fireEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' })
             }
         } else if (notificationId === 'external') {
             if (buttonIndex === 0) {
                 // buttonIndex 0 is to disable this alert
                 const update = { chromeNotifications: { ...settings.chromeNotifications, external: false } }
                 await settings.update(update)
-                amplitude.getInstance().logEvent('User Event', { action: 'Updated Settings', detail: update })
+                googleAnalytics.fireEvent('User Event', { action: 'Updated Settings', detail: update })
             } else if (buttonIndex === 1) {
                 // buttonIndex 0 is to open notifications area
                 try {
                     await chrome.action.openPopup()
-                    amplitude.getInstance().logEvent('User Event', { action: 'Opened Notifications Area' })
+                    googleAnalytics.fireEvent('User Event', { action: 'Opened Notifications Area' })
                 } catch (error) {
                     // Browser Bug: https://github.com/GoogleChrome/developer.chrome.com/issues/2602
-                    amplitude.getInstance().logEvent('Program Event', { action: 'Opened Notifications Area Error', detail: error })
+                    googleAnalytics.fireEvent('Program Event', { action: 'Opened Notifications Area Error', detail: error })
                 }
             }
         }
