@@ -43,7 +43,6 @@ let cache = {
     messagePort: undefined,
     info: {},
     timeouts: {},
-    checkedLicenseOn: undefined,
     licenseCheck: undefined,
     deadSocketSessions: {},
     lastWindow: {}
@@ -391,8 +390,9 @@ async function getLicenseStatus(id) {
     return data || {}
 }
 async function checkLicenseStatus() {
-    if (!cache.checkedLicenseOn || cache.checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 12) {
-        cache.checkedLicenseOn = Date.now()
+    const { checkedLicenseOn } = chrome.storage.local.get('checkedLicenseOn')
+    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 12) {
+        await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
 
         const { id } = await chrome.identity.getProfileUserInfo()
 
@@ -423,7 +423,7 @@ async function checkLicenseStatus() {
         }
     } else {
         if (settings.debugVerbosity >= 9) {
-            console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - cache.checkedLicenseOn)) / 1000 / 60} min`)
+            console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - checkedLicenseOn)) / 1000 / 60} min`)
         }
     }
 }
