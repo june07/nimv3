@@ -2,50 +2,50 @@
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
 const config = {
-  reporter: process.env.CI ? 'list' : 'list',
-  use: {
-    headless: false,
-    ignoreHTTPSErrors: true,
-    video: 'on-first-retry',
-  },
-  projects: [
-    {
-      name: 'edge@latest@localhost',
-      use: {
-        browserName: 'chromium',
-        channel: 'msedge'
-      },
+    reporter: [['list', { printSteps: false }]],
+    use: {
+        headless: false,
+        ignoreHTTPSErrors: true,
+        video: 'on-first-retry'
     },
-    {
-      name: 'chrome@latest@localhost',
-      use: {
-        browserName: 'chromium',
-        channel: 'chrome'
-      },
-    },
-    // -- BrowserStack Projects --
-    // name should be of the format browser@browser_version:os os_version@browserstack
-    {
-      name: 'chrome@latest:Windows 10@browserstack',
-      use: {
-        browserName: 'chromium',
-        channel: 'chrome'
-      },
-    },
-    {
-      name: 'chrome@latest-beta:OSX Big Sur@browserstack',
-      use: {
-        browserName: 'chromium',
-        channel: 'chrome',
-      },
-    },
-    {
-      name: 'edge@90:Windows 10@browserstack',
-      use: {
-        browserName: 'chromium'
-      },
-    },
-  ]
-};
+    projects: [
+        {
+            name: 'edge@latest@localhost',
+            use: {
+                browserName: 'chromium',
+                channel: 'msedge'
+            },
+        },
+        {
+            name: 'chrome@latest@localhost',
+            use: {
+                browserName: 'chromium',
+                channel: 'chrome'
+            },
+        },
+        // -- BrowserStack Projects --
+        // name should be of the format browser@browser_version:os os_version@browserstack
+        {
+            name: 'chrome@latest:Windows 10@browserstack',
+            use: {
+                browserName: 'chromium',
+                channel: 'chrome'
+            },
+        },
+        {
+            name: 'chrome@latest-beta:OSX Big Sur@browserstack',
+            use: {
+                browserName: 'chromium',
+                channel: 'chrome',
+            },
+        },
+        {
+            name: 'edge@90:Windows 10@browserstack',
+            use: {
+                browserName: 'chromium'
+            },
+        },
+    ]
+}
 
-module.exports = config;
+module.exports = config

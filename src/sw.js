@@ -32,7 +32,7 @@ const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9]
 
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
-const LICENSE_HOST = ENV !== 'production' ? 'api.dev.june07.com' : 'api.june07.com'
+const LICENSE_HOST = !/production|test/.test(ENV) ? 'api.dev.june07.com' : 'api.june07.com'
 const NODEJS_INSPECT_HOST = 'nodejs.june07.com'
 
 let cache = {
@@ -384,11 +384,12 @@ async function getLicenseStatus(id) {
             },
             body: JSON.stringify({ userId: id })
         })
-        if (response.status !== 200) return {}
-        // console.log(response)
+        if (response.status !== 200) {
+            return { error: new Error('unable to get license status') }
+        }
         const data = await response.json()
 
-        return data || {}
+        return data
     } catch (error) {
         googleAnalytics.fireEvent('license_error', { id, 'error': error.message })
         return { error: new Error('unable to get license status') }
@@ -396,7 +397,9 @@ async function getLicenseStatus(id) {
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = chrome.storage.local.get('checkedLicenseOn')
-    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - 1000 * 60 * 60 * 24) {
+    const notificationDuration = 1000 * 60 * 60 * 24
+
+    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - (notificationDuration / 2)) {
         await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
 
         const { id } = await chrome.identity.getProfileUserInfo()
@@ -409,9 +412,9 @@ async function checkLicenseStatus() {
             return
         }
 
-        if (!state.subscriptionNotificationOn || state.subscriptionNotificationOn < Date.now() - 1000 * 60 * 60 * 24) {
+        if (!state.subscriptionNotificationOn || state.subscriptionNotificationOn < Date.now() - notificationDuration) {
             state.subscriptionNotificationOn = Date.now()
-            chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
+            await chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
             const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
 
             if (tabs.length > 0) {   // already opened
@@ -419,7 +422,9 @@ async function checkLicenseStatus() {
 
                 await chrome.tabs.update(existingTabId, { active: true })
             } else {
-                await new Promise(resolve => setTimeout(resolve, 3 * 60000))
+                if (ENV !== 'test') {
+                    await new Promise(resolve => setTimeout(resolve, 7 * 60000))
+                }
                 await chrome.tabs.create({
                     url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
                     active: true

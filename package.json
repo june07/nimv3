@@ -11,10 +11,9 @@
     "util:updateManifest": "cross-env NODE_ENV=production node utils/updateManifest.js",
     "watch:rollup:deps": "node utils/watch-rollup.js",
     "preview": "vite preview",
-    "test": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3",
+    "test": "cross-env PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS=1 playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3",
     "test:local": "npm-run-all --serial build test:singleWorker",
     "test:singleWorker": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1",
-    "test:singleWorker:singleSpec": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 1 no-tab-run-away.spec.js",
     "test:singleWorker:chrome": "playwright test --project \"chrome@latest@localhost\" --workers 1",
     "test:post": "playwright test --project \"edge@latest@localhost\" \"chrome@latest@localhost\" --workers 5 --retries 3"
   },

@@ -1,48 +1,48 @@
-const { spawn } = require('child_process');
-const { test, expect, ids, randomPort, basename } = require('./fixtures');
+const { spawn } = require('child_process')
+const { test, expect, ids, randomPort, basename } = require('./fixtures')
 
 const numSuccesses = 3,
-    numPorts = 5;
+    numPorts = 5
 
 module.exports = (async () => {
     test.describe(() => {
         test(`popup - ${basename(__filename)} - 1`, async ({ page, context, serviceWorker }) => {
-            const ports = randomPort(numPorts);
+            const ports = randomPort(numPorts)
 
-            test.setTimeout(15000 * numPorts);
+            test.setTimeout(15000 * numPorts)
 
             for (let port of ports) {
                 const re = new RegExp(`devtools://.*ws=localhost:${port}.*`)
-                let successes = 0;
-                
-                const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js']);
+                let successes = 0
+
+                const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js'])
                 await test.step(`node process should be listening on port ${port}`, async () => await new Promise((resolve) => {
-                    let stderr = '';
+                    let stderr = ''
                     process.stderr.on('data', async (data) => {
-                        stderr += data;
+                        stderr += data
                         if (Buffer.from(stderr).toString().match(new RegExp(`listening\\son\\sws:\/\/127.0.0.1:${port}`))) {
-                            resolve();
+                            resolve()
                         }
-                    });
-                }));
-                await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`);
-                await page.bringToFront();
-                await (await page.locator(ids.inputs.port)).clear();
-                await (await page.locator(ids.inputs.port)).type(`${port}`);
-                await (await page.locator(ids.inputs.host)).press('Enter');
+                    })
+                }))
+                await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`)
+                await page.bringToFront()
+                await (await page.locator(ids.inputs.port)).clear()
+                await (await page.locator(ids.inputs.port)).type(`${port}`)
+                await (await page.locator(ids.inputs.host)).press('Enter')
                 for (let loop of Object.keys(Array.from(new Array(numSuccesses)))) {
-                    await context.waitForEvent('page');
-                    const pages = context.pages().filter(page => page.url().match(re));
-                    expect(pages.length).toBe(1);
+                    await context.waitForEvent('page')
+                    const pages = context.pages().filter(page => page.url().match(re))
+                    expect(pages.length).toBe(1)
                     if (loop != numSuccesses - 1) {
                         // leave the last one open for visual help during test debugging
-                        await pages[0].close();
+                        await pages[0].close()
                     }
-                    successes += 1;
+                    successes += 1
                 }
-                expect(successes).toBe(numSuccesses);
-                process.kill();
+                expect(successes).toBe(numSuccesses)
+                process.kill()
             }
-        });
-    });
-})();
+        })
+    })
+})()
