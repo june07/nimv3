@@ -1,8 +1,15 @@
 const { spawn } = require('child_process')
-const { test, expect, ids, randomPort, basename } = require('./fixtures')
+const { test, expect, ids, randomPort, basename, patch } = require('./fixtures')
 
 module.exports = (async () => {
-    test.describe.serial(async () => {
+    test.beforeAll(async () => {
+        patch()
+    })
+    test.afterAll(async () => {
+        patch({ restore: true })
+    })
+    test.describe.configure({ mode: 'serial' })
+    test.describe(async () => {
         test(`${basename(__filename)} - Should show license message`, async ({ page, context, serviceWorker }) => {
             const port = randomPort(1)[0]
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js'])
@@ -17,7 +24,7 @@ module.exports = (async () => {
                 })
             }))
             // update the test config reporter
-            
+
             await test.step(`license message should show if the license is not valid`, async () => {
                 // Navigate to the starting page
                 await page.goto(`chrome-extension://${serviceWorker.url().split('/')[2]}/dist/index.html`)
@@ -42,7 +49,7 @@ module.exports = (async () => {
             process.kill()
         })
     })
-    test.describe.serial(async () => {
+    test.describe(async () => {
         test(`${basename(__filename)} - Should NOT show license message`, async ({ page, offlineContext: context, serviceWorker }) => {
             const port = randomPort(1)[0]
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js'])
