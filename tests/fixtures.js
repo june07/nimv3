@@ -58,9 +58,8 @@ module.exports = {
                     `--disable-extensions-except=${pathToExtension}`,
                     `--load-extension=${pathToExtension}`,
                     '--no-sandbox',
-                    '--host-resolver-rules="MAP api.june07.com ~NOTFOUND"',
-                    '--disable-cache',
-                    '--proxy-server=https://127.0.0.1'
+                    '--proxy-server=https://127.0.0.1',
+                    '--proxy-bypass-list="<local>;"'
                 ],
                 devtools: true,
                 screen: {
