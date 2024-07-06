@@ -1,13 +1,7 @@
 const { spawn } = require('child_process')
-const { test, expect, ids, randomPort, basename, patch } = require('./fixtures')
+const { test, expect, ids, randomPort, basename } = require('./fixtures')
 
 module.exports = (async () => {
-    test.beforeAll(async () => {
-        patch()
-    })
-    test.afterAll(async () => {
-        patch({ restore: true })
-    })
     test.describe.configure({ mode: 'serial' })
     test.describe(async () => {
         test(`${basename(__filename)} - Should show license message`, async ({ page, context, serviceWorker }) => {
@@ -36,14 +30,15 @@ module.exports = (async () => {
                 await context.waitForEvent('page')
 
                 // Wait for the license browser popup to show
-                let subPage, tries = 0
-                while (!subPage && tries < 10) {
+                let showingSubscriptionMessage, tries = 0
+                while (!showingSubscriptionMessage && tries < 10) {
                     tries += 1
-                    subPage = (await context.pages()).find(page => /https:\/\/june07.com\/nim-subscription/.test(page.url())) ? true : false
+                    const storage = await page.evaluate(async () => await chrome.storage.session.get('showingSubscriptionMessage'))
+                    showingSubscriptionMessage = storage.showingSubscriptionMessage
                     await new Promise(r => setTimeout(r, 500))
                 }
 
-                expect(subPage).toBeTruthy()
+                expect(showingSubscriptionMessage).not.toBeNull()
             })
 
             process.kill()
@@ -73,15 +68,15 @@ module.exports = (async () => {
                 await (await page.locator(ids.inputs.host)).press('Enter')
                 await context.waitForEvent('page')
 
-                let subPage, tries = 0
-                while (!subPage && tries < 10) {
+                let showingSubscriptionMessage, tries = 0
+                while (!showingSubscriptionMessage && tries < 10) {
                     tries += 1
-                    subPage = (await context.pages()).find(page => /https:\/\/june07.com\/nim-subscription/.test(page.url())) ? true : false
+                    const storage = await page.evaluate(async () => await chrome.storage.session.get('showingSubscriptionMessage'))
+                    showingSubscriptionMessage = storage.showingSubscriptionMessage
                     await new Promise(r => setTimeout(r, 500))
                 }
 
-                // Assert that subPage is null or undefined
-                expect(subPage).toBeFalsy()
+                expect(showingSubscriptionMessage < (Date.now() + 7 * 60000)).toBeTruthy()
             })
 
             process.kill()

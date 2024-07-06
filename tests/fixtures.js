@@ -8,20 +8,6 @@ module.exports = {
     appName: JSON.parse(fs.readFileSync(join(process.cwd(), '_locales/en/messages.json'), 'utf-8')).appName.message,
     appVersion: JSON.parse(fs.readFileSync(join(process.cwd(), 'package.json'), 'utf-8')).version,
     basename,
-    patch: ({ restore = false } = {}) => {
-        const manifest = JSON.parse(fs.readFileSync(join(process.cwd(), 'manifest.json'), 'utf-8'))
-        const sw = fs.readFileSync(join(process.cwd(), manifest.background.service_worker)).toString()
-
-        if (restore) {
-            const restored = sw.replace(`const ENV = 'test'`, `const ENV = 'production'`)
-
-            fs.writeFileSync(join(process.cwd(), manifest.background.service_worker), restored)
-        } else {
-            const patched = sw.replace(`const ENV = 'production'`, `const ENV = 'test'`)
-
-            fs.writeFileSync(join(process.cwd(), manifest.background.service_worker), patched)
-        }
-    },
     test: test.extend({
         context: async ({ }, use, testInfo) => {
             const pathToExtension = process.env?.PATH_TO_EXTENSION || process.cwd()

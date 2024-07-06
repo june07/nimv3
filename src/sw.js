@@ -422,9 +422,11 @@ async function checkLicenseStatus() {
 
                 await chrome.tabs.update(existingTabId, { active: true })
             } else {
-                if (ENV !== 'test') {
-                    await new Promise(resolve => setTimeout(resolve, 7 * 60000))
-                }
+                const delay = 7 * 60000
+                const showAt = Date.now() + delay
+
+                await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
+                await new Promise(resolve => setTimeout(resolve, delay))
                 await chrome.tabs.create({
                     url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
                     active: true
