@@ -38,7 +38,7 @@ module.exports = (async () => {
                 while (!subPage && tries < 10) {
                     tries += 1
                     subPage = (await context.pages()).find(page => /https:\/\/june07.com\/nim-subscription/.test(page.url())) ? true : false
-                    await new Promise(r => setTimeout(r, 1000))
+                    await new Promise(r => setTimeout(r, 500))
                 }
 
                 expect(subPage).toBeTruthy()
