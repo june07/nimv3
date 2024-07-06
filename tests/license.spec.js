@@ -8,7 +8,7 @@ module.exports = (async () => {
     test.afterAll(async () => {
         patch({ restore: true })
     })
-    test.describe(async () => {
+    test.describe.serial(async () => {
         test(`${basename(__filename)} - Should show license message`, async ({ page, context, serviceWorker }) => {
             const port = randomPort(1)[0]
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js'])
@@ -47,7 +47,7 @@ module.exports = (async () => {
             process.kill()
         })
     })
-    test.describe(async () => {
+    test.describe.serial(async () => {
         test(`${basename(__filename)} - Should NOT show license message`, async ({ page, offlineContext: context, serviceWorker }) => {
             const port = randomPort(1)[0]
             const process = spawn('node', [`--inspect=${port}`, 'tests/hello.js'])
@@ -71,7 +71,7 @@ module.exports = (async () => {
                 await (await page.locator(ids.inputs.host)).press('Enter')
 
                 let subPage, tries = 0
-                while (!subPage && tries < 3) {
+                while (!subPage && tries < 10) {
                     tries += 1
                     subPage = (await context.pages()).find(page => /https:\/\/june07.com\/nim-subscription/.test(page.url())) ? true : false
                     await new Promise(r => setTimeout(r, 500))
