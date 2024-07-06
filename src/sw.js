@@ -17,7 +17,7 @@ importScripts(
     './commands.js',
 )
 
-const ENV = 'production'
+const ENV = 'test'
 const VERSION = '0.0.0'
 const INSTALL_URL = "https://june07.com/nim-install/?utm_source=nim&utm_medium=chrome_extension&utm_campaign=extension_install&utm_content=1"
 const UNINSTALL_URL = "https://june07.com/uninstall"
