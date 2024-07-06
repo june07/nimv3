@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_appName__",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "default_locale": "en",
   "description": "__MSG_appDescription__",
   "author": "June07 <667@june07.com> (https://june07.com/)",
@@ -77,7 +77,7 @@
     ]
   },
   "short_name": "__MSG_appShortName__",
-  "version_name": "3.8.0",
+  "version_name": "3.8.1",
   "omnibox": {
     "keyword": "about"
   }
