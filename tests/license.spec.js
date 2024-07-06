@@ -26,6 +26,7 @@ module.exports = (async () => {
                 await (await page.locator(ids.inputs.port)).clear()
                 await (await page.locator(ids.inputs.port)).type(`${port}`)
                 await (await page.locator(ids.inputs.host)).press('Enter')
+                await context.waitForEvent('page')
 
                 // Wait for the license browser popup to show
                 let subPage, tries = 0
@@ -63,6 +64,7 @@ module.exports = (async () => {
                 await (await page.locator(ids.inputs.port)).clear()
                 await (await page.locator(ids.inputs.port)).type(`${port}`)
                 await (await page.locator(ids.inputs.host)).press('Enter')
+                await context.waitForEvent('page')
 
                 let subPage, tries = 0
                 while (!subPage && tries < 10) {
