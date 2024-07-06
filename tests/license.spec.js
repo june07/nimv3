@@ -1,13 +1,7 @@
 const { spawn } = require('child_process')
-const { test, expect, ids, randomPort, basename, patch } = require('./fixtures')
+const { test, expect, ids, randomPort, basename } = require('./fixtures')
 
 module.exports = (async () => {
-    test.beforeAll(async () => {
-        patch()
-    })
-    test.afterAll(async () => {
-        patch({ restore: true })
-    })
     test.describe.serial(async () => {
         test(`${basename(__filename)} - Should show license message`, async ({ page, context, serviceWorker }) => {
             const port = randomPort(1)[0]
