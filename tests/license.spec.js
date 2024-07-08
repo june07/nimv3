@@ -66,6 +66,8 @@ module.exports = (async () => {
                 await (await page.locator(ids.inputs.port)).type(`${port}`)
                 await (await page.locator(ids.inputs.host)).press('Enter')
 
+                await page.evaluate(async () => await chrome.storage.session.set({ showingSubscriptionMessage: undefined }))
+
                 let showingSubscriptionMessage, tries = 0
                 while (!showingSubscriptionMessage && tries < 10) {
                     tries += 1
@@ -74,6 +76,7 @@ module.exports = (async () => {
                     await new Promise(r => setTimeout(r, 500))
                 }
 
+                // expect(showingSubscriptionMessage).toBeNull()
                 expect(showingSubscriptionMessage < (Date.now() + 7 * 60000)).toBeTruthy()
             })
 
