@@ -43,7 +43,6 @@ let cache = {
     messagePort: undefined,
     info: {},
     timeouts: {},
-    licenseCheck: undefined,
     deadSocketSessions: {},
     lastWindow: {}
 }
@@ -59,6 +58,7 @@ let state = {
     },
     sessions: {},
     subscriptionNotificationOn: undefined,
+    isCheckingLicense: false,
 }
 
 async function importForeignTabs() {
@@ -373,9 +373,6 @@ async function openTab(host = 'localhost', port = 9229, manual) {
 }
 async function getLicenseStatus(id) {
     try {
-        if (cache.licenseCheck) {
-            return cache.licenseCheck
-        }
         const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim`, {
             method: "POST",
             headers: {
@@ -396,47 +393,57 @@ async function getLicenseStatus(id) {
     }
 }
 async function checkLicenseStatus() {
-    const { checkedLicenseOn } = chrome.storage.local.get('checkedLicenseOn')
+    const { checkedLicenseOn } = await chrome.storage.local.get('checkedLicenseOn')
     const notificationDuration = 1000 * 60 * 60 * 24
 
-    if (!checkedLicenseOn || checkedLicenseOn < Date.now() - (notificationDuration / 2)) {
-        await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
+    // Debouncing
+    if (cache.isCheckingLicense) {
+        return
+    }
+    cache.isCheckingLicense = true
 
-        const { id } = await chrome.identity.getProfileUserInfo()
+    try {
+        if (!checkedLicenseOn || checkedLicenseOn < Date.now() - (notificationDuration / 2)) {
+            await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
 
-        // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
+            const { id } = await chrome.identity.getProfileUserInfo()
 
-        const { oUserId, license, error } = await getLicenseStatus(id)
+            // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
 
-        if (license?.valid || error) {
-            return
-        }
+            const { oUserId, license, error } = await getLicenseStatus(id)
 
-        if (!state.subscriptionNotificationOn || state.subscriptionNotificationOn < Date.now() - notificationDuration) {
-            state.subscriptionNotificationOn = Date.now()
-            await chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
-            const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
+            if (license?.valid || error) {
+                return
+            }
 
-            if (tabs.length > 0) {   // already opened
-                const existingTabId = tabs[0].id
+            if (!state.subscriptionNotificationOn || state.subscriptionNotificationOn < Date.now() - notificationDuration) {
+                state.subscriptionNotificationOn = Date.now()
+                await chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
+                const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
 
-                await chrome.tabs.update(existingTabId, { active: true })
-            } else {
-                const delay = 7 * 60000
-                const showAt = Date.now() + delay
+                if (tabs.length > 0) {   // already opened
+                    const existingTabId = tabs[0].id
 
-                await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
-                await new Promise(resolve => setTimeout(resolve, delay))
-                await chrome.tabs.create({
-                    url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
-                    active: true
-                })
+                    await chrome.tabs.update(existingTabId, { active: true })
+                } else {
+                    const delay = 7 * 60000
+                    const showAt = Date.now() + delay
+
+                    await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
+                    await new Promise(resolve => setTimeout(resolve, delay))
+                    await chrome.tabs.create({
+                        url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
+                        active: true
+                    })
+                }
+            }
+        } else {
+            if (settings.debugVerbosity >= 9) {
+                console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - checkedLicenseOn)) / 1000 / 60} min`)
             }
         }
-    } else {
-        if (settings.debugVerbosity >= 9) {
-            console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - checkedLicenseOn)) / 1000 / 60} min`)
-        }
+    } finally {
+        cache.isCheckingLicense = false
     }
 }
 function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode: true }) {

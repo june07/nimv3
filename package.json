@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.8.1",
+  "version": "3.8.3",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
@@ -19,10 +19,14 @@
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.3.3",
+    "@docsearch/js": "^3.6.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vueuse/core": "^10.11.0",
+    "algoliasearch": "^4.24.0",
     "animejs": "^3.2.2",
     "async": "^3.2.5",
+    "instantsearch.css": "^8.3.0",
+    "instantsearch.js": "^4.73.0",
     "jwt-decode": "^4.0.0",
     "nanoid": "^5.0.7",
     "socket.io-client": "^4.7.5",
@@ -40,6 +44,7 @@
     "chokidar": "^3.6.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.5.0",
+    "ndjson": "^2.0.0",
     "npm-run-all": "^4.1.5",
     "playwright": "^1.44.1",
     "sass": "^1.77.6",
@@ -47,4 +52,3 @@
     "vue-eslint-parser": "^9.4.3"
   }
 }
-
