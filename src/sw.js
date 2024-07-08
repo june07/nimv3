@@ -15,7 +15,6 @@ importScripts(
     './scripting.js',
     './devtoolsProtocolClient.js',
     './commands.js',
-    './search.js',
 )
 
 const ENV = 'production'
@@ -421,17 +420,17 @@ async function checkLicenseStatus() {
                 state.subscriptionNotificationOn = Date.now()
                 await chrome.storage.local.set({ subscriptionNotificationOn: state.subscriptionNotificationOn })
                 const tabs = await chrome.tabs.query({ url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId })
+                const delay = 7 * 60000
+                const showAt = Date.now() + delay
 
-                if (tabs.length > 0) {   // already opened
+                await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
+                await new Promise(resolve => setTimeout(resolve, delay))
+                
+                if (tabs.length > 0) {
                     const existingTabId = tabs[0].id
 
                     await chrome.tabs.update(existingTabId, { active: true })
                 } else {
-                    const delay = 7 * 60000
-                    const showAt = Date.now() + delay
-
-                    await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
-                    await new Promise(resolve => setTimeout(resolve, delay))
                     await chrome.tabs.create({
                         url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
                         active: true
@@ -443,6 +442,8 @@ async function checkLicenseStatus() {
                 console.log(`checking license again in ${Math.floor(1000 * 60 * 60 * 2 - (Date.now() - checkedLicenseOn)) / 1000 / 60} min`)
             }
         }
+    } catch (error) {
+        console.log(error)
     } finally {
         cache.isCheckingLicense = false
     }
@@ -838,9 +839,4 @@ chrome.omnibox.onInputEntered.addListener(() => {
 chrome.omnibox.onInputChanged.addListener(function (text) {
     cache.omniboxText = Number(text) ? `localhost:${text}` : (text || 'localhost:9229')
     chrome.omnibox.setDefaultSuggestion({ description: `Listen for the debugger on ${cache.omniboxText} and auto manage DevTools.` })
-})
-chrome.tabs.onCreated.addListener((tab) => {
-    if (/nodejs\.org\/docs\//.test(tab.url)) {
-        search.inject(tab.id)
-    }
 })

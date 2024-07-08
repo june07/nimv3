@@ -10,11 +10,6 @@ const deps = [
         name: 'uuidv5'
     },
     {
-        input: 'node_modules/algoliasearch/dist/algoliasearch.esm.browser.js',
-        watch: `${watchDir}/algoliasearch.min.js`,
-        name: 'algoliasearch'
-    },
-    {
         input: 'node_modules/nanoid/index.browser.js',
         watch: `${watchDir}/nanoid.min.js`,
         name: 'nanoid'
