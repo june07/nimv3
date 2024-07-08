@@ -15,6 +15,7 @@ importScripts(
     './scripting.js',
     './devtoolsProtocolClient.js',
     './commands.js',
+    './search.js',
 )
 
 const ENV = 'production'
@@ -837,4 +838,9 @@ chrome.omnibox.onInputEntered.addListener(() => {
 chrome.omnibox.onInputChanged.addListener(function (text) {
     cache.omniboxText = Number(text) ? `localhost:${text}` : (text || 'localhost:9229')
     chrome.omnibox.setDefaultSuggestion({ description: `Listen for the debugger on ${cache.omniboxText} and auto manage DevTools.` })
+})
+chrome.tabs.onCreated.addListener((tab) => {
+    if (/nodejs\.org\/docs\//.test(tab.url)) {
+        search.inject(tab.id)
+    }
 })

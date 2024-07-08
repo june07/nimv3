@@ -27,3 +27,5 @@ pnpm-debug.log*
 temp
 dev.code-workspace
 test-results/.last-run.json
+latest-v20.x.json
+src/sw-fix.js
