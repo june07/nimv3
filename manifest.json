@@ -12,6 +12,13 @@
       },
       "description": "__MSG_keyCtrlI__"
     },
+    "open-docs": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+8"
+      },
+      "description": "Open Searchable V8 Docs.",
+      "global": true
+    },
     "open-devtools-repl": {
       "suggested_key": {
         "default": "Ctrl+Shift+9"

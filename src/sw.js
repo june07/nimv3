@@ -28,7 +28,7 @@ const NOTIFICATION_LIFETIME = ENV !== 'production' ? 3 * 60000 : 7 * 86400000
 const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)/
 const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/
 const reTabGroupTitle = new RegExp(/NiM/)
-const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|(?:\d{1,3}\.){3}\d{1,3}|(\[(?:[A-Fa-f0-9:]+)\]))?(:\d{1,5})?)|^\d{1,5}$/)
+const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|(?:\d{1,3}\.){3}\d{1,3}|(\[(?:[A-Fa-f0-9:]+)\]))+(:\d{1,5})?)|^\d{1,5}$/)
 
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
@@ -228,13 +228,17 @@ async function queryForDevtoolTabs(host, port) {
     const tabs = await chrome.tabs.query({ url })
     return tabs.map(tab => ({ ...tab, socket: { host, port } }))
 }
-async function openDevToolsREPL() {
-    googleAnalytics.fireEvent('openDevToolsREPL', {})
-    const { devtoolsWindow } = await chrome.storage.local.get('devtoolsWindow')
+async function openWindow(type = 'repl') {
+    googleAnalytics.fireEvent('openWindow', { type })
+    const { replWindow, replLastWindow, docsWindow, docsLastWindow } = await chrome.storage.local.get([`${type}Window`, `${type}LastWindow`])
+    const lastWindow = replLastWindow || docsLastWindow
+    const windowId = replWindow?.id || docsWindow?.id
+    let url
 
-    if (devtoolsWindow?.id) {
+
+    if (windowId) {
         try {
-            await chrome.windows.update(devtoolsWindow.id, { focused: true })
+            await chrome.windows.update(windowId, { focused: true })
             return
         } catch (error) {
             if (!error?.message?.match(/No window with id/i)) {
@@ -242,24 +246,28 @@ async function openDevToolsREPL() {
             }
         }
     }
-    const { lastDevtoolsREPLWindow } = await chrome.storage.local.get('lastDevtoolsREPLWindow')
-    const info = await getInfo(NODEJS_INSPECT_HOST)
-    const url = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
 
-    if (!url) return
+    if (type === 'repl') {
+        const info = await getInfo(NODEJS_INSPECT_HOST)
+        url = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
+
+        if (!url) return
+    } else if (type === 'docs') {
+        url = 'https://nim.june07.com/docs'
+    }
     /**
      *  Should the host part be changed settings.localDevtoolsOptions[0].url or will this always be equal (i.e. "devtools://devtools/bundled/inspector.html")?!
      */
     await chrome.storage.local.set({
-        devtoolsWindow: await chrome.windows.create({
+        [`${type}Window`]: await chrome.windows.create({
             url,
             focused: true,
             type: 'popup',
             state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
-            height: (await lastDevtoolsREPLWindow)?.height,
-            left: (await lastDevtoolsREPLWindow)?.left,
-            top: (await lastDevtoolsREPLWindow)?.top,
-            width: (await lastDevtoolsREPLWindow)?.width
+            height: (await lastWindow)?.height,
+            left: (await lastWindow)?.left,
+            top: (await lastWindow)?.top,
+            width: (await lastWindow)?.width
         })
     })
 }
@@ -425,7 +433,7 @@ async function checkLicenseStatus() {
 
                 await chrome.storage.session.set({ showingSubscriptionMessage: showAt })
                 await new Promise(resolve => setTimeout(resolve, delay))
-                
+
                 if (tabs.length > 0) {
                     const existingTabId = tabs[0].id
 
@@ -615,6 +623,9 @@ function messageHandler(request, sender, reply) {
     switch (request.command) {
         case 'hydrated':
             reply(state.hydrated)
+            break
+        case 'docs':
+            openWindow('docs')
             break
         case 'openDevtools':
             const { host, port, manual } = request
@@ -807,7 +818,9 @@ chrome.windows.onBoundsChanged.addListener(async (window) => {
     const tab = (await chrome.tabs.query({ windowId: window.id }))[0]
 
     if (settings.localDevtoolsOptions[0].url === tab.url) {
-        chrome.storage.local.set({ lastDevtoolsREPLWindow: window })
+        chrome.storage.local.set({ replLastWindow: window })
+    } else if (/^https:\/\/nim\.june07\.com\/docs/.test(tab.url)) {
+        chrome.storage.local.set({ docsLastWindow: window })
     } else {
         chrome.storage.local.set({ lastWindow: window })
     }
@@ -832,11 +845,20 @@ chrome.omnibox.onInputEntered.addListener(() => {
                 }
             })
         })
+    } else if (/^:/.test(cache.omniboxText)) {
+        const command = cache.omniboxText.split(':')[1]?.trim()
+        if (command === 'docs') {
+            openWindow('docs')
+        }
     } else {
         googleAnalytics.fireEvent('omnibox.onInputEntered', { invalidHost: cache.omniboxText })
     }
 })
 chrome.omnibox.onInputChanged.addListener(function (text) {
     cache.omniboxText = Number(text) ? `localhost:${text}` : (text || 'localhost:9229')
-    chrome.omnibox.setDefaultSuggestion({ description: `Listen for the debugger on ${cache.omniboxText} and auto manage DevTools.` })
+    if (/^:/.test(text)) {
+        chrome.omnibox.setDefaultSuggestion({ description: `Command list: docs` })
+    } else {
+        chrome.omnibox.setDefaultSuggestion({ description: `Listen for the debugger on ${cache.omniboxText} and auto manage DevTools.` })
+    }
 })
