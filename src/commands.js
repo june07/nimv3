@@ -21,13 +21,9 @@
                 }
                 googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
                 break
-            case "open-devtools-repl":
+            case "open-tools":
                 openWindow('repl')
-                googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-devtools-repl' })
-                break
-            case 'open-docs':
-                openWindow('docs')
-                googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-docs' })
+                googleAnalytics.fireEvent('User Event', { action: 'Keyboard Shortcut Used', detail: 'open-tools' })
                 break
         }
     })

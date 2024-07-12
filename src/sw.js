@@ -228,48 +228,53 @@ async function queryForDevtoolTabs(host, port) {
     const tabs = await chrome.tabs.query({ url })
     return tabs.map(tab => ({ ...tab, socket: { host, port } }))
 }
-async function openWindow(type = 'repl') {
-    googleAnalytics.fireEvent('openWindow', { type })
-    const { replWindow, replLastWindow, docsWindow, docsLastWindow } = await chrome.storage.local.get([`${type}Window`, `${type}LastWindow`])
-    const lastWindow = replLastWindow || docsLastWindow
-    const windowId = replWindow?.id || docsWindow?.id
-    let url
+async function openWindow(focus = 'repl') {
+    googleAnalytics.fireEvent('openWindow', { focus })
+    const { toolsWindow: toolsLastWindow } = await chrome.storage.local.get(['toolsWindow'])
+    const info = await getInfo(NODEJS_INSPECT_HOST)
+    const devtoolsUrl = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
+    let urls = ['https://nim.june07.com/docs']
 
+    if (devtoolsUrl) {
+        urls.unshift(devtoolsUrl)
+    }
 
-    if (windowId) {
+    if (toolsLastWindow) {
         try {
-            await chrome.windows.update(windowId, { focused: true })
+            await chrome.windows.update(toolsLastWindow.id, { focused: true })
             return
         } catch (error) {
             if (!error?.message?.match(/No window with id/i)) {
                 console.log(error)
             }
+            const lastUrls = (toolsLastWindow.tabs?.map(tab => tab.url || tab.pendingUrl) || [])
+                .filter(url => !/wss=nodejs.june07.com|^https:\/\/nim\.june07\.com\/docs/.test(url))
+            const toolsWindow = await chrome.windows.create({
+                url: [...urls, ...lastUrls],
+                focused: true,
+                type: toolsLastWindow.type,
+                state: toolsLastWindow.state,
+                height: toolsLastWindow.height,
+                left: toolsLastWindow.left,
+                top: toolsLastWindow.top,
+                width: toolsLastWindow.width
+            })
+            await chrome.storage.local.set({ toolsWindow })
+            return
         }
     }
 
-    if (type === 'repl') {
-        const info = await getInfo(NODEJS_INSPECT_HOST)
-        url = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
-
-        if (!url) return
-    } else if (type === 'docs') {
-        url = 'https://nim.june07.com/docs'
-    }
-    /**
-     *  Should the host part be changed settings.localDevtoolsOptions[0].url or will this always be equal (i.e. "devtools://devtools/bundled/inspector.html")?!
-     */
-    await chrome.storage.local.set({
-        [`${type}Window`]: await chrome.windows.create({
-            url,
-            focused: true,
-            type: 'popup',
-            state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
-            height: (await lastWindow)?.height,
-            left: (await lastWindow)?.left,
-            top: (await lastWindow)?.top,
-            width: (await lastWindow)?.width
-        })
+    const toolsWindow = await chrome.windows.create({
+        url: urls,
+        focused: true,
+        type: 'normal',
+        state: settings.windowStateMaximized ? chrome.windows.WindowState.MAXIMIZED : chrome.windows.WindowState.NORMAL,
+        height: toolsLastWindow?.height,
+        left: toolsLastWindow?.left,
+        top: toolsLastWindow?.top,
+        width: toolsLastWindow?.width
     })
+    await chrome.storage.local.set({ toolsWindow })
 }
 async function openTab(host = 'localhost', port = 9229, manual) {
     checkLicenseStatus()
@@ -767,16 +772,42 @@ chrome.runtime.onStartup.addListener(() => {
     googleAnalytics.fireEvent('startup', {})
     checkLicenseStatus()
 })
-chrome.tabs.onCreated.addListener(function chromeTabsCreatedEvent(tab) {
+chrome.tabs.onUpdated.addListener(async function chromeTabsChangedEvent(tabId, { status }, tab) {
+    const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
+
+    if (toolsWindow.id === tab.windowId && status === 'complete') {
+        let updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
+        const tabIndex = updatedToolsWindow.tabs.findIndex(tab => tab.id === tabId)
+        if (tabIndex !== -1) {
+            updatedToolsWindow.tabs[tabIndex].url = tab.url
+        }
+        await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
+    }
+})
+chrome.tabs.onCreated.addListener(async function chromeTabsCreatedEvent(tab) {
+    const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
+
     cache.highWaterMark = cache.highWaterMark ? cache.highWaterMark += 1 : 1
     if (cache.highWaterMark > HIGH_WATER_MARK_MAX) {
         settings.auto = false
     }
+
+    if (toolsWindow.id === tab.windowId) {
+        const updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
+        await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
+    }
     googleAnalytics.fireEvent('Program Event', { 'action': 'onCreated' })
 })
-chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId) {
+chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, { isWindowClosing, windowId }) {
+    const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
     cache.removed[tabId] = Date.now()
     const tabCacheEntry = Object.entries(cache.tabs).find((kv) => kv[1]?.tabId === tabId)
+
+    if (toolsWindow?.id && toolsWindow.id === windowId && !isWindowClosing) {
+        let updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
+        updatedToolsWindow.tabs = updatedToolsWindow.tabs.filter((tab) => tab.id !== tabId)
+        await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
+    }
     if (tabCacheEntry) {
         // console.log(`deleting cache.tabs[${tabCacheEntry[0]}]`)
         delete cache.tabs[tabCacheEntry[0]]
@@ -817,12 +848,10 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
 chrome.windows.onBoundsChanged.addListener(async (window) => {
     const tab = (await chrome.tabs.query({ windowId: window.id }))[0]
 
-    if (settings.localDevtoolsOptions[0].url === tab.url) {
-        chrome.storage.local.set({ replLastWindow: window })
-    } else if (/^https:\/\/nim\.june07\.com\/docs/.test(tab.url)) {
-        chrome.storage.local.set({ docsLastWindow: window })
+    if (/wss=nodejs.june07.com|^https:\/\/nim\.june07\.com\/docs/.test(tab.url)) {
+        await chrome.storage.local.set({ toolsWindow: window })
     } else {
-        chrome.storage.local.set({ lastWindow: window })
+        await chrome.storage.local.set({ lastWindow: window })
     }
 })
 chrome.omnibox.onInputEntered.addListener(() => {

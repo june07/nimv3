@@ -12,18 +12,11 @@
       },
       "description": "__MSG_keyCtrlI__"
     },
-    "open-docs": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+8"
-      },
-      "description": "Open Searchable V8 Docs.",
-      "global": true
-    },
-    "open-devtools-repl": {
+    "open-tools": {
       "suggested_key": {
         "default": "Ctrl+Shift+9"
       },
-      "description": "Open a JavaScript REPL.",
+      "description": "Open a tools (JavaScript REPL, docs, etc.)",
       "global": true
     }
   },
