@@ -10,7 +10,7 @@
 
 <!--The ratings badges are currently broken due to [this](https://github.com/badges/shields/issues/5475) and [this](https://github.com/pandawing/node-chrome-web-store-item-property/issues/275#issuecomment-687801815).-->
 
-![NiM Logo](https://june07.github.io/image/smallPromoTile.png) ![nimv3-ratings](https://github.com/june07/nimv3/assets/11353590/e6f30f3f-4ae5-4831-bafa-392eaeff66fd)
+[![https://nim.june07.com](https://june07.github.io/image/smallPromoTile.png)](https://nim.june07.com) [![https://nim.june07.com](https://github.com/june07/nimv3/assets/11353590/e6f30f3f-4ae5-4831-bafa-392eaeff66fd)](https://nim.june07.com)
 
 # NiM (Node.js --inspector Manager)
 ###### Streamlines your JavaScript V8 (Node.js/Deno) development process
