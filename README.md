@@ -1,4 +1,5 @@
-![](https://img.shields.io/chrome-web-store/v/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/badge/dynamic/json?label=microsoft%20edge%20add-on&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fbhgmgiigndniabncaajbbeobkcfjkdod) ![](https://img.shields.io/chrome-web-store/users/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/rating/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/stars/fbbpbfibkcdehkkkcoileebbgbamjelh.svg) ![](https://img.shields.io/chrome-web-store/rating-count/fbbpbfibkcdehkkkcoileebbgbamjelh.svg)
+![](https://img.shields.io/chrome-web-store/v/gnhhdgbaldcilmgcpfddgdbkhjohddkj.svg) ![](https://img.shields.io/chrome-web-store/users/gnhhdgbaldcilmgcpfddgdbkhjohddkj.svg) ![](https://img.shields.io/chrome-web-store/rating/gnhhdgbaldcilmgcpfddgdbkhjohddkj.svg) ![](https://img.shields.io/chrome-web-store/stars/gnhhdgbaldcilmgcpfddgdbkhjohddkj.svg) ![](https://img.shields.io/chrome-web-store/rating-count/gnhhdgbaldcilmgcpfddgdbkhjohddkj.svg)<br>
+![](https://img.shields.io/badge/dynamic/json?label=microsoft%20edge%20add-on&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Finjfmegnapmoakbmnmnecjabigpdjeme)
 
 <!--The ratings badges are currently broken due to [this](https://github.com/badges/shields/issues/5475) and [this](https://github.com/pandawing/node-chrome-web-store-item-property/issues/275#issuecomment-687801815).-->
 
@@ -7,12 +8,11 @@
 # NiM (Node.js --inspector Manager)
 ###### Streamlines your JavaScript V8 (Node.js/Deno) development process
 
-* [Google Chrome Web Store](https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/fbbpbfibkcdehkkkcoileebbgbamjelh) (works with any Chromium browsers: [Arc](https://arc.net/), [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
-* [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/bhgmgiigndniabncaajbbeobkcfjkdod) (works with the [Microsoft Edge](https://www.microsoft.com/edge) browser) 
+* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1) (works with any Chromium browsers: [Arc](https://arc.net/), [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
+* [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme) (works with the [Microsoft Edge](https://www.microsoft.com/edge) browser) 
 
 ## Updates:
-* [BrakeCODE + NiM Alert Feature](https://blog.june07.com/brakecode-nim-alert-feature/)
-![image](https://user-images.githubusercontent.com/11353590/219787886-296d9442-35e5-4bca-8969-c266c84d0cb9.png)
+* [https://blog.june07.com/tag/nim/](https://blog.june07.com/tag/nim/)
 
 ## Easier than `about::inspect` (`chrome://inspect/#devices`)
 
@@ -51,8 +51,8 @@ and then [load the extension unpacked](https://developer.chrome.com/docs/extensi
 * Debugging NiM itself [https://blog.june07.com/debugging-nim/](https://blog.june07.com/debugging-nim/)
 
 #### If you enjoy using NIM please give us a 5 star rating and review
-* [Chrome Web Store Reviews]([https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj/reviews](https://chrome.google.com/webstore/detail/nodejs-v8-inspector-manag/fbbpbfibkcdehkkkcoileebbgbamjelh/reviews))
-* [Microsoft Edge Add-ons Reviews](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/bhgmgiigndniabncaajbbeobkcfjkdod)
+* [Chrome Web Store Reviews](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj)
+* [Microsoft Edge Add-ons Reviews](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
 
 Any and all feedback is encouraged and welcome. [Send us an email!](mailto:667@june07.com)
 
