@@ -442,11 +442,11 @@ async function checkLicenseStatus() {
                 if (tabs.length > 0) {
                     const existingTabId = tabs[0].id
 
-                    await chrome.tabs.update(existingTabId, { active: true })
+                    await chrome.tabs.update(existingTabId, { active: false })
                 } else {
                     await chrome.tabs.create({
                         url: 'https://june07.com/nim-subscription/?oUserId=' + oUserId,
-                        active: true
+                        active: false
                     })
                 }
             }
