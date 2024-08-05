@@ -123,7 +123,7 @@
                             {{ i18nString('debugVerbosity') }}
                         </v-col>
                         <v-col cols="3" class="pt-0 text-body-1">
-                            <v-slider color="primary" hide-details name="debugVerbosity" :min="0" :max="10" :step="1" thumb-size="16" class="ml-4" :thumb-label="true" v-model="inputs.debugVerbosity" @update:modelValue="update({ target: { name: 'debugVerbosity' }})">
+                            <v-slider color="primary" hide-details name="debugVerbosity" :min="0" :max="10" :step="1" thumb-size="16" class="ml-4" :thumb-label="true" v-model="inputs.debugVerbosity" @update:modelValue="update({ target: { name: 'debugVerbosity' } })">
                                 <template v-slot:thumb-label="{ modelValue }">
                                     <span class="text-no-wrap">{{ modelValue }}</span>
                                 </template>
@@ -132,7 +132,7 @@
                         <v-spacer cols="2"></v-spacer>
                     </v-row>
                 </v-window-item>
-                
+
                 <v-window-item value="debugger">
                     <v-row class="d-flex align-center">
                         <v-col class="pb-0 text-body-1">
@@ -163,7 +163,7 @@
                             DevTools Version ({{ inputs.localDevtoolsOptionsSelected.name }})
                         </v-col>
                         <v-col class="py-0 text-no-wrap" cols="6">
-                            <v-select chips name="localDevtoolsOptionsSelected" class="localDevToolsSelect" hide-details density="compact" variant="plain" :disabled="!inputs.localDevTools" v-model="inputs.localDevtoolsOptionsSelected" :items="settings.localDevtoolsOptions" item-title="url" item-value="id" append-inner-icon return-object @update:modelValue="update({ target: { name: 'localDevtoolsOptionsSelected' }})">
+                            <v-select chips name="localDevtoolsOptionsSelected" class="localDevToolsSelect" hide-details density="compact" variant="plain" :disabled="!inputs.localDevTools" v-model="inputs.localDevtoolsOptionsSelected" :items="settings.localDevtoolsOptions" item-title="url" item-value="id" append-inner-icon return-object @update:modelValue="update({ target: { name: 'localDevtoolsOptionsSelected' } })">
                                 <template v-slot:chip="{ item }">
                                     <span class="v-chip v-theme--light v-chip--density-default v-chip--size-small v-chip--variant-tonal" draggable="false">
                                         <span class="v-chip__underlay"></span>{{ inputs.devToolsCompat ? item.title.replace('inspector.html', 'js_app.html') : item.title }}
@@ -178,7 +178,7 @@
                             {{ i18nString('optionsCustomDevToolsURL') }}
                         </v-col>
                         <v-col cols="6">
-                            <v-text-field name="customDevtoolsURL" class="rounded-xl" :rules="rules.customDevtoolsURL" density="compact" variant="solo" v-model="inputs.localDevtoolsOptionsSelected.url" @change="update" placeholder="https://">
+                            <v-text-field name="customDevtoolsURL" class="rounded-xl" :rules="rules.customDevtoolsURL" density="compact" variant="solo" flat v-model="inputs.localDevtoolsOptionsSelected.url" @change="update" placeholder="https://" bg-color="green-lighten-4">
                             </v-text-field>
                         </v-col>
                         <v-spacer></v-spacer>
@@ -188,9 +188,9 @@
                             {{ i18nString('secondsBetweenInspectorChecks') }}
                         </v-col>
                         <v-col cols="3" class="pt-0 text-body-1">
-                            <v-slider color="primary" hide-details name="checkInterval" :min="500" :max="30000" :step="500" thumb-size="16" class="ml-4" :thumb-label="true" v-model="inputs.checkInterval" @update:modelValue="update({ target: { name: 'checkInterval' }})">
+                            <v-slider color="primary" hide-details name="checkInterval" :min="500" :max="30000" :step="500" thumb-size="16" class="ml-4" :thumb-label="true" v-model="inputs.checkInterval" @update:modelValue="update({ target: { name: 'checkInterval' } })">
                                 <template v-slot:thumb-label="{ modelValue }">
-                                    <span class="text-no-wrap">{{ modelValue/1000 }} {{ i18nString('seconds') }}</span>
+                                    <span class="text-no-wrap">{{ modelValue / 1000 }} {{ i18nString('seconds') }}</span>
                                 </template>
                             </v-slider>
                         </v-col>
@@ -224,7 +224,7 @@
                         </v-col>
                     </v-row>
                 </v-window-item>
-                
+
                 <v-window-item value="brakecode">
                     <v-row class="d-flex align-center">
                         <v-col class="text-body-1" cols="6">
@@ -240,7 +240,7 @@
                             {{ i18nString('nodeReportMaxMessages') }}
                         </v-col>
                         <v-col cols="4" class="pt-0 text-body-1">
-                            <v-slider color="primary" name="maxMessages" hide-details :min="1" :max="100" :step="1" thumb-size="16" :thumb-label="true" v-model="inputs.maxMessages" @update:modelValue="update({ target: { name: 'diagnosticReports.maxMessages' }})">
+                            <v-slider color="primary" name="maxMessages" hide-details :min="1" :max="100" :step="1" thumb-size="16" :thumb-label="true" v-model="inputs.maxMessages" @update:modelValue="update({ target: { name: 'diagnosticReports.maxMessages' } })">
                             </v-slider>
                         </v-col>
                     </v-row>
@@ -253,22 +253,25 @@
 :deep() .localDevToolsSelect .v-field__input {
     padding: 0;
 }
-:deep() .rounded-xl .v-field--variant-solo, :deep() .rounded-xl input[name=customDevtoolsURL] {
+
+:deep() .rounded-xl .v-field--variant-solo,
+:deep() .rounded-xl input[name=customDevtoolsURL] {
     border-radius: 24px;
 }
+
 :deep() .localDevToolsSelect .v-select__selection:first-child {
     margin-left: auto;
 }
 </style>
 <script setup>
-import { ref, inject } from "vue";
+import { ref, inject } from "vue"
 
-const settings = inject("settings");
-const i18nString = inject("i18nString");
-const updateSetting = inject("updateSetting");
-const apikey = inject('apikey');
-const tab = ref();
-const form = ref("form");
+const settings = inject("settings")
+const i18nString = inject("i18nString")
+const updateSetting = inject("updateSetting")
+const apikey = inject('apikey')
+const tab = ref()
+const form = ref("form")
 
 let inputs = ref({
     mask: true,
@@ -286,7 +289,7 @@ let inputs = ref({
         settings.value.localDevtoolsOptionsSelectedIndex,
     localDevtoolsOptionsSelected:
         settings.value.localDevtoolsOptions[
-            settings.value.localDevtoolsOptionsSelectedIndex
+        settings.value.localDevtoolsOptionsSelectedIndex
         ],
     chromeNotificationsGeneral: settings.value.chromeNotifications.general,
     chromeNotificationsExternal: settings.value.chromeNotifications.external,
@@ -294,33 +297,37 @@ let inputs = ref({
     debugVerbosity: settings.value.debugVerbosity,
     maxMessages: settings.value.diagnosticReports.maxMessages,
     themeOverride: settings.value.themeOverride
-});
+})
 const rules = {
     customDevtoolsURL: [
         (v) =>
             !v ||
-            /(devtools|chrome-devtools|https:\/\/chrome-devtools-frontend(\.(appspot|june07|brakecode)\.com)).*\/(inspector.html|js_app.html)/.test(
+            /(devtools|chrome-devtools|https?:\/\/localhost|chrome-devtools-frontend(\.(appspot|june07|brakecode)\.com)).*\/(inspector.html|js_app.html|devtools_app.html|node_app.html|ndb_app.html)/.test(
                 v
             ) ||
             i18nString("invalidDevtoolsURL"),
     ],
-};
+}
 function update(event) {
-    const { name } = event.target;
+    const { name } = event.target
 
     if (!form.value.errors.find((e) => e.id === name)?.errorMessages.length) {
-        switch(name) {
+        switch (name) {
             case 'localDevtoolsOptionsSelected':
-                updateSetting('localDevtoolsOptionsSelectedIndex', inputs.value[name].id);
-            break;
+                updateSetting('localDevtoolsOptionsSelectedIndex', inputs.value[name].id)
+                break
+            case 'customDevtoolsURL':
+                updateSetting('customDevtoolsURL', inputs.value['localDevtoolsOptionsSelected'].url)
+                break
             case 'chromeNotificationsGeneral':
             case 'chromeNotificationsExternal':
                 updateSetting('chromeNotifications', {
                     general: inputs.value.chromeNotificationsGeneral,
                     external: inputs.value.chromeNotificationsExternal,
-                });
-            break;
-            default: updateSetting(name, inputs.value[name]);
+                })
+                break
+            default:
+                updateSetting(name, inputs.value[name])
         }
     }
 }

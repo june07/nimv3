@@ -26,7 +26,7 @@ const NOTIFICATION_CHECK_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 //
 const NOTIFICATION_PUSH_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Push new notifications no more than 1 every hour if there is a queue.
 const NOTIFICATION_LIFETIME = ENV !== 'production' ? 3 * 60000 : 7 * 86400000
 const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])):([0-9]+)/
-const reDevtoolsURL = /(devtools:\/\/|chrome-devtools:\/\/|https:\/\/chrome-devtools-frontend(\.appspot.com|\.june07.com)).*(inspector.html|js_app.html)/
+const reDevtoolsURL = /(devtools|chrome-devtools|https?:\/\/localhost|chrome-devtools-frontend(\.(appspot|june07|brakecode)\.com)).*\/(inspector.html|js_app.html|devtools_app.html|node_app.html|ndb_app.html)/
 const reTabGroupTitle = new RegExp(/NiM/)
 const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|(?:\d{1,3}\.){3}\d{1,3}|(\[(?:[A-Fa-f0-9:]+)\]))+(:\d{1,5})?)|^\d{1,5}$/)
 

@@ -1,8 +1,8 @@
 <template>
     <v-app :theme="theme">
         <v-app-bar density="compact" flat>
-            <v-btn variant="plain" icon density="compact" v-if="route?.path !== 'main'" @click="routeHandler('main')">
-                <span class="material-icons mr-2">close</span>
+            <v-btn class="ml-2" variant="tonal" icon density="compact" v-if="route?.path !== 'main'" @click="routeHandler('main')">
+                <span class="material-icons">close</span>
             </v-btn>
             <v-spacer></v-spacer>
             <span id="nim-version" class="mx-8 text-body-2 font-weight-thin">v{{ version }}</span>
