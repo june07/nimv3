@@ -202,12 +202,24 @@ async function queryForDevtoolTabs(host, port) {
             `${settings.DEVTOOLS_SCHEME}*/*${host}:${port}*`,
             `${settings.DEVTOOLS_SCHEME}*/*${host}/ws/${port}*`,
 
+            `https://devtools-frontend.june07.com/*${host}:${port}*`,
+            `https://devtools-frontend.june07.com/*${host}/ws/${port}*`,
+            
             `https://chrome-devtools-frontend.june07.com/*${host}:${port}*`,
             `https://chrome-devtools-frontend.june07.com/*${host}/ws/${port}*`,
 
             `https://chrome-devtools-frontend.appspot.com/*${host}:${port}*`,
             `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
         ]
+        if (settings.localDevtools && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
+            const devtoolsURL = new URL(settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
+            const customDevToolsPatterns = [
+                `${devtoolsURL.origin}/*${host}:${port}*`,
+                `${devtoolsURL.origin}/*${host}/ws/${port}*`
+            ]
+    
+            devtoolsLocalPatterns.push(...customDevToolsPatterns)
+        }
         url = devtoolsLocalPatterns
     } else {
         const { cid } = remoteMetadata
@@ -215,15 +227,22 @@ async function queryForDevtoolTabs(host, port) {
         if (cid) {
             devtoolsRemotePatterns = [
                 `${settings.DEVTOOLS_SCHEME}*/*/${cid}/*`,
+                `https://devtools-frontend.june07.com/*/${cid}/*`,
                 `https://chrome-devtools-frontend.june07.com/*/${cid}/*`,
                 `https://chrome-devtools-frontend.appspot.com/*/${cid}/*`,
             ]
-            url = devtoolsRemotePatterns
         } else {
-            url = [
+            devtoolsRemotePatterns = [
                 `${settings.DEVTOOLS_SCHEME}*/*`
             ]
         }
+        if (settings.localDevtools && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
+            const devtoolsURL = new URL(settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
+            const customDevToolsPattern = `${devtoolsURL.origin}/*/${cid}/*`
+    
+            devtoolsRemotePatterns.push(customDevToolsPattern)
+        }
+        url = devtoolsRemotePatterns
     }
     const tabs = await chrome.tabs.query({ url })
     return tabs.map(tab => ({ ...tab, socket: { host, port } }))
@@ -775,7 +794,7 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.tabs.onUpdated.addListener(async function chromeTabsChangedEvent(tabId, { status }, tab) {
     const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
 
-    if (toolsWindow.id === tab.windowId && status === 'complete') {
+    if (toolsWindow?.id === tab.windowId && status === 'complete') {
         let updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
         const tabIndex = updatedToolsWindow.tabs.findIndex(tab => tab.id === tabId)
         if (tabIndex !== -1) {
@@ -792,7 +811,7 @@ chrome.tabs.onCreated.addListener(async function chromeTabsCreatedEvent(tab) {
         settings.auto = false
     }
 
-    if (toolsWindow.id === tab.windowId) {
+    if (toolsWindow?.id === tab.windowId) {
         const updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
         await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
     }
