@@ -55,9 +55,9 @@
                 </div>
                 <v-container v-else>
                     <v-row v-for="(session, id) in getSessions(sessions)" :key="id" class="d-flex align-center">
-                        <v-col class="d-flex align-center py-0">
+                        <v-col class="d-flex align-center py-0 text-no-wrap text-truncate">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
+                                <v-img width="16" height="16" :src="sessionIcon(session.info)" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -73,13 +73,12 @@
                                         <v-col class="pa-0">{{ session.info?.infoURL }}</v-col>
                                     </v-row>
                                     <v-row>
-                                        <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
+                                        <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
                                         <v-col class="pa-0">{{ session.url }}</v-col>
                                     </v-row>
                                 </v-container>
                             </v-tooltip>
                         </v-col>
-                        <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
                             <v-switch small hide-details color="green" :id="`auto-localhost-${id}`" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-localhost-${id}`, session.tabId, id)">
                                 <template v-slot:label>
@@ -96,9 +95,9 @@
             <v-window-item v-for="tab in tabs.filter((tab) => !tab.id.match(/home|localhost/))" :key="tab.id" :value="tab.id">
                 <v-container>
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
-                        <v-col class="d-flex align-center py-0" v-if="session.tunnelSocket">
+                        <v-col class="d-flex align-center py-0 text-no-wrap text-truncate" v-if="session.tunnelSocket">
                             <div class="mr-2">
-                                <v-img width="16" height="16" :src="session?.info?.type === 'deno' ? iconDeno : iconNode" />
+                                <v-img width="16" height="16" :src="sessionIcon(session.info)" />
                             </div>
                             <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
                                 <template v-slot:activator="{ props }">
@@ -109,7 +108,7 @@
                                 </template>
                                 <v-container v-click-outside="() => tooltips[`${id}`] = 0">
                                     <v-row v-if="session.url">
-                                        <v-col class="pa-0 font-weight-bold" cols="2">debugger url</v-col>
+                                        <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
                                         <v-col class="pa-0">{{ session.url }}</v-col>
                                     </v-row>
                                     <v-row v-if="session.info">
@@ -128,7 +127,6 @@
                                 {{ session.connection.cmd }}
                             </div>
                         </v-col>
-                        <v-spacer></v-spacer>
                         <v-col cols="4" class="d-flex align-center py-0">
                             <v-switch :disabled="!session.tunnelSocket" name="auto" :id="`auto-remote-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, sessions[session.tabSession]?.tabId, id)">
                                 <template v-slot:label>
@@ -162,6 +160,8 @@
     border-radius: 10px !important;
     color: black !important;
     font-size: larger !important;
+    width: -webkit-fill-available !important;
+    opacity: 0.90 !important;
 }
 </style>
 <script setup>
@@ -173,6 +173,7 @@ import NiInfo from "./NiInfo.vue"
 import iconNiM from "/icon/icon128@3x.png"
 import iconDeno from "/deno-favicon.ico"
 import iconNode from "/node-favicon.ico"
+import iconBun from '/bun.svg'
 
 const { VITE_ENV } = import.meta.env
 const updateSetting = inject("updateSetting")
@@ -551,6 +552,7 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
 function update(event) {
     const { id } = event.target
 
+    debugger
     if (
         !id.match(/host|port/) ||
         !form.value.errors.find((e) => e.id === id)?.errorMessages.length
@@ -588,5 +590,16 @@ function getSessions(
                     : remoteSessions,
             {}
         )
+}
+function sessionIcon(sessionInfo) {
+    if (/bun/.test(sessionInfo.faviconUrl)) {
+        return iconBun
+    } else if (/deno/.test(sessionInfo.faviconUrl)) {
+        return iconDeno
+    } else if (/node/.test(sessionInfo.faviconUrl)) {
+        return iconNode
+    } else {
+        return iconNiM
+    }
 }
 </script>

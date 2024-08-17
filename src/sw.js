@@ -209,7 +209,9 @@ async function queryForDevtoolTabs(host, port) {
             `https://chrome-devtools-frontend.june07.com/*${host}/ws/${port}*`,
 
             `https://chrome-devtools-frontend.appspot.com/*${host}:${port}*`,
-            `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`
+            `https://chrome-devtools-frontend.appspot.com/*${host}/ws/${port}*`,
+
+            `https://debug.bun.sh/#${host}:${port}/*`
         ]
         if (settings.localDevtools && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
             const devtoolsURL = new URL(settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
@@ -230,6 +232,8 @@ async function queryForDevtoolTabs(host, port) {
                 `https://devtools-frontend.june07.com/*/${cid}/*`,
                 `https://chrome-devtools-frontend.june07.com/*/${cid}/*`,
                 `https://chrome-devtools-frontend.appspot.com/*/${cid}/*`,
+
+                `https://debug.bun.sh/#${host}:${port}/*`
             ]
         } else {
             devtoolsRemotePatterns = [
@@ -357,30 +361,35 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].hits += 1
             return
         }
-        setDevtoolsURL(info)
-        if (remoteMetadata) {
-            // fix deno info
-            if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
-                info.type = 'deno'
+        if (info.type !== 'bun') {
+            setDevtoolsURL(info)
+            if (remoteMetadata) {
+                // fix deno info
+                if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
+                    info.type = 'deno'
+                }
+                devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${getRemoteWebSocketDebuggerUrl(remoteMetadata, info)}`)
+                info.remoteWebSocketDebuggerUrl = () => `wss://${getRemoteWebSocketDebuggerUrl(remoteMetadata, info, { encode: false })}`
+            } else {
+                devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1')
+                var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1]
+                var inspectPORT = devtoolsURL.match(SOCKET_PATTERN)[5]
+                devtoolsURL = devtoolsURL
+                    .replace(inspectIP + ":9229", host + ":" + port) // In the event that remote debugging is being used and the infoURL port (by default 80) is not forwarded take a chance and pick the default.
+                    .replace(inspectIP + ":" + inspectPORT, host + ":" + port) // A check for just the port change must be made.
             }
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${getRemoteWebSocketDebuggerUrl(remoteMetadata, info)}`)
-            info.remoteWebSocketDebuggerUrl = () => `wss://${getRemoteWebSocketDebuggerUrl(remoteMetadata, info, { encode: false })}`
+            // custom devtools
+            if ((settings.localDevtools || settings.devToolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
+                devtoolsURL = devtoolsURL.replace(reDevtoolsURL, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
+            }
+            // legacy fix
+            if (devtoolsURL.match(/chrome-devtools:\/\//)) {
+                devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://')
+            }
         } else {
-            devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1')
-            var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1]
-            var inspectPORT = devtoolsURL.match(SOCKET_PATTERN)[5]
-            devtoolsURL = devtoolsURL
-                .replace(inspectIP + ":9229", host + ":" + port) // In the event that remote debugging is being used and the infoURL port (by default 80) is not forwarded take a chance and pick the default.
-                .replace(inspectIP + ":" + inspectPORT, host + ":" + port) // A check for just the port change must be made.
+            devtoolsURL = info.devtoolsFrontendUrl
         }
-        // custom devtools
-        if ((settings.localDevtools || settings.devToolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
-            devtoolsURL = devtoolsURL.replace(reDevtoolsURL, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
-        }
-        // legacy fix
-        if (devtoolsURL.match(/chrome-devtools:\/\//)) {
-            devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://')
-        }
+
         if (!cache.tabs[cacheId].promise) {
             cache.tabs[cacheId].promise = createTabOrWindow(devtoolsURL, info, { host, port })
             cache.tabs[cacheId].tabId = await cache.tabs[cacheId].promise
@@ -506,7 +515,7 @@ function createTabOrWindow(url, info, socket) {
                 width: (await lastWindow)?.width
             })
             const tabId = window.tabs[0].id
-            updateTabUI(tabId)
+            // updateTabUI(tabId, url)
             const dtpSocket = await dtpSocketPromise
             devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId)
             saveSession({ url, tabId, windowId: window.id, info, dtpSocket, socket })
@@ -522,16 +531,16 @@ function createTabOrWindow(url, info, socket) {
         } else {
             const tab = await chrome.tabs.create({
                 url,
-                active: settings.tabActive,
+                active: settings.tabActive && !settings.group,
                 windowId: await utilities.getPinned(socket)
             })
-            updateTabUI(tab.id)
+            // updateTabUI(tab.id, url)
             const dtpSocket = await dtpSocketPromise
             devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tab.id)
             saveSession({ url, tabId: tab.id, info, dtpSocket, socket })
             // group tabs
             if (settings.group) {
-                group(tab.id)
+                group(tab.id, settings.tabActive)
             }
             resolve(tab.id)
             const currentWindow = await chrome.windows.getCurrent()
@@ -542,8 +551,7 @@ function createTabOrWindow(url, info, socket) {
         }
     })
 }
-async function group(tabId) {
-    googleAnalytics.fireEvent('group', {})
+async function group(tabId, active) {
     try {
         // first check to see if there's an open group that we aren't tracking via state
         const trackedDefaultGroup = state.groups['default']
@@ -560,6 +568,7 @@ async function group(tabId) {
         }
         if (state.groups['default']) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id })
+            await chrome.tabs.reload(tabId)
         } else {
             try {
                 const tab = await chrome.tabs.get(tabId)
@@ -570,16 +579,21 @@ async function group(tabId) {
                 console.log(error)
             }
         }
+        if (active) {
+            // set active here when grouping to avoid UI flickering
+            chrome.tabs.update(tabId, { active })
+        }
     } catch (error) {
+        googleAnalytics.fireEvent('group', { error })
         console.log(error)
     }
 }
-function updateTabUI(tabId) {
+function updateTabUI(tabId, title) {
     chrome.scripting.executeScript(
         {
             target: { tabId: tabId, allFrames: true },
             func: scripting.updateTabUI,
-            args: [tabId]
+            args: [tabId, title]
         },
         (injectionResults) => {
             if (!injectionResults) return
