@@ -552,7 +552,6 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
 function update(event) {
     const { id } = event.target
 
-    debugger
     if (
         !id.match(/host|port/) ||
         !form.value.errors.find((e) => e.id === id)?.errorMessages.length
