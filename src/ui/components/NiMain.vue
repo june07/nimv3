@@ -33,7 +33,7 @@
                             </div>
                             <v-btn name="auto" class="mx-4 text-h6" :color="inputs.auto ? '' : 'green'" :disabled="inputs.auto" @click="devtoolsButtonHandler">{{ i18nString('openDevtools') }}</v-btn>
                             <div class="mr-auto ml-2">
-                                <v-switch name="autoResumeInspectBrk" hide-details v-model="inputs.autoResumeInspectBrk" :color="inputs.autoResumeInspectBrk ? 'green' : ''" id="autoResumeSwitch" class="text-no-wrap" @change="update">
+                                <v-switch name="autoResumeInspectBrk" hide-details v-model="inputs.autoResumeInspectBrk" :color="inputs.autoResumeInspectBrk ? 'green' : ''" id="autoResumeInspectBrk" class="text-no-wrap" @change="update">
                                     <template v-slot:label>
                                         <div class="text-no-wrap">{{ i18nString('autoSteppingLabel') }}</div>
                                     </template>
