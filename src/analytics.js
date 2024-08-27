@@ -1,8 +1,9 @@
 const JUNE07_ANALYTICS_URL = 'https://analytics.june07.com';
 
-(async function(analytics) {
+(async function (analytics) {
     analytics.push = async (options) => {
-        const userInfo = (await chrome.storage.local.get('userInfo')).userInfo || await getUserInfo();
+        const userInfo = (await chrome.storage.local.get('userInfo')).userInfo || await getUserInfo()
+        
         await fetch(`${JUNE07_ANALYTICS_URL}${options.event === 'install' ? '/install' : '/'}`, {
             method: 'POST',
             headers: {
@@ -13,6 +14,6 @@ const JUNE07_ANALYTICS_URL = 'https://analytics.june07.com';
                 userInfo,
                 onInstalledReason: options.onInstalledReason
             })
-        });
+        })
     }
-})(typeof module !== 'undefined' && module.exports ? module.exports : (self.analytics = self.analytics || {}));
+})(typeof module !== 'undefined' && module.exports ? module.exports : (self.analytics = self.analytics || {}))

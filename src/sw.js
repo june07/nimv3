@@ -412,15 +412,16 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         delete cache.tabs[cacheId]
     }
 }
-async function getLicenseStatus(id) {
+async function getLicenseStatus() {
     try {
+        const userInfo = (await chrome.storage.local.get('userInfo'))?.userInfo || await getUserInfo()
         const response = await fetch(`https://${LICENSE_HOST}/v1/license/nim`, {
             method: "POST",
             headers: {
                 'Accept': "application/json",
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ userId: id })
+            body: JSON.stringify({ userInfo })
         })
         if (response.status !== 200) {
             return { error: new Error('unable to get license status') }
@@ -435,7 +436,7 @@ async function getLicenseStatus(id) {
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = await chrome.storage.local.get('checkedLicenseOn')
-    const notificationDuration = 1000 * 60 * 60 * 24
+    const notificationDuration = /production|test/.test(ENV) ? 1000 * 60 * 60 * 24 : 60000 
 
     // Debouncing
     if (cache.isCheckingLicense) {
@@ -447,11 +448,7 @@ async function checkLicenseStatus() {
         if (!checkedLicenseOn || checkedLicenseOn < Date.now() - (notificationDuration / 2)) {
             await chrome.storage.local.set({ checkedLicenseOn: Date.now() })
 
-            const { id } = await chrome.identity.getProfileUserInfo()
-
-            // send the id to brakecode and see what the license status is for the user... if not paid for this month, show the stripe pay link
-
-            const { oUserId, license, error } = await getLicenseStatus(id)
+            const { oUserId, license, error } = await getLicenseStatus()
 
             if (license?.valid || error) {
                 return
