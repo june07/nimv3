@@ -18,7 +18,7 @@
 # Node.js (V8) --inspector Manager
 ## Streamlined JavaScript V8 (Node.js/Deno) Development
 
-(NiM works with ANY Chromium browsers: [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Arc](https://arc.net/), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
+(works with ANY Chromium browsers: [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Arc](https://arc.net/), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
 
 * [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
 ![Chrome](https://img.shields.io/badge/Chrome-4285F4?logo=Google%20Chrome&logoColor=white&style=for-the-badge) ![Edge](https://img.shields.io/badge/Edge-0078D7?logo=Microsoft%20Edge&logoColor=white&style=for-the-badge) ![Arc](https://img.shields.io/badge/Arc-005C97?style=for-the-badge&logo=arc) ![Opera](https://img.shields.io/badge/Opera-FF1B2D?logo=Opera&logoColor=white&style=for-the-badge) ![Vivaldi](https://img.shields.io/badge/Vivaldi-FF6F61?style=for-the-badge&logo=vivaldi) ![Brave](https://img.shields.io/badge/Brave-FB542B?logo=Brave&logoColor=white&style=for-the-badge)  ![Epic](https://img.shields.io/badge/Epic-009B77?style=for-the-badge)
@@ -29,33 +29,25 @@
 ## `about:_` is > than `about::inspect`, and Other Reasons to Use NiM...
 ![alt text](image-1.png)
 
-NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process
+NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process.
 
-Besides being the OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows, NiM continues to offer many additional benefits outside of that original use case.
+Besides being the [OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows](https://nim.june07.com/#og), NiM continues to offer many additional benefits outside of that original use case.
 
-NiM provides you with lots of options...
+#### NiM provides you with lots of options...
+||||
+|---|---|---|
+|![alt text](image.png)|![alt text](image-2.png)|![alt text](image-3.png)|
  
 * Manage and monitor local and remote debugging sessions
 * Manual or automatic control of DevTools interface
 * Open DevTools in a new tab or window
 * Make DevTools focused or inactive on start
 * Customize duration between v8 Inspector probes
-* Receive helpful notifications from 3rd party services such as your CI/CD pipeline
-* Work around any upstream bugs in Chrome/Edge DevTools via customized DevTools versions
-* DevTools tab grouping
-
-## Setup / Usage / How To
-
-Simple and basic... just install the Chrome Extension in any of the following ways:
-
-1. Install via Chrome Web Store or Microsoft Edge Add-ons
-2. Install via GitHub source by forking/cloning the repo...
-
-```
-git clone https://github.com/june07/nimv3.git
-npm ci --legacy-peer-deps
-npm build
-```
+* Receive **helpful notifications** from 3rd party services such as your CI/CD pipeline
+* Quickly **hot-swap DevTools versions** on the fly within the same browser to work around any upstream bugs in Chrome/Edge DevTools
+* **DevTools tab grouping** for improved organization and separation of concerns
+* **Resume debugging to the first breakpoint** when using `--inspect-brk`
+* Capture **debugging statistics**
 
 and then [load the extension unpacked](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
 
@@ -70,9 +62,9 @@ and then [load the extension unpacked](https://developer.chrome.com/docs/extensi
 
 Any and all feedback is encouraged and welcome. [Send us an email!](mailto:667@june07.com)
 
-***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but it's become and remains such an issue that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for.
+***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but [it's become and remains such an issue](https://blog.june07.com/foff/) that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for.
 
-Here is the terms of service that goes along with NiM https://terms.june07.com.
-Here is the privacy policy that goes along with NiM https://privacy.june07.com.
+[terms of service](https://terms.june07.com)
+[privacy policy](https://privacy.june07.com)
 
 Thank you so much.
