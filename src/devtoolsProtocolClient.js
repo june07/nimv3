@@ -42,11 +42,22 @@
             //delete cache.tabs[dtpSocket.socket]?.promise
             delete cache.tabs[dtpSocket.socket]
         })
-        dtpSocket.ws.addEventListener('message', (event) => {
-            console.log('event: ', event)
+        dtpSocket.ws.addEventListener('open', (event) => {
+            if (!settings.debuggingStatistics) return
+            event.currentTarget.send('{"id": 1, "method": "Debugger.enable"}')
         })
-        dtpSocket.ws.addEventListener('error', (event) => {
-            console.log('event: ', event)
+        dtpSocket.ws.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data)
+            const { method, params } = data
+
+            if (/Debugger\.(paused|resumed)/.test(method)) {
+                let details = { method, timestamp: Date.now() }
+
+                if (method === 'Debugger.paused') {
+                    details = { ...details, 'params.callFrames[0].location': params.callFrames[0]?.location }
+                }
+                googleAnalytics.fireEvent('Debugger Event', details)
+            }
         })
         async function logReadyState() {
             try {

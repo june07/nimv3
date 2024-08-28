@@ -57,7 +57,8 @@
         ],
         removeSessionOnTabRemoved: false,
         pin: true,
-        themeOverride: false
+        themeOverride: false,
+        debuggingStatistics: true
     }
     settings.userSettings = async () => await chrome.storage.local.get('userSettings')
     settings.get = async () => {

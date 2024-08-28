@@ -9,7 +9,7 @@
             </v-tabs>
             <v-window v-model="tab">
                 <v-window-item value="ui">
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pb-0 text-body-1">
                             {{ i18nString('openInspectorNewWindow') }}
                         </v-col>
@@ -21,7 +21,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center" v-if="inputs.newWindow">
+                    <v-row class="d-flex align-center mt-0" v-if="inputs.newWindow">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('makeInspectorWindowFocused') }}
                         </v-col>
@@ -33,7 +33,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center" v-if="inputs.newWindow">
+                    <v-row class="d-flex align-center mt-0" v-if="inputs.newWindow">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('inspectorWindowStyle') }}
                         </v-col>
@@ -45,7 +45,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center" v-if="inputs.newWindow">
+                    <v-row class="d-flex align-center mt-0" v-if="inputs.newWindow">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('optionsWindowStateMaximized') }}
                         </v-col>
@@ -57,7 +57,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center" v-if="!inputs.newWindow">
+                    <v-row class="d-flex align-center mt-0" v-if="!inputs.newWindow">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('makeInspectorTabActive') }}
                         </v-col>
@@ -69,7 +69,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('focusOnBreakpoint') }}
                         </v-col>
@@ -81,7 +81,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('autoCloseInspector') }}
                         </v-col>
@@ -93,7 +93,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('groupInspectorTabs') }}
                         </v-col>
@@ -105,7 +105,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pt-0 text-body-1 text-capitalize">
                             {{ i18nString('themeOverride') }}
                         </v-col>
@@ -118,7 +118,7 @@
                         </v-col>
                     </v-row>
 
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pt-0 text-body-1" cols="7">
                             {{ i18nString('debugVerbosity') }}
                         </v-col>
@@ -134,11 +134,23 @@
                 </v-window-item>
 
                 <v-window-item value="debugger">
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pb-0 text-body-1">
-                            DevTools Compat
+                            {{ i18nString('statistics') }}
                         </v-col>
                         <v-col class="pb-0" cols="2">
+                            <v-switch name="debuggingStatistics" v-model="inputs.debuggingStatistics" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
+                                <template v-slot:label>
+                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.debuggingStatistics ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
+                                </template>
+                            </v-switch>
+                        </v-col>
+                    </v-row>
+                    <v-row class="d-flex align-center mt-0">
+                        <v-col class="py-0 text-body-1">
+                            DevTools Compat
+                        </v-col>
+                        <v-col class="py-0" cols="2">
                             <v-switch name="devToolsCompat" v-model="inputs.devToolsCompat" hide-details @change="update" inset density="compact" class="small-switch" color="primary">
                                 <template v-slot:label>
                                     <div class="text-no-wrap" style="width: 40px">{{ inputs.devToolsCompat ? `${i18nString('on')}` : `${i18nString('off')}` }}</div>
@@ -146,7 +158,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('defaultDevTools') }}
                         </v-col>
@@ -158,8 +170,8 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
-                        <v-col class="py-0 text-body-1" cols="4">
+                    <v-row class="d-flex align-center mt-0">
+                        <v-col class="py-0 text-body-1" cols="3">
                             DevTools Version ({{ inputs.localDevtoolsOptionsSelected.name }})
                         </v-col>
                         <v-col class="py-0 text-no-wrap" cols="6">
@@ -173,17 +185,17 @@
                         </v-col>
                         <v-spacer cols="2"></v-spacer>
                     </v-row>
-                    <v-row class="d-flex align-center" v-if="inputs.localDevtoolsOptionsSelected.id == 3">
-                        <v-col class="text-body-1">
+                    <v-row class="d-flex align-center mt-0" v-if="inputs.localDevtoolsOptionsSelected.id == 3">
+                        <v-col class="text-body-1" cols="3">
                             {{ i18nString('optionsCustomDevToolsURL') }}
                         </v-col>
                         <v-col cols="6">
                             <v-text-field name="customDevtoolsURL" class="rounded-xl" :rules="rules.customDevtoolsURL" density="compact" variant="solo" flat v-model="inputs.localDevtoolsOptionsSelected.url" @change="update" placeholder="https://" bg-color="green-lighten-4">
                             </v-text-field>
                         </v-col>
-                        <v-spacer></v-spacer>
+                        <v-spacer cols="2"></v-spacer>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pt-0 text-body-1" cols="7">
                             {{ i18nString('secondsBetweenInspectorChecks') }}
                         </v-col>
@@ -199,7 +211,7 @@
                 </v-window-item>
 
                 <v-window-item value="notifications">
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pb-0 text-body-1">
                             {{ i18nString('optionsChromeNotificationsGeneral') }}
                         </v-col>
@@ -211,7 +223,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pt-0 text-body-1">
                             {{ i18nString('optionsChromeNotificationsExternal') }}
                         </v-col>
@@ -226,7 +238,7 @@
                 </v-window-item>
 
                 <v-window-item value="brakecode">
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="text-body-1" cols="6">
                             BrakeCODE API Key
                         </v-col>
@@ -235,7 +247,7 @@
                         </v-col>
                         <v-spacer></v-spacer>
                     </v-row>
-                    <v-row class="d-flex align-center">
+                    <v-row class="d-flex align-center mt-0">
                         <v-col class="pt-0 text-body-1" cols="6">
                             {{ i18nString('nodeReportMaxMessages') }}
                         </v-col>
@@ -296,7 +308,8 @@ let inputs = ref({
     checkInterval: settings.value.checkInterval,
     debugVerbosity: settings.value.debugVerbosity,
     maxMessages: settings.value.diagnosticReports.maxMessages,
-    themeOverride: settings.value.themeOverride
+    themeOverride: settings.value.themeOverride,
+    debuggingStatistics: settings.value.debuggingStatistics,
 })
 const rules = {
     customDevtoolsURL: [
