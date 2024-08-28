@@ -11,22 +11,27 @@
 
 <!--The ratings badges are currently broken due to [this](https://github.com/badges/shields/issues/5475) and [this](https://github.com/pandawing/node-chrome-web-store-item-property/issues/275#issuecomment-687801815).-->
 
-[![https://nim.june07.com](https://june07.github.io/image/smallPromoTile.png)](https://nim.june07.com) [![https://nim.june07.com](https://github.com/june07/nimv3/assets/11353590/e6f30f3f-4ae5-4831-bafa-392eaeff66fd)](https://nim.june07.com)
+|| Click on the GIF to see the smoother flowing real thing!   |
+|---|---|
+|[![https://nim.june07.com](https://june07.github.io/image/smallPromoTile.png)](https://nim.june07.com)|[![https://nim.june07.com](https://github.com/june07/nimv3/assets/11353590/e6f30f3f-4ae5-4831-bafa-392eaeff66fd)](https://nim.june07.com)|
 
-# NiM (Node.js --inspector Manager)
-###### Streamlines your JavaScript V8 (Node.js/Deno) development process
+# Node.js (V8) --inspector Manager
+## Streamlined JavaScript V8 (Node.js/Deno) Development
 
-* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1) (works with any Chromium browsers: [Arc](https://arc.net/), [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
-* [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme) (works with the [Microsoft Edge](https://www.microsoft.com/edge) browser) 
+(NiM works with ANY Chromium browsers: [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Arc](https://arc.net/), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
 
-## Updates:
-* [https://blog.june07.com/tag/nim/](https://blog.june07.com/tag/nim/)
+* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
+![Chrome](https://img.shields.io/badge/Chrome-4285F4?logo=Google%20Chrome&logoColor=white&style=for-the-badge) ![Edge](https://img.shields.io/badge/Edge-0078D7?logo=Microsoft%20Edge&logoColor=white&style=for-the-badge) ![Arc](https://img.shields.io/badge/Arc-005C97?style=for-the-badge&logo=arc) ![Opera](https://img.shields.io/badge/Opera-FF1B2D?logo=Opera&logoColor=white&style=for-the-badge) ![Vivaldi](https://img.shields.io/badge/Vivaldi-FF6F61?style=for-the-badge&logo=vivaldi) ![Brave](https://img.shields.io/badge/Brave-FB542B?logo=Brave&logoColor=white&style=for-the-badge)  ![Epic](https://img.shields.io/badge/Epic-009B77?style=for-the-badge)
 
-## Easier than `about::inspect` (`chrome://inspect/#devices`)
+* [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
+![Edge](https://img.shields.io/badge/Edge-0078D4?logo=microsoftedge&logoColor=white&style=for-the-badge)
 
-NiM manages the Chrome/Edge DevTools window/tab lifecycle leaving you with more ability to focus on what matters... debugging your code.
+## `about:_` is > than `about::inspect`, and Other Reasons to Use NiM...
+![alt text](image-1.png)
 
-Before the problem was solved by Google, NiM was a solution that mean't you no longer need to copy/paste DevTools URL's or continue opening/closing tabs/windows, and since then it continues to offer many additional benefits outside of it's primary use case.
+NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process
+
+Besides being the OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows, NiM continues to offer many additional benefits outside of that original use case.
 
 NiM provides you with lots of options...
  
@@ -55,8 +60,9 @@ npm build
 and then [load the extension unpacked](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
 
 ## Need Additional Information?
-* NiM post install page provides some help [https://blog.june07.com/nim-install](https://blog.june07.com/nim-install/)
+* Post install page provides some help [https://blog.june07.com/nim-install](https://blog.june07.com/nim-install/)
 * Debugging NiM itself [https://blog.june07.com/debugging-nim/](https://blog.june07.com/debugging-nim/)
+* [More Blog Updates](https://blog.june07.com/tag/nim/)
 
 #### If you enjoy using NIM please give us a 5 star rating and review
 * [Chrome Web Store Reviews](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj)
@@ -64,8 +70,9 @@ and then [load the extension unpacked](https://developer.chrome.com/docs/extensi
 
 Any and all feedback is encouraged and welcome. [Send us an email!](mailto:667@june07.com)
 
-<div style="display:flex; justify-content:center;">
-  <a href="https://m.do.co/c/fe4184318b19" target="_blank" rel="noopener"><IMG border="0" alt="Digitalocean $200 Credit" src="https://june07.github.io/image/digitalocean-credit.webp"></a>
-</div>
+***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but it's become and remains such an issue that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for.
 
-***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but it's become and remains such an issue that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for. Here is the privacy policy that goes along with NiM https://june07.com/privacypolicy. Thank you so much.
+Here is the terms of service that goes along with NiM https://terms.june07.com.
+Here is the privacy policy that goes along with NiM https://privacy.june07.com.
+
+Thank you so much.
