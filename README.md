@@ -20,14 +20,13 @@
 
 (works with ANY Chromium browsers: [Google Chrome](https://www.google.com/chrome/), [Microsoft Edge](https://www.microsoft.com/edge), [Arc](https://arc.net/), [Opera](https://www.opera.com/), [Vivaldi](https://vivaldi.com/), [Brave](https://brave.com/), [Epic](https://www.epicbrowser.com/), and more...)
 
-* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
 ![Chrome](https://img.shields.io/badge/Chrome-4285F4?logo=Google%20Chrome&logoColor=white&style=for-the-badge) ![Edge](https://img.shields.io/badge/Edge-0078D7?logo=Microsoft%20Edge&logoColor=white&style=for-the-badge) ![Arc](https://img.shields.io/badge/Arc-005C97?style=for-the-badge&logo=arc) ![Opera](https://img.shields.io/badge/Opera-FF1B2D?logo=Opera&logoColor=white&style=for-the-badge) ![Vivaldi](https://img.shields.io/badge/Vivaldi-FF6F61?style=for-the-badge&logo=vivaldi) ![Brave](https://img.shields.io/badge/Brave-FB542B?logo=Brave&logoColor=white&style=for-the-badge)  ![Epic](https://img.shields.io/badge/Epic-009B77?style=for-the-badge)
 
+* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
-![Edge](https://img.shields.io/badge/Edge-0078D4?logo=microsoftedge&logoColor=white&style=for-the-badge)
 
 ## `about:_` is > than `about::inspect`, and Other Reasons to Use NiM...
-![alt text](image-1.png)
+![alt text](/images/Screenshot%202024-08-28%20155105.png)
 
 NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process.
 
@@ -36,7 +35,8 @@ Besides being the [OG solution to the problem of copy/paste DevTools URL's or co
 #### NiM provides you with lots of options...
 ||||
 |---|---|---|
-|![alt text](image.png)|![alt text](image-2.png)|![alt text](image-3.png)|
+|![alt text](/images/Screenshot%202024-08-28%20160623.png)||![alt text](/images/Screenshot%202024-08-28%20160756.png)||
+![alt text](/images/Screenshot%202024-08-28%20160822.png)||
  
 * Manage and monitor local and remote debugging sessions
 * Manual or automatic control of DevTools interface
