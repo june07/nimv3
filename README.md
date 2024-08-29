@@ -26,7 +26,7 @@
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
 
 ## `about:_` is > than `about::inspect`, and Other Reasons to Use NiM...
-![alt text](/images/Screenshot%202024-08-28%20155105.png)
+![If you didn't know, you can simply type about:_<port> to attach the debugger](/images/Screenshot%202024-08-28%20155105.png)
 
 NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process.
 
