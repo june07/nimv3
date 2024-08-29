@@ -25,19 +25,21 @@
 * [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
 
-## `about:_` is > than `about::inspect`, and Other Reasons to Use NiM...
+# Why Use NiM?
+**`about:_` is > than `about::inspect`...** <br><br>
 ![If you didn't know, you can simply type about:_<port> to attach the debugger](/images/Screenshot%202024-08-28%20155105.png)
 
-NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process.
+NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process to an extent that is not possible otherwise.
 
 Besides being the [OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows](https://nim.june07.com/#og), NiM continues to offer many additional benefits outside of that original use case.
 
-#### NiM provides you with lots of options...
+### NiM Provides Developers with LOTS of Options...
 ||||
 |---|---|---|
 |![alt text](/images/Screenshot%202024-08-28%20160623.png)||![alt text](/images/Screenshot%202024-08-28%20160756.png)||
 ![alt text](/images/Screenshot%202024-08-28%20160822.png)||
- 
+
+### And Many Benefits
 * Manage and monitor local and remote debugging sessions
 * Manual or automatic control of DevTools interface
 * Open DevTools in a new tab or window
@@ -49,7 +51,12 @@ Besides being the [OG solution to the problem of copy/paste DevTools URL's or co
 * **Resume debugging to the first breakpoint** when using `--inspect-brk`
 * Capture **debugging statistics**
 
-and then [load the extension unpacked](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
+# Install
+Installing is as simple as installing from either browser app store:
+* [Google Chrome Web Store](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj?utm_source=github&utm_medium=readme&utm_campaign=nim&utm_content=1)
+* [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
+
+or downloading [a release](https://github.com/june07/nimv3/releases) zip-file directly and then [loading the extension unpacked](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
 
 ## Need Additional Information?
 * Post install page provides some help [https://blog.june07.com/nim-install](https://blog.june07.com/nim-install/)
