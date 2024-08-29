@@ -26,10 +26,11 @@
 * [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
 
 # Why Use NiM?
-**`about:_` is > than `about::inspect`...** <br><br>
-![If you didn't know, you can simply type about:_<port> to attach the debugger](/images/Screenshot%202024-08-28%20155105.png)
+Instead of going through several alternate steps, you can [simply type `about: ` on your keyboard](https://blog.june07.com/just-got/) and then the host/port to quickly attach the debugger as shown below<br><br>
+[![If you didn't know, you can simply type about:_<port> to attach the debugger](/images/Screenshot%202024-08-28%20155105.png)](https://blog.june07.com/just-got/)<br><br>
+**`about: ` is > than `about::inspect`...**
 
-NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process to an extent that is not possible otherwise.
+**NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process to an extent that is not possible otherwise.**
 
 Besides being the [OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows](https://nim.june07.com/#og), NiM continues to offer many additional benefits outside of that original use case.
 
