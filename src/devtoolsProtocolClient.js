@@ -1,4 +1,5 @@
 (async function (devtoolsProtocolClient) {
+    const userId = (await chrome.identity.getProfileUserInfo())?.id
     devtoolsProtocolClient.sockets = {}
 
     devtoolsProtocolClient.parseWebSocketUrl = (socketUrl) => socketUrl.match(/(wss?):\/\/(.*)\/(.*)$/)
@@ -19,8 +20,10 @@
         delete devtoolsProtocolClient.sockets[dtpSocket.socket]
         if (dtpSocket.ws.readyState !== WebSocket.CLOSED) dtpSocket.ws.close()
     }
-    devtoolsProtocolClient.addEventListeners = (dtpSocket, autoClose, tabId) => {
+    devtoolsProtocolClient.addEventListeners = async (dtpSocket, autoClose, tabId) => {
+        googleAnalytics.fireEvent('Debugger Session Start', { ...dtpSocket, userId, tabId })
         dtpSocket.ws.addEventListener('close', (reason) => {
+            googleAnalytics.fireEvent('Debugger Session End', { ...dtpSocket, reason, userId, tabId })
             if (settings.debugVerbosity >= 1) console.log('ws closed: ', reason)
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket])
             /** First check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
@@ -42,10 +45,6 @@
             //delete cache.tabs[dtpSocket.socket]?.promise
             delete cache.tabs[dtpSocket.socket]
         })
-        dtpSocket.ws.addEventListener('open', (event) => {
-            if (!settings.debuggingStatistics) return
-            event.currentTarget.send('{"id": 1, "method": "Debugger.enable"}')
-        })
         dtpSocket.ws.addEventListener('message', (event) => {
             const data = JSON.parse(event.data)
             const { method, params } = data
@@ -56,7 +55,7 @@
                 if (method === 'Debugger.paused') {
                     details = { ...details, 'params.callFrames[0].location': params.callFrames[0]?.location }
                 }
-                googleAnalytics.fireEvent('Debugger Event', details)
+                googleAnalytics.fireEvent('Debugger Event', { userId, ...details })
             }
         })
         async function logReadyState() {
@@ -77,6 +76,11 @@
         // not sure this is needed anymore, seems to work fine now?!  https://github.com/june07/nimv3/commit/5ee06e141e2dc6b33f08e394b89739152f723d50
         // UPDATE 7/23/24... IT IS IN FACT NEEDED. Breaks autoClose without it
         const interval = setInterval(logReadyState, 1000)
+        await async.until(
+            (cb) => cb(null, dtpSocket.ws.readyState === WebSocket.OPEN),
+            (next) => setTimeout(next, 500)
+        )
+        dtpSocket.ws.send('{"id": 1, "method": "Debugger.enable"}')
     }
     devtoolsProtocolClient.tasks = (socket, options) => {
         const t1 = new Promise(resolve => {
