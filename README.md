@@ -35,9 +35,9 @@ Instead of going through several alternate steps, you can [simply type `about: `
 Besides being the [OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows](https://nim.june07.com/#og), NiM continues to offer many additional benefits outside of that original use case.
 
 ### NiM Provides Developers with LOTS of Options...
-||||
-|---|---|---|
-|![alt text](/images/Screenshot%202024-08-28%20160623.png)||![alt text](/images/Screenshot%202024-08-28%20160756.png)||
+
+|![alt text](/images/Screenshot%202024-08-28%20160623.png)|![alt text](/images/Screenshot%202024-08-28%20160756.png)|
+|---|---|
 ![alt text](/images/Screenshot%202024-08-28%20160822.png)||
 
 ### And Many Benefits
