@@ -30,27 +30,40 @@ Instead of going through several alternate steps, you can [simply type `about: `
 [![If you didn't know, you can simply type about:_<port> to attach the debugger](/images/Screenshot%202024-08-28%20155105.png)](https://blog.june07.com/just-got/)<br><br>
 **`about: ` is > than `about::inspect`...**
 
-**NiM intelligently manages the browser DevTools window/tab lifecycle and the V8 debugger process to an extent that is not possible otherwise.**
+**NiM** intelligently manages the DevTools window/tab lifecycle and the V8 debugger process, offering capabilities beyond what's typically possible.
 
 Besides being the [OG solution to the problem of copy/paste DevTools URL's or continue opening/closing tabs/windows](https://nim.june07.com/#og), NiM continues to offer many additional benefits outside of that original use case.
 
-### NiM Provides Developers with LOTS of Options...
+## NiM Provides Developers with LOTS of Options...
 
 |![alt text](/images/Screenshot%202024-08-28%20160623.png)|![alt text](/images/Screenshot%202024-08-28%20160756.png)|
 |---|---|
 ![alt text](/images/Screenshot%202024-08-28%20160822.png)||
 
-### And Many Benefits
-* Manage and monitor local and remote debugging sessions
-* Manual or automatic control of DevTools interface
-* Open DevTools in a new tab or window
-* Make DevTools focused or inactive on start
-* Customize duration between v8 Inspector probes
-* Receive **helpful notifications** from 3rd party services such as your CI/CD pipeline
-* Quickly **hot-swap DevTools versions** on the fly within the same browser to work around any upstream bugs in Chrome/Edge DevTools
-* **DevTools tab grouping** for improved organization and separation of concerns
-* **Resume debugging to the first breakpoint** when using `--inspect-brk`
-* Capture **debugging statistics**
+## And Many Features
+- **🔧 Manage and Monitor Debugging Sessions**
+  - Control both local and remote debugging sessions with ease.
+
+- **🛠️ Flexible DevTools Control**
+  - Choose between manual or automatic control of the DevTools interface.
+  - Open DevTools in a new tab or window as needed.
+  - Set DevTools to be *focused* or *inactive* upon start.
+
+- **⚙️ Customization and Performance**
+  - Adjust the duration between V8 Inspector probes to suit your needs.
+  - Receive **helpful notifications** from third-party services, such as your CI/CD pipeline.
+
+- **🔄 Version Management**
+  - Quickly **hot-swap DevTools versions** within the same browser to avoid upstream bugs in Chrome/Edge DevTools.
+
+- **📂 Enhanced Organization**
+  - Utilize **DevTools tab grouping** for better organization and separation of concerns.
+
+- **🔍 Debugging Efficiency**
+  - Resume debugging at the *first breakpoint* when using `--inspect-brk`.
+  - Capture **debugging statistics** to analyze and optimize your debugging process.
+
+
 
 # Install
 Installing is as simple as installing from either browser app store:
@@ -59,12 +72,13 @@ Installing is as simple as installing from either browser app store:
 
 or downloading [a release](https://github.com/june07/nimv3/releases) zip-file directly and then [loading the extension unpacked](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
 
-## Need Additional Information?
+# Need Additional Information?
 * Post install page provides some help [https://blog.june07.com/nim-install](https://blog.june07.com/nim-install/)
 * Debugging NiM itself [https://blog.june07.com/debugging-nim/](https://blog.june07.com/debugging-nim/)
 * [More Blog Updates](https://blog.june07.com/tag/nim/)
 
-#### If you enjoy using NIM please give us a 5 star rating and review
+# Enjoying NiM?
+If you find NiM helpful, please consider giving us a **5-star rating** and leaving a review:
 * [Chrome Web Store Reviews](https://chromewebstore.google.com/detail/nodejs-v8-inspector-manag/gnhhdgbaldcilmgcpfddgdbkhjohddkj)
 * [Microsoft Edge Add-ons Reviews](https://microsoftedge.microsoft.com/addons/detail/nodejs-v8-inspector-ma/injfmegnapmoakbmnmnecjabigpdjeme)
 
@@ -72,7 +86,8 @@ Any and all feedback is encouraged and welcome. [Send us an email!](mailto:667@j
 
 ***PLEASE NOTE***: Installing this does require the sharing of your email address with me (and only me). You are given other notice of this, but [it's become and remains such an issue](https://blog.june07.com/foff/) that I feel the need to make it OVER-abundantly clear. If you take issue with sharing your email address with me (mine is 667@june07.com by the way) please, I implore you to clone/fork a copy yourself and change what you don't like about the code and/or use alternate solutions (none of which are as good as NiM, but call me biased). Further feel free to contact me directly and have a chat. Unlike the behemoths like Facebook, Google, Amazon that you probably (and without hesitation) share your email address with, I actually care about the concerns of the actual people who choose to use the code I wrote (~99%) and am responsible for.
 
-[terms of service](https://terms.june07.com)
+[terms of service](https://terms.june07.com)<br>
 [privacy policy](https://privacy.june07.com)
 
-Thank you so much.
+# Thank You!
+<p align="center">❤️❤️❤️</p>
