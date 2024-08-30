@@ -115,6 +115,6 @@ class Analytics {
     }
 }
 
-const googleAnalytics = new Analytics()
+const googleAnalytics = new Analytics(settings.defaultSettings.isDev)
 
 export default googleAnalytics

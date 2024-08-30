@@ -180,27 +180,27 @@
                 // buttonIndex 0 is to disable this alert
                 const update = { chromeNotifications: { ...settings.chromeNotifications, general: false } }
                 await settings.update(update)
-                googleAnalytics.fireEvent('User Event', { action: 'Updated Settings', detail: update })
+                googleAnalytics.fireEvent('UserEvent', { action: 'Updated Settings', detail: update })
                 
             } else if (buttonIndex === 1) {
                 // buttonIndex 1 is to change the shortcut
                 chrome.tabs.create({ url: 'chrome://extensions/configureCommands' })
-                googleAnalytics.fireEvent('User Event', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' })
+                googleAnalytics.fireEvent('UserEvent', { action: 'Possible Settings Update', detail: 'chrome://extensions/configureCommands' })
             }
         } else if (notificationId === 'external') {
             if (buttonIndex === 0) {
                 // buttonIndex 0 is to disable this alert
                 const update = { chromeNotifications: { ...settings.chromeNotifications, external: false } }
                 await settings.update(update)
-                googleAnalytics.fireEvent('User Event', { action: 'Updated Settings', detail: update })
+                googleAnalytics.fireEvent('UserEvent', { action: 'Updated Settings', detail: update })
             } else if (buttonIndex === 1) {
                 // buttonIndex 0 is to open notifications area
                 try {
                     await chrome.action.openPopup()
-                    googleAnalytics.fireEvent('User Event', { action: 'Opened Notifications Area' })
+                    googleAnalytics.fireEvent('UserEvent', { action: 'Opened Notifications Area' })
                 } catch (error) {
                     // Browser Bug: https://github.com/GoogleChrome/developer.chrome.com/issues/2602
-                    googleAnalytics.fireEvent('Program Event', { action: 'Opened Notifications Area Error', detail: error })
+                    googleAnalytics.fireEvent('ProgramEvent', { action: 'Opened Notifications Area Error', detail: error })
                 }
             }
         }

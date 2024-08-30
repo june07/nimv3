@@ -21,9 +21,9 @@
         if (dtpSocket.ws.readyState !== WebSocket.CLOSED) dtpSocket.ws.close()
     }
     devtoolsProtocolClient.addEventListeners = async (dtpSocket, autoClose, tabId) => {
-        googleAnalytics.fireEvent('Debugger Session Start', { ...dtpSocket, userId, tabId })
+        googleAnalytics.fireEvent('DebuggerSessionStart', { ...dtpSocket, userId, tabId })
         dtpSocket.ws.addEventListener('close', (reason) => {
-            googleAnalytics.fireEvent('Debugger Session End', { ...dtpSocket, reason, userId, tabId })
+            googleAnalytics.fireEvent('DebuggerSessionEnd', { ...dtpSocket, reason, userId, tabId })
             if (settings.debugVerbosity >= 1) console.log('ws closed: ', reason)
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket])
             /** First check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
@@ -55,7 +55,7 @@
                 if (method === 'Debugger.paused') {
                     details = { ...details, 'params.callFrames[0].location': params.callFrames[0]?.location }
                 }
-                googleAnalytics.fireEvent('Debugger Event', { userId, ...details })
+                googleAnalytics.fireEvent('DebuggerEvent', { userId, ...details })
             }
         })
         async function logReadyState() {

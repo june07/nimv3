@@ -68,7 +68,7 @@ async function deleteMessageHandler(message) {
         command: "deleteNotification",
         message
     })
-    googleAnalytics.fireEvent("Delete Message Event", { action: message })
+    googleAnalytics.fireEvent("DeleteMessageEvent", { action: message })
     emit("deleted", message)
 }
 const i18nString = inject("i18nString")

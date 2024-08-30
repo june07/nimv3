@@ -115,5 +115,5 @@
             })
         }
     }
-    googleAnalytics = Object.setPrototypeOf(googleAnalytics, new Analytics())
+    googleAnalytics = Object.setPrototypeOf(googleAnalytics, new Analytics(settings.defaultSettings.isDev))
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.googleAnalytics = self.googleAnalytics || {}))

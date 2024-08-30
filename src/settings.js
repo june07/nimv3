@@ -5,8 +5,12 @@
         'devtools://'
     ]
     const DEVTOOLS_SCHEME = CHROME_VERSION > 75 ? DEVTOOLS_SCHEMES[1] : DEVTOOLS_SCHEMES[0]
+    const CHROME_V3_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
+    const EDGE_V3_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
+    const productionIdsRegex = new RegExp(`${CHROME_V3_ID}|${EDGE_V3_ID}`)
 
     settings.defaultSettings = {
+        isDev: productionIdsRegex.test(chrome.runtime.getURL('/')) ? false : true,
         DEVTOOLS_SCHEME,
         host: "localhost",
         port: "9229",

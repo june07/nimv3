@@ -103,7 +103,7 @@ const props = defineProps({
 function clickHandler(event) {
     const { name } = event.target
 
-    googleAnalytics.fireEvent('Donation Event', { 'action': name })
+    googleAnalytics.fireEvent('DonationEvent', { 'action': name })
     googleAnalytics.fireEvent('click_button', { id: event.target.id })
 }
 const ethAddress = "0x69F3C9210091A0E5cb7D01459683447173D4BDDA"
