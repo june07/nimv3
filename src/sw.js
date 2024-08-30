@@ -34,6 +34,7 @@ const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
 const LICENSE_HOST = !/production|test/.test(ENV) ? 'api.dev.june07.com' : 'api.june07.com'
 const NODEJS_INSPECT_HOST = 'nodejs.june07.com'
+const events = new EventTarget()
 
 let cache = {
     tabs: {},
@@ -44,7 +45,8 @@ let cache = {
     info: {},
     timeouts: {},
     deadSocketSessions: {},
-    lastWindow: {}
+    lastWindow: {},
+    tabMovedEvents: {},
 }
 let state = {
     hydrated: false,
@@ -204,7 +206,7 @@ async function queryForDevtoolTabs(host, port) {
 
             `https://devtools-frontend.june07.com/*${host}:${port}*`,
             `https://devtools-frontend.june07.com/*${host}/ws/${port}*`,
-            
+
             `https://chrome-devtools-frontend.june07.com/*${host}:${port}*`,
             `https://chrome-devtools-frontend.june07.com/*${host}/ws/${port}*`,
 
@@ -219,7 +221,7 @@ async function queryForDevtoolTabs(host, port) {
                 `${devtoolsURL.origin}/*${host}:${port}*`,
                 `${devtoolsURL.origin}/*${host}/ws/${port}*`
             ]
-    
+
             devtoolsLocalPatterns.push(...customDevToolsPatterns)
         }
         url = devtoolsLocalPatterns
@@ -243,7 +245,7 @@ async function queryForDevtoolTabs(host, port) {
         if (settings.localDevtools && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
             const devtoolsURL = new URL(settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
             const customDevToolsPattern = `${devtoolsURL.origin}/*/${cid}/*`
-    
+
             devtoolsRemotePatterns.push(customDevToolsPattern)
         }
         url = devtoolsRemotePatterns
@@ -436,7 +438,7 @@ async function getLicenseStatus() {
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = await chrome.storage.local.get('checkedLicenseOn')
-    const notificationDuration = /production|test/.test(ENV) ? 1000 * 60 * 60 * 24 : 60000 
+    const notificationDuration = /production|test/.test(ENV) ? 1000 * 60 * 60 * 24 : 60000
 
     // Debouncing
     if (cache.isCheckingLicense) {
@@ -499,7 +501,7 @@ function createTabOrWindow(url, info, socket) {
             autoResume: settings.autoResumeInspectBrk,
             focusOnBreakpoint: settings.focusOnBreakpoint
         })
-        if (settings.newWindow) {
+        if (settings.newWindow || cache.settingsNewWindow) {
             const { lastWindow } = await chrome.storage.local.get('lastWindow')
             const window = await chrome.windows.create({
                 url,
@@ -854,10 +856,60 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     delete cache.forceRemoveSession[tabId]
     delete state.sessions[tabId]
     await chrome.storage.session.set({ sessions: state.sessions })
-    googleAnalytics.fireEvent('Program Event', { 'action': 'onRemoved' })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'tabs.onRemoved' })
 })
 chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
-    googleAnalytics.fireEvent('Program Event', { 'action': 'onActivated' })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'tabs.onActivated' })
+})
+chrome.tabs.onAttached.addListener(async function chromeTabsAttachedEvent(tabId, { newPosition, newWindowId }) {
+    cache.tabMovedEvents[tabId] = cache.tabMovedEvents[tabId] ? { ...cache.tabMovedEvents[tabId], attached: Date.now(), newWindowId } : { attached: Date.now(), newWindowId }
+    // cleanup the cache
+    setTimeout(() => {
+        delete cache.tabMovedEvents[tabId]
+    }, 50)
+    googleAnalytics.fireEvent('Program Event', { 'action': 'tabs.onAttached' })
+
+    if (cache.tabMovedEvents[tabId]?.detached) {
+        events.dispatchEvent(new CustomEvent('tabMovedToNewWindow', { detail: { tabId, newWindowId } }))
+        googleAnalytics.fireEvent('Program Event', { 'action': 'tabMovedToNewWindow' })
+    }
+})
+chrome.tabs.onDetached.addListener(async function chromeTabsDetachedEvent(tabId, { oldPosition, oldWindowId }) {
+    cache.tabMovedEvents[tabId] = cache.tabMovedEvents[tabId] ? { ...cache.tabMovedEvents[tabId], detached: Date.now() } : { detached: Date.now() }
+
+    // cleanup the cache
+    setTimeout(() => {
+        delete cache.tabMovedEvents[tabId]
+    }, 50)
+    googleAnalytics.fireEvent('Program Event', { 'action': 'tabs.onDetached' })
+
+    if (cache.tabMovedEvents[tabId]?.attached && cache.tabMovedEvents[tabId]?.newWindowId) {
+        events.dispatchEvent(new CustomEvent('tabMovedToNewWindow', { detail: { tabId, newWindowId } }))
+        googleAnalytics.fireEvent('Program Event', { 'action': 'tabMovedToNewWindow' })
+    }
+})
+events.addEventListener('tabMovedToNewWindow', async ({ detail: { tabId } }) => {
+    const tab = await chrome.tabs.get(tabId)
+    const window = await chrome.windows.get(tab.windowId, { populate: true })
+
+    function mostAreDebuggerTabs(tabs) {
+        const debuggerTabs = tabs.filter((t) => reDevtoolsURL.test(t.url))
+
+        return debuggerTabs.length > tabs.length / 2
+    }
+
+    window.tabs.forEach(tab => {
+        if (settings.pin) {
+            utilities.pin(tab.windowId, state.sessions[tab.id])
+        }
+    })
+    googleAnalytics.fireEvent('Program Event', { 'action': 'tabMovedToNewWindow' })
+    if (reDevtoolsURL.test(tab.url) && mostAreDebuggerTabs(window.tabs)) {
+        // update the settings on the group to open in a new window
+        cache.settingsNewWindow = tab.windowId
+    } else {
+        delete cache.settingsNewWindow
+    }
 })
 chrome.storage.onChanged.addListener((changes, areaName) => {
     // send update if the sessions need to be re-read
@@ -878,6 +930,7 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
 chrome.windows.onBoundsChanged.addListener(async (window) => {
     const tab = (await chrome.tabs.query({ windowId: window.id }))[0]
 
+    if (!tab?.url) return
     if (/wss=nodejs.june07.com|^https:\/\/nim\.june07\.com\/docs/.test(tab.url)) {
         await chrome.storage.local.set({ toolsWindow: window })
     } else {
