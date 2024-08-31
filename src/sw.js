@@ -17,11 +17,12 @@ importScripts(
     './commands.js',
 )
 
-const ENV = 'production'
+const CHROME_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
+const EDGE_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
+const ENV = new RegExp(`${CHROME_ID}|${EDGE_ID}`).test(chrome.runtime.id) ? 'production' : 'development'
 const VERSION = '0.0.0'
 const INSTALL_URL = "https://june07.com/nim-install/?utm_source=nim&utm_medium=chrome_extension&utm_campaign=extension_install&utm_content=1"
 const UNINSTALL_URL = "https://june07.com/uninstall"
-const SHORTNER_SERVICE_URL = 'https://shortnr.june07.com/api'
 const NOTIFICATION_CHECK_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Check every hour
 const NOTIFICATION_PUSH_INTERVAL = ENV !== 'production' ? 60000 : 60 * 60000 // Push new notifications no more than 1 every hour if there is a queue.
 const NOTIFICATION_LIFETIME = ENV !== 'production' ? 3 * 60000 : 7 * 86400000
