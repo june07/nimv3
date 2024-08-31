@@ -21,10 +21,18 @@
         if (dtpSocket.ws.readyState !== WebSocket.CLOSED) dtpSocket.ws.close()
     }
     devtoolsProtocolClient.addEventListeners = async (dtpSocket, autoClose, tabId) => {
-        googleAnalytics.fireEvent('DebuggerSessionStart', { ...dtpSocket, userId, tabId })
-        dtpSocket.ws.addEventListener('close', (reason) => {
-            googleAnalytics.fireEvent('DebuggerSessionEnd', { ...dtpSocket, reason, userId, tabId })
-            if (settings.debugVerbosity >= 1) console.log('ws closed: ', reason)
+        googleAnalytics.fireEvent('debuggerSessionStart', {
+            socketUrl: dtpSocket.socketUrl,
+            userId,
+            tabId
+        })
+        dtpSocket.ws.addEventListener('close', (event) => {
+            googleAnalytics.fireEvent('debuggerSessionEnd', {
+                socketUrl: dtpSocket.socketUrl,
+                userId,
+                tabId
+            })
+            if (settings.debugVerbosity >= 1) console.log('ws closed: ', event)
             devtoolsProtocolClient.closeSocket(devtoolsProtocolClient.sockets[dtpSocket.socket])
             /** First check to see if the tab was removed by the user in which case there should be a cache.removed entry from sw.js
              *  Also make sure the socket is part of a local session as there's an issue with false close events coming from remote
@@ -53,9 +61,11 @@
                 let details = { method, timestamp: Date.now() }
 
                 if (method === 'Debugger.paused') {
-                    details = { ...details, 'params.callFrames[0].location': params.callFrames[0]?.location }
+                    details = { ...details, 'params_callFrames_0__location': JSON.stringify(params.callFrames[0]?.location) }
+                    googleAnalytics.fireEvent('debuggerPaused', { ...details, userId })
+                } else if (method === 'Debugger.resumed') {
+                    googleAnalytics.fireEvent('debuggerResumed', { ...details, userId })
                 }
-                googleAnalytics.fireEvent('DebuggerEvent', { userId, ...details })
             }
         })
         async function logReadyState() {

@@ -1,5 +1,4 @@
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect'
-const GA_DEBUG_ENDPOINT = 'https://www.google-analytics.com/debug/mp/collect'
 
 // Get via https://developers.google.com/analytics/devguides/collection/protocol/ga4/sending-events?client_type=gtag#recommended_parameters_for_reports
 const MEASUREMENT_ID = 'G-3D1F9DKYBJ'
@@ -10,9 +9,7 @@ const DEFAULT_ENGAGEMENT_TIME_MSEC = 100
 const SESSION_EXPIRATION_IN_MIN = 30
 
 class Analytics {
-    constructor(debug = true) {
-        this.debug = debug
-    }
+    constructor() { }
 
     // Returns the client id, or creates a new one if one doesn't exist.
     // Stores client id in local storage to keep the same client id as long as
@@ -70,26 +67,19 @@ class Analytics {
         }
 
         try {
-            const response = await fetch(
-                `${this.debug ? GA_DEBUG_ENDPOINT : GA_ENDPOINT
-                }?measurement_id=${MEASUREMENT_ID}&api_secret=${API_SECRET}`,
-                {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        client_id: await this.getOrCreateClientId(),
-                        events: [
-                            {
-                                name,
-                                params
-                            }
-                        ]
-                    })
-                }
-            )
-            if (!this.debug) {
-                return
-            }
-            console.log(await response.text())
+            const response = await fetch(`${GA_ENDPOINT}?measurement_id=${MEASUREMENT_ID}&api_secret=${API_SECRET}`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    client_id: await this.getOrCreateClientId(),
+                    events: [
+                        {
+                            name,
+                            params
+                        }
+                    ]
+                })
+            })
+            console.log('Response', response)
         } catch (e) {
             console.error('Google Analytics request failed with an exception', e)
         }
@@ -115,6 +105,6 @@ class Analytics {
     }
 }
 
-const googleAnalytics = new Analytics(settings.defaultSettings.isDev)
+const googleAnalytics = new Analytics()
 
 export default googleAnalytics

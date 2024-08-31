@@ -19,6 +19,9 @@
         pinned[socket] = windowId
     }
     utilities.getPinned = async (socket) => {
+        if (typeof socket !== 'string') {
+            socket = `${socket.host}:${socket.port}`
+        }
         if (pinned[socket]) {
             try {
                 await chrome.windows.get(pinned[socket])

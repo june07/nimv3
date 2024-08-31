@@ -19,11 +19,11 @@
                         })
                     })
                 }
-                googleAnalytics.fireEvent('UserEvent', { action: 'Keyboard Shortcut Used', detail: 'open-devtools' })
+                googleAnalytics.fireEvent('keyboardShortcut', { description: 'Keyboard Shortcut Used', action: 'open-devtools' })
                 break
             case "open-tools":
                 openWindow('repl')
-                googleAnalytics.fireEvent('UserEvent', { action: 'Keyboard Shortcut Used', detail: 'open-tools' })
+                googleAnalytics.fireEvent('keyboardShortcut', { description: 'Keyboard Shortcut Used', action: 'open-tools' })
                 break
         }
     })

@@ -432,7 +432,7 @@ async function getLicenseStatus() {
 
         return data
     } catch (error) {
-        googleAnalytics.fireEvent('license_error', { id, 'error': error.message })
+        googleAnalytics.fireEvent('licenseError', { id, 'error': error.message })
         return { error: new Error('unable to get license status') }
     }
 }
@@ -526,7 +526,7 @@ function createTabOrWindow(url, info, socket) {
             if (settings.pin) {
                 utilities.pin(window.id, socket)
             }
-            googleAnalytics.fireEvent('ProgramEvent', { 'action': 'createWindow', 'detail': `focused: ${settings.windowFocused}` })
+            googleAnalytics.fireEvent('windowCreated', { 'detail': `focused: ${settings.windowFocused}` })
         } else {
             const tab = await chrome.tabs.create({
                 url,
@@ -546,7 +546,7 @@ function createTabOrWindow(url, info, socket) {
             if (settings.pin) {
                 utilities.pin(currentWindow.id, socket)
             }
-            googleAnalytics.fireEvent('ProgramEvent', { 'action': 'createTab', 'detail': `focused: ${settings.tabActive}` })
+            googleAnalytics.fireEvent('tabCreated', { 'detail': `focused: ${settings.tabActive}` })
         }
     })
 }
@@ -563,7 +563,7 @@ async function group(tabId, active) {
             )
         } else if (untrackedGroup) {
             state.groups['default'] = untrackedGroup
-            googleAnalytics.fireEvent('ProgramEvent', { action: 'Tab Group Added', detail: 'external' })
+            googleAnalytics.fireEvent('tagGroupAdded', { action: 'Tab Group Added', detail: 'external' })
         }
         if (state.groups['default']) {
             chrome.tabs.group({ tabIds: tabId, groupId: trackedDefaultGroup?.id || state.groups['default'].id })
@@ -573,7 +573,7 @@ async function group(tabId, active) {
                 const tab = await chrome.tabs.get(tabId)
                 const groupId = await chrome.tabs.group({ tabIds: tabId, createProperties: { windowId: tab.windowId } })
                 state.groups['default'] = await chrome.tabGroups.update(groupId, { color: 'green', title: 'NiM' })
-                googleAnalytics.fireEvent('ProgramEvent', { action: 'Tab Group Added', detail: 'default' })
+                googleAnalytics.fireEvent('tagGroupAdded', { action: 'Tab Group Added', detail: 'default' })
             } catch (error) {
                 console.log(error)
             }
@@ -583,7 +583,7 @@ async function group(tabId, active) {
             chrome.tabs.update(tabId, { active })
         }
     } catch (error) {
-        googleAnalytics.fireEvent('group', { error })
+        googleAnalytics.fireEvent('groupError', { error })
         console.log(error)
     }
 }
@@ -828,7 +828,7 @@ chrome.tabs.onCreated.addListener(async function chromeTabsCreatedEvent(tab) {
         const updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
         await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
     }
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'onCreated' })
+    googleAnalytics.fireEvent('toolsWindowCreated')
 })
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, { isWindowClosing, windowId }) {
     const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
@@ -856,10 +856,10 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     delete cache.forceRemoveSession[tabId]
     delete state.sessions[tabId]
     await chrome.storage.session.set({ sessions: state.sessions })
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabs.onRemoved' })
+    googleAnalytics.fireEvent('tabRemoved')
 })
 chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabs.onActivated' })
+    googleAnalytics.fireEvent('tabActivated')
 })
 chrome.tabs.onAttached.addListener(async function chromeTabsAttachedEvent(tabId, { newPosition, newWindowId }) {
     cache.tabMovedEvents[tabId] = cache.tabMovedEvents[tabId] ? { ...cache.tabMovedEvents[tabId], attached: Date.now(), newWindowId } : { attached: Date.now(), newWindowId }
@@ -867,11 +867,9 @@ chrome.tabs.onAttached.addListener(async function chromeTabsAttachedEvent(tabId,
     setTimeout(() => {
         delete cache.tabMovedEvents[tabId]
     }, 50)
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabs.onAttached' })
 
     if (cache.tabMovedEvents[tabId]?.detached) {
         events.dispatchEvent(new CustomEvent('tabMovedToNewWindow', { detail: { tabId, newWindowId } }))
-        googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabMovedToNewWindow' })
     }
 })
 chrome.tabs.onDetached.addListener(async function chromeTabsDetachedEvent(tabId, { oldPosition, oldWindowId }) {
@@ -881,11 +879,9 @@ chrome.tabs.onDetached.addListener(async function chromeTabsDetachedEvent(tabId,
     setTimeout(() => {
         delete cache.tabMovedEvents[tabId]
     }, 50)
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabs.onDetached' })
 
     if (cache.tabMovedEvents[tabId]?.attached && cache.tabMovedEvents[tabId]?.newWindowId) {
         events.dispatchEvent(new CustomEvent('tabMovedToNewWindow', { detail: { tabId, newWindowId } }))
-        googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabMovedToNewWindow' })
     }
 })
 events.addEventListener('tabMovedToNewWindow', async ({ detail: { tabId } }) => {
@@ -903,7 +899,7 @@ events.addEventListener('tabMovedToNewWindow', async ({ detail: { tabId } }) => 
             utilities.pin(tab.windowId, state.sessions[tab.id])
         }
     })
-    googleAnalytics.fireEvent('ProgramEvent', { 'action': 'tabMovedToNewWindow' })
+    googleAnalytics.fireEvent('tabMovedToNewWindow')
     if (reDevtoolsURL.test(tab.url) && mostAreDebuggerTabs(window.tabs)) {
         // update the settings on the group to open in a new window
         cache.settingsNewWindow = tab.windowId
@@ -924,7 +920,7 @@ chrome.tabGroups.onRemoved.addListener((tabGroup) => {
     Object.entries(state.groups).filter((kv) => kv[1].id === tabGroup.id).map((kv) => {
         const tabGroupId = kv[0]
         delete state.groups[tabGroupId]
-        googleAnalytics.fireEvent('UserEvent', { action: 'Tab Group Removed', detail: tabGroupId })
+        googleAnalytics.fireEvent('tabGroupRemoved', { description: 'Tab Group Removed', detail: tabGroupId })
     })
 })
 chrome.windows.onBoundsChanged.addListener(async (window) => {
@@ -938,7 +934,7 @@ chrome.windows.onBoundsChanged.addListener(async (window) => {
     }
 })
 chrome.omnibox.onInputEntered.addListener(() => {
-    googleAnalytics.fireEvent('omnibox.onInputEntered', {})
+    googleAnalytics.fireEvent('omniboxInputEntered', {})
 
     // if the text is a valid host, then update the default socket and set auto mode, maybe open the action icon too?!
     if (reSocket.test(cache.omniboxText)) {
@@ -963,7 +959,7 @@ chrome.omnibox.onInputEntered.addListener(() => {
             openWindow('docs')
         }
     } else {
-        googleAnalytics.fireEvent('omnibox.onInputEntered', { invalidHost: cache.omniboxText })
+        googleAnalytics.fireEvent('omniboxInputInvalid', { invalidHost: cache.omniboxText })
     }
 })
 chrome.omnibox.onInputChanged.addListener(function (text) {
