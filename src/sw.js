@@ -433,7 +433,7 @@ async function getLicenseStatus() {
 
         return data
     } catch (error) {
-        googleAnalytics.fireEvent('licenseError', { id, 'error': error.message })
+        googleAnalytics.fireEvent('licenseError', { 'error': error.message })
         return { error: new Error('unable to get license status') }
     }
 }
