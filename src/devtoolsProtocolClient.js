@@ -151,7 +151,7 @@
             switch (parsed.method) {
                 case 'Debugger.paused':
                     var ws = event.currentTarget.url.split('ws://')[1]
-                    var session = state.sessions.find(session => session.url.includes(ws))
+                    var session = Object.values(state.sessions).find(session => session.url.includes(ws))
                     if (session === undefined) return
                     if (session.newWindow) {
                         chrome.windows.update(session.windowId, { focused: true }, window => {
