@@ -45,25 +45,38 @@
         chrome.contextMenus.create({ title: 'Image Rotate (180deg)', id: 'rotate-180', contexts: ['image'] }, () => { })
         chrome.contextMenus.create({ title: 'Image Rotate (270deg)', id: 'rotate-270', contexts: ['image'] }, () => { })
 
-        chrome.contextMenus.create({ title: 'Utilities', id: 'utilities', contexts: ['image'] })
-        chrome.contextMenus.create({ title: 'Image Rotate', id: 'image-rotate', parentId: 'utilities', contexts: ['image'] })
-        chrome.contextMenus.create({ title: 'Image Rotate (0deg)', id: 'utilities-rotate-0', parentId: 'image-rotate', contexts: ['image'] }, () => { })
-        chrome.contextMenus.create({ title: 'Image Rotate (90deg)', id: 'utilities-rotate-90', parentId: 'image-rotate', contexts: ['image'] }, () => { })
-        chrome.contextMenus.create({ title: 'Image Rotate (180deg)', id: 'utilities-rotate-180', parentId: 'image-rotate', contexts: ['image'] }, () => { })
-        chrome.contextMenus.create({ title: 'Image Rotate (270deg)', id: 'utilities-rotate-270', parentId: 'image-rotate', contexts: ['image'] }, () => { })
+        chrome.contextMenus.create({ title: 'Window Resize (1920x1080)', id: 'window-resize-1920x1080', contexts: ['all'] })
+        chrome.contextMenus.create({ title: 'Window Resize (1400x560)', id: 'window-resize-1400x560', contexts: ['all'] })
+        chrome.contextMenus.create({ title: 'Window Resize (1280x800)', id: 'window-resize-1280x800', contexts: ['all'] })
+        chrome.contextMenus.create({ title: 'Window Resize (1024x768)', id: 'window-resize-1024x768', contexts: ['all'] })
+        chrome.contextMenus.create({ title: 'Window Resize (640x400)', id: 'window-resize-640x400', contexts: ['all'] })
+        chrome.contextMenus.create({ title: 'Window Resize (440x280)', id: 'window-resize-440x280', contexts: ['all'] })
     })
     chrome.contextMenus.onClicked.addListener((info, tab) => {
-        chrome.scripting.executeScript(
-            {
-                target: { tabId: tab.id, allFrames: true },
-                func: scripting.rotate,
-                args: [info]
-            },
-            (injectionResults) => {
-                if (!injectionResults) return
-                for (const frameResult of injectionResults) {
-                    console.log('Frame Title: ' + frameResult.result)
-                }
+        const { menuItemId } = info
+
+        if (/window-resize-/.test(menuItemId)) {
+            const width = Number(menuItemId.replace('window-resize-', '').split('x')[0])
+            const height = Number(menuItemId.replace('window-resize-', '').split('x')[1])
+
+            chrome.windows.update(tab.windowId, { width, height }, () => {
+                googleAnalytics.fireEvent('Window Resize', { 'size': `${width}x${height}` })
             })
+        } else {
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId: tab.id, allFrames: true },
+                    func: scripting.rotate,
+                    args: [info]
+                },
+                (injectionResults) => {
+                    if (!injectionResults) return
+                    for (const frameResult of injectionResults) {
+                        if (settings.debugVerbosity >= 7) {
+                            console.log('Utilities:InjectionResult: ' + frameResult)
+                        }
+                    }
+                })
+        }
     })
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.utilities = self.utilities || {}))

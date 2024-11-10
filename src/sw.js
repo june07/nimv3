@@ -8,13 +8,13 @@ importScripts(
     './utils.js',
     './settings.js',
     './brakecode.js',
-    './utilities.js',
     './analytics.js',
     './google-analytics.js',
     './messaging.js',
     './scripting.js',
     './devtoolsProtocolClient.js',
     './commands.js',
+    './utilities.js',
 )
 
 const CHROME_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
@@ -33,7 +33,7 @@ const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9]
 
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
-const LICENSE_HOST = !/production|test/.test(ENV) ? 'api.dev.june07.com' : 'api.june07.com'
+const LICENSE_HOST = !/production|development/.test(ENV) ? 'api.dev.june07.com' : 'api.june07.com'
 const NODEJS_INSPECT_HOST = 'nodejs.june07.com'
 const events = new EventTarget()
 
@@ -427,6 +427,7 @@ async function getLicenseStatus() {
             body: JSON.stringify({ userInfo })
         })
         if (response.status !== 200) {
+            googleAnalytics.fireEvent('licenseError', { 'error': 'non 200 response from license server' })
             return { error: new Error('unable to get license status') }
         }
         const data = await response.json()
@@ -439,7 +440,7 @@ async function getLicenseStatus() {
 }
 async function checkLicenseStatus() {
     const { checkedLicenseOn } = await chrome.storage.local.get('checkedLicenseOn')
-    const notificationDuration = /production|test/.test(ENV) ? 1000 * 60 * 60 * 24 : 60000
+    const notificationDuration = 1000 * 60 * 60 * 24
 
     // Debouncing
     if (cache.isCheckingLicense) {
