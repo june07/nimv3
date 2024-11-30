@@ -15,7 +15,7 @@
             <v-btn variant="plain" icon density="compact" @click="login" :loading="loading.login">
                 <span class="material-icons">{{ isAuthenticated ? 'logout' : 'login' }}</span>
             </v-btn>
-            <v-btn v-if="Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlayHandler('messages', true)">
+            <v-btn v-if="notifications && Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlayHandler('messages', true)">
                 <span class="material-icons">notifications</span>
             </v-btn>
             <v-btn variant="plain" icon density="compact" @click="routeHandler(route?.path === 'settings' ? 'main' : 'settings')" class="mr-6" id="settings-btn">
@@ -35,9 +35,18 @@
                 <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2024 June07</div>
             </a>
             <v-spacer></v-spacer>
-            <div v-if="upgradeFromV2" class="text-body-1">
-                NiM has been upgraded to manifest v3 <a href="https://june07.com/nim-v3-manifest-v3-update-2/" target="_blank" rel="noopener">(read more)</a>.
-            </div>
+            <v-fade-transition @after-leave="updateTransitioning = false">
+                <div v-if="updates.length && !updateTransitioning" :key="updatesIndex" class="d-flex align-center text-body-1" style="max-width: 300px">
+                    <v-tooltip location="top">
+                        <template v-slot:activator="{ props }">
+                            <div v-bind="props" class="text-no-wrap text-truncate mr-2">{{ updates[updatesIndex].title }}</div>
+                        </template>
+                        <v-card-title>{{ updates[updatesIndex].title }}</v-card-title>
+                        <v-card-subtitle v-html="updates[updatesIndex].description" />
+                    </v-tooltip>
+                    <v-btn text="blog" variant="plain" size="small" :href="updates[updatesIndex].link" target="_blank" rel="noopener" />
+                </div>
+            </v-fade-transition>
             <v-spacer></v-spacer>
             <v-btn variant="flat" class="mx-2 text-white rounded-xl" color="green-lighten-2" @click="overlayHandler('donation', true)">
                 <span class="material-icons mr-2">toll</span>donate
@@ -49,13 +58,14 @@
             </div>
         </v-footer>
         <ni-donation-overlay v-model="overlays.donation" @close="overlayHandler('donation', false)" :theme="theme">overlay</ni-donation-overlay>
-        <ni-messages-overlay v-model="overlays.messages" @close="overlayHandler('messages', false)" @deleted="deletedEventHandler" @read="readEventHandler" :theme="theme" :messages="[...notifications]">overlay</ni-messages-overlay>
+        <ni-messages-overlay v-model="overlays.messages" @close="overlayHandler('messages', false)" @deleted="deletedEventHandler" @read="readEventHandler" :theme="theme" :messages="[...(notifications || [])]">overlay</ni-messages-overlay>
     </v-app>
 </template>
 <style scoped>
 :deep() .small-switch .v-switch__track {
     height: 20px;
     width: 40px;
+    min-width: unset;
 }
 
 :deep() .small-switch .v-switch__thumb {
@@ -69,10 +79,7 @@
 }
 </style>
 <script setup>
-const { VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
-const CHROME_V3_ID = 'fbbpbfibkcdehkkkcoileebbgbamjelh'
-const EDGE_V3_ID = 'bhgmgiigndniabncaajbbeobkcfjkdod'
-const v3RegExp = new RegExp(`${CHROME_V3_ID}|${EDGE_V3_ID}`)
+const { MODE, VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
 
 import { version } from '../../manifest.json'
 import { ref, inject, reactive, computed, provide, watch, onMounted } from "vue"
@@ -86,11 +93,13 @@ import NiDonationOverlay from "./components/NiDonationOverlay.vue"
 import NiMessagesOverlay from "./components/NiMessagesOverlay.vue"
 
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
-const upgradeFromV2 = computed(() => !v3RegExp.test(extensionId))
 const i18nString = inject("i18nString")
 const settings = inject("settings")
 const updateSetting = inject("updateSetting")
 const theme = ref(settings.value.theme || "light")
+const updateTransitioning = ref(false)
+const updates = ref([])
+const updatesIndex = ref(0)
 const {
     user,
     isAuthenticated,
@@ -242,6 +251,37 @@ function handleThemeChange(event) {
         theme.value = settings.value.theme
     }
 }
+async function getUpdates() {
+    try {
+        const response = await fetch(`https://june07.com/tag/nim-update/rss`)
+
+        if (!response.ok) {
+            return
+        }
+
+        const parser = new DOMParser()
+        const xmlDoc = parser.parseFromString(await response.text(), 'application/xml')
+
+        // Check for parsing errors
+        if (xmlDoc.querySelector('parsererror')) {
+            throw new Error('Error parsing RSS feed.')
+        }
+
+        updates.value = Array.from(xmlDoc.querySelectorAll('item')).map((item) => ({
+            title: item.querySelector('title').textContent,
+            link: item.querySelector('link').textContent,
+            pubDate: item.querySelector('pubDate').textContent,
+            description: item.querySelector('description').textContent,
+        }))
+
+        setInterval(() => {
+            updateTransitioning.value = true
+            updatesIndex.value = (updatesIndex.value + 1) % updates.value.length
+        }, MODE === 'production' ? 15000 : 5000)
+    } catch (error) {
+        console.error(error)
+    }
+}
 watch(() => settings.value.themeOverride, () => {
     const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)')
     handleThemeChange(darkModeQuery)
@@ -249,6 +289,7 @@ watch(() => settings.value.themeOverride, () => {
     deep: true
 })
 onMounted(() => {
+    getUpdates()
     // Check if the matchMedia API is supported
     if (window.matchMedia) {
         // Define the media query for dark mode
