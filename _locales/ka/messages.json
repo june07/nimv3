@@ -8,11 +8,11 @@
 		"description": "Message to display when there are no notifications."
 	},
 	"appName": {
-		"message": "Node.js V8 --ინსპექტორი მენეჯერი (NiM)",
+		"message": "Node ინსპექტორი მენეჯერი (NIM)",
 		"description": "The title of the extension displayed in the web store."
 	},
 	"appShortName": {
-		"message": "NiM",
+		"message": "NIM",
 		"description": "The short title."
 	},
 	"appDescription": {
@@ -20,15 +20,15 @@
 		"description": "A description of the extension displayed in the web store."
 	},
 	"pageOptionsTitle": {
-		"message": "Node.js V8 --ინსპექტორი მენეჯერი (NiM) - ვარიანტი გვერდი",
+		"message": "Node ინსპექტორი მენეჯერი (NIM) - ვარიანტი გვერდი",
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --ინსპექტორი მენეჯერი (NiM) - DevTools პანელი",
+		"message": "Node ინსპექტორი მენეჯერი (NIM) - DevTools პანელი",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
-		"message": "Node.js V8 --ინსპექტორი მენეჯერი (NiM)",
+		"message": "Node ინსპექტორი მენეჯერი (NIM)",
 		"description": "Title shown in tooltip."
 	},
 	"errMsg1": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM Real-time თანამშრომლობა",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM Real-time თანამშრომლობა",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Real-time თანამშრომლობით.",
@@ -197,7 +197,7 @@
 		"message": "პანელი სტილი ფანჯარა.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode ინტეგრაცია.",
 		"description": "Options page label for VSCode Integration."
 	},

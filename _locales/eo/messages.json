@@ -8,11 +8,11 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --inspektisto Manaĝero (NiM)",
+    "message": "Node inspektisto Manaĝero (NIM)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
-    "message": "NiM",
+    "message": "NIM",
     "description": "The short title."
   },
   "appDescription": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node.js V8 --inspektisto Manaĝero (NiM) - Ebloj Paĝo",
+    "message": "Node inspektisto Manaĝero (NIM) - Ebloj Paĝo",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --inspektisto Manaĝero (NiM) - DevTools Panelo",
+    "message": "Node inspektisto Manaĝero (NIM) - DevTools Panelo",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node.js V8 --inspektisto Manaĝero (NiM)",
+    "message": "Node inspektisto Manaĝero (NIM)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Vera-tempa Kunlaboro",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Vera-tempa Kunlaboro",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Vera-tempa Kunlaboro.",
@@ -197,7 +197,7 @@
     "message": "Panelo stilo fenestro.",
     "description": "Panel style window"
   },
-  "optionsNiMSVSCode": {
+  "optionsNIMSVSCode": {
     "message": "VSCode Integriĝo.",
     "description": "Options page label for VSCode Integration."
   },

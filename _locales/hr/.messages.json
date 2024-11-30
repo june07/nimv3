@@ -24,7 +24,7 @@
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 - upravitelj preglednika (NiM) - DevTools ploča",
+    "message": "Node.js V8 - upravitelj preglednika (NIM) - DevTools ploča",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Suradnja u stvarnom vremenu",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Suradnja u stvarnom vremenu",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Suradnja u stvarnom vremenu.",

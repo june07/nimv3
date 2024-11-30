@@ -8,11 +8,11 @@
 		"description": "Message to display when there are no notifications."
 	},
 	"appName": {
-		"message": "Node.js V8 --بازرس مدیر (NiM)",
+		"message": "Node بازرس مدیر (NIM)",
 		"description": "The title of the extension displayed in the web store."
 	},
 	"appShortName": {
-		"message": "NiM",
+		"message": "NIM",
 		"description": "The short title."
 	},
 	"appDescription": {
@@ -20,15 +20,15 @@
 		"description": "A description of the extension displayed in the web store."
 	},
 	"pageOptionsTitle": {
-		"message": "Node.js V8 --بازرس مدیر (NiM) - گزینه های صفحه",
+		"message": "Node بازرس مدیر (NIM) - گزینه های صفحه",
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --بازرس مدیر (NiM) - DevTools پنل",
+		"message": "Node بازرس مدیر (NIM) - DevTools پنل",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
-		"message": "Node.js V8 --بازرس مدیر (NiM)",
+		"message": "Node بازرس مدیر (NIM)",
 		"description": "Title shown in tooltip."
 	},
 	"errMsg1": {
@@ -179,7 +179,7 @@
 	},
 	"realtimeCollaboration": {
 		"message": "نیم زمان واقعی همکاری",
-		"description": "NiM Real-time Collaboration Header Title."
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "زمان واقعی همکاری.",
@@ -197,7 +197,7 @@
 		"message": "Panel style window.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Integration.",
 		"description": "Options page label for VSCode Integration."
 	},

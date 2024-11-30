@@ -8,11 +8,11 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --inspektor Menadžer (NiM)",
+    "message": "Node inspektor Menadžer (NIM)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
-    "message": "NiM",
+    "message": "NIM",
     "description": "The short title."
   },
   "appDescription": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node.js V8 --inspektor Menadžer (NiM) - Opcije Stranica",
+    "message": "Node inspektor Menadžer (NIM) - Opcije Stranica",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --inspektor Menadžer (NiM) - DevTools Vijeće",
+    "message": "Node inspektor Menadžer (NIM) - DevTools Vijeće",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node.js V8 --inspektor Menadžer (NiM)",
+    "message": "Node inspektor Menadžer (NIM)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Realnom vremenu Saradnji",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Realnom vremenu Saradnji",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Realnom vremenu Saradnji.",
@@ -197,7 +197,7 @@
     "message": "Vijeće stil prozor.",
     "description": "Panel style window"
   },
-  "optionsNiMSVSCode": {
+  "optionsNIMSVSCode": {
     "message": "VSCode Integracije.",
     "description": "Options page label for VSCode Integration."
   },

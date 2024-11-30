@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - Bilgi Yöneticisi (NiM) - DevTools Paneli",
+		"message": "Node.js V8 - Bilgi Yöneticisi (NIM) - DevTools Paneli",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM Gerçek Zamanlı İşbirliği",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM Gerçek Zamanlı İşbirliği",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Gerçek Zamanlı İşbirliği.",
@@ -197,7 +197,7 @@
 		"message": "Panel tarzı penceresi.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Entegrasyon.",
 		"description": "Options page label for VSCode Integration."
 	},

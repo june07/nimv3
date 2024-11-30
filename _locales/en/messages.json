@@ -8,11 +8,11 @@
         "description": "Message to display when there are no notifications."
     },
     "appName": {
-        "message": "Node.js V8 --inspector Manager (NiMV3)",
+        "message": "Node Inspector Manager (NIM)",
         "description": "The title of the extension displayed in the web store."
     },
     "appShortName": {
-        "message": "NiM",
+        "message": "NIM",
         "description": "The short title."
     },
     "appDescription": {
@@ -20,15 +20,15 @@
         "description": "A description of the extension displayed in the web store."
     },
     "pageOptionsTitle": {
-        "message": "Node.js V8 --inspector Manager (NiM) - Options Page",
+        "message": "Node Inspector Manager (NIM) - Options Page",
         "description": "Title shown on options page."
     },
     "devtoolsPanelTitle": {
-        "message": "Node.js V8 --inspector Manager (NiM) - DevTools Panel",
+        "message": "Node Inspector Manager (NIM) - DevTools Panel",
         "description": "Title shown on the chrome devtools panel."
     },
     "defaultTitle": {
-        "message": "Node.js V8 --inspector Manager (NiM)",
+        "message": "Node Inspector Manager (NIM)",
         "description": "Title shown in tooltip."
     },
     "errMsg1": {
@@ -183,7 +183,7 @@
     },
     "realtimeCollaboration": {
         "message": "Real-time collaboration",
-        "description": "NiM Real-time Collaboration Header Title."
+        "description": "NIM Real-time Collaboration Header Title."
     },
     "optionsRealtimeCollaboration": {
         "message": "Real-time collaboration.",
@@ -201,7 +201,7 @@
         "message": "Panel style window.",
         "description": "Panel style window"
     },
-    "optionsNiMSVSCode": {
+    "optionsNIMSVSCode": {
         "message": "VSCode Integration.",
         "description": "Options page label for VSCode Integration."
     },
@@ -260,7 +260,7 @@
         "message": "Debug your code better."
     },
     "devtoolsPanelAbout": {
-        "message": "NiM manages unlimited local and remote debugging sessions at the DevTools protocol layer and makes secure collaboration easy."
+        "message": "NIM manages unlimited local and remote debugging sessions at the DevTools protocol layer and makes secure collaboration easy."
     },
     "no_detected_local_connections": {
         "message": "No detected local connections"
@@ -299,8 +299,8 @@
         "description": "notification message"
     },
     "nimOwnsTheShortcut": {
-        "message": "NiM owns the $shortcut$ shortcut.",
-        "description": "Notification message informing user that the browser keyboard shortcut is owned by NiM.",
+        "message": "NIM owns the $shortcut$ shortcut.",
+        "description": "Notification message informing user that the browser keyboard shortcut is owned by NIM.",
         "placeholders": {
             "shortcut": {
                 "content": "$1"

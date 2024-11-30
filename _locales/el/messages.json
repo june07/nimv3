@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - Διαχειριστής ελέγχου (NiM) - Πίνακας DevTools",
+		"message": "Node.js V8 - Διαχειριστής ελέγχου (NIM) - Πίνακας DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-    "message": "Συνεργασία NiM σε πραγματικό χρόνο",
-		"description": "NiM Real-time Collaboration Header Title."
+    "message": "Συνεργασία NIM σε πραγματικό χρόνο",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Συνεργασία σε πραγματικό χρόνο.",
@@ -197,7 +197,7 @@
 		"message": "Ύφος επιτροπής παράθυρο.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Ολοκλήρωσης.",
 		"description": "Options page label for VSCode Integration."
 	},

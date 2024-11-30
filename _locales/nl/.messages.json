@@ -8,7 +8,7 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node --inspect Manager (NiM)",
+    "message": "Node --inspect Manager (NIM)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node --inspect Manager (NiM) - Pagina Opties",
+    "message": "Node --inspect Manager (NIM) - Pagina Opties",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --inspector Manager (NiM) - DevTools Panel",
+    "message": "Node Inspector Manager (NIM) - DevTools Panel",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node --inspect Manager (NiM)",
+    "message": "Node --inspect Manager (NIM)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Realtime samenwerking",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Realtime samenwerking",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Real-time samenwerking.",

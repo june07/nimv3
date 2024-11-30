@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --inspector manager (NiM) - DevTools paneel",
+		"message": "Node Inspector manager (NIM) - DevTools paneel",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM reaalajas koostöö",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM reaalajas koostöö",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Reaalajas koostöö.",
@@ -197,7 +197,7 @@
 		"message": "Paneel stiilis aknas.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Integratsiooni.",
 		"description": "Options page label for VSCode Integration."
 	},

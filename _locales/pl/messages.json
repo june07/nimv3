@@ -8,11 +8,11 @@
 		"description": "Message to display when there are no notifications."
 	},
 	"appName": {
-		"message": "Node.js V8 --inspector Manager (NiM)",
+		"message": "Node Inspector Manager (NIM)",
 		"description": "The title of the extension displayed in the web store."
 	},
 	"appShortName": {
-		"message": "NiM",
+		"message": "NIM",
 		"description": "The short title."
 	},
 	"appDescription": {
@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --inspector Manager (NiM) - Panel DevTools",
+		"message": "Node Inspector Manager (NIM) - Panel DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM Współdziałanie w czasie rzeczywistym",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM Współdziałanie w czasie rzeczywistym",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Współdziałanie w czasie rzeczywistym",
@@ -197,7 +197,7 @@
 		"message": "Styl okna panel.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "Integracja VSCode.",
 		"description": "Options page label for VSCode Integration."
 	},

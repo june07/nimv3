@@ -24,7 +24,7 @@
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 - ตัวจัดการสมาร์ท (NiM) - แผงควบคุม DevTools",
+    "message": "Node.js V8 - ตัวจัดการสมาร์ท (NIM) - แผงควบคุม DevTools",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "ความร่วมมือแบบเรียลไทม์แบบ NiM",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "ความร่วมมือแบบเรียลไทม์แบบ NIM",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "การทำงานร่วมกันแบบเรียลไทม์",

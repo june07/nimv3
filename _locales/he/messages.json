@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - מנהל ספקטרום (NiM) - לוח DevTools",
+		"message": "Node.js V8 - מנהל ספקטרום (NIM) - לוח DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM שיתוף פעולה בזמן אמת",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM שיתוף פעולה בזמן אמת",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "שיתוף פעולה בזמן אמת.",
@@ -197,7 +197,7 @@
 		"message": "לוח סגנון החלון.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode אינטגרציה.",
 		"description": "Options page label for VSCode Integration."
 	},

@@ -8,11 +8,11 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --இன்ஸ்பெக்டர் மேலாளர் (நில்)",
+    "message": "Node இன்ஸ்பெக்டர் மேலாளர் (நில்)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
-    "message": "NiM",
+    "message": "NIM",
     "description": "The short title."
   },
   "appDescription": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node.js V8 --இன்ஸ்பெக்டர் மேலாளர் (நில்) - விருப்பங்கள் பக்கம்",
+    "message": "Node இன்ஸ்பெக்டர் மேலாளர் (நில்) - விருப்பங்கள் பக்கம்",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --இன்ஸ்பெக்டர் மேலாளர் (நில்) - DevTools குழு",
+    "message": "Node இன்ஸ்பெக்டர் மேலாளர் (நில்) - DevTools குழு",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node.js V8 --இன்ஸ்பெக்டர் மேலாளர் (நில்)",
+    "message": "Node இன்ஸ்பெக்டர் மேலாளர் (நில்)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM ரியல்-நேரம் ஒத்துழைப்பு",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM ரியல்-நேரம் ஒத்துழைப்பு",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "ரியல்-நேரம் இணைந்து.",

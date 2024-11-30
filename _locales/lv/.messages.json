@@ -24,7 +24,7 @@
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --inpector pārvaldnieks (NiM) - DevTools panelis",
+    "message": "Node inpector pārvaldnieks (NIM) - DevTools panelis",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM reāllaika sadarbība",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM reāllaika sadarbība",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Reāllaika sadarbība.",

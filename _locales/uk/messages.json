@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - диспетчер диспетчера (NiM) - панель DevTools",
+		"message": "Node.js V8 - диспетчер диспетчера (NIM) - панель DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM в режимі реального часу співробітництво",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM в режимі реального часу співробітництво",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Співпраця в реальному часі.",
@@ -197,7 +197,7 @@
 		"message": "Стиль вікна панель.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "Інтеграція VSCode.",
 		"description": "Options page label for VSCode Integration."
 	},

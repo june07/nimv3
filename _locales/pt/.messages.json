@@ -24,7 +24,7 @@
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --inspector Manager (NiM) - painel DevTools",
+    "message": "Node Inspector Manager (NIM) - painel DevTools",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "Colaboração em tempo real de NiM",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "Colaboração em tempo real de NIM",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Colaboração em tempo real.",

@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - správce monitoru (NiM) - panel DevTools",
+		"message": "Node.js V8 - správce monitoru (NIM) - panel DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM spolupráce v reálném čase",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM spolupráce v reálném čase",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Spolupráce v reálném čase.",
@@ -197,7 +197,7 @@
 		"message": "Panel styl okna.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Integrace.",
 		"description": "Options page label for VSCode Integration."
 	},

@@ -8,11 +8,11 @@
 		"description": "Message to display when there are no notifications."
 	},
 	"appName": {
-		"message": "Node.js V8 --inspektur Pengurus (NiM)",
+		"message": "Node inspektur Pengurus (NIM)",
 		"description": "The title of the extension displayed in the web store."
 	},
 	"appShortName": {
-		"message": "NiM",
+		"message": "NIM",
 		"description": "The short title."
 	},
 	"appDescription": {
@@ -20,15 +20,15 @@
 		"description": "A description of the extension displayed in the web store."
 	},
 	"pageOptionsTitle": {
-		"message": "Node.js V8 --inspektur Pengurus (NiM) - Halaman Pilihan",
+		"message": "Node inspektur Pengurus (NIM) - Halaman Pilihan",
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --inspektur Pengurus (NiM) - DevTools Panel",
+		"message": "Node inspektur Pengurus (NIM) - DevTools Panel",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
-		"message": "Node.js V8 --inspektur Pengurus (NiM)",
+		"message": "Node inspektur Pengurus (NIM)",
 		"description": "Title shown in tooltip."
 	},
 	"errMsg1": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM Kerjasama masa Nyata",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM Kerjasama masa Nyata",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Kerjasama masa nyata.",
@@ -197,7 +197,7 @@
 		"message": "Panel gaya jendela.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Integrasi.",
 		"description": "Options page label for VSCode Integration."
 	},

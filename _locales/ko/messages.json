@@ -8,11 +8,11 @@
 		"description": "Message to display when there are no notifications."
 	},
 	"appName": {
-		"message": "Node.js V8 --inspector Manager (NiM)",
+		"message": "Node Inspector Manager (NIM)",
 		"description": "The title of the extension displayed in the web store."
 	},
 	"appShortName": {
-		"message": "NiM",
+		"message": "NIM",
 		"description": "The short title."
 	},
 	"appDescription": {
@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - 인스펙터 관리자 (NiM) - DevTools 패널",
+		"message": "Node.js V8 - 인스펙터 관리자 (NIM) - DevTools 패널",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM 실시간 협업",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM 실시간 협업",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "실시간 공동 작업.",
@@ -197,7 +197,7 @@
 		"message": "판 스타일 창입니다.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode 합니다.",
 		"description": "Options page label for VSCode Integration."
 	},

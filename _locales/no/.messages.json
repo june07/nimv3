@@ -174,8 +174,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Real-time Collaboration",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Real-time Collaboration",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Real-time Collaboration.",

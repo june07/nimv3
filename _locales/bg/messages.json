@@ -179,7 +179,7 @@
 	},
 	"realtimeCollaboration": {
 		"message": "Него съвместна работа в реално време",
-		"description": "NiM Real-time Collaboration Header Title."
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Сътрудничество в реално време.",
@@ -197,7 +197,7 @@
 		"message": "Стил прозорци панел.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "Интеграция VSCode.",
 		"description": "Options page label for VSCode Integration."
 	},

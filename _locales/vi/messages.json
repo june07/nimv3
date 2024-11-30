@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 - Trình quản lý thư mục (NiM) - Bảng điều khiển DevTools",
+		"message": "Node.js V8 - Trình quản lý thư mục (NIM) - Bảng điều khiển DevTools",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "Hợp tác thời gian thực của NiM",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "Hợp tác thời gian thực của NIM",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "Cộng tác trong thời gian thực.",
@@ -197,7 +197,7 @@
 		"message": "Bảng điều khiển cửa sổ.",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode Nhập.",
 		"description": "Options page label for VSCode Integration."
 	},

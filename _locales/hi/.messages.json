@@ -8,7 +8,7 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --निरीक्षक प्रबंधक (एनआईएम)",
+    "message": "Node निरीक्षक प्रबंधक (एनआईएम)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node.js V8 --निरीक्षक प्रबंधक (एनआईएम) - विकल्प पृष्ठ",
+    "message": "Node निरीक्षक प्रबंधक (एनआईएम) - विकल्प पृष्ठ",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --निरीक्षक प्रबंधक (एनआईएम) - DevTools पैनल",
+    "message": "Node निरीक्षक प्रबंधक (एनआईएम) - DevTools पैनल",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node.js V8 --निरीक्षक प्रबंधक (एनआईएम)",
+    "message": "Node निरीक्षक प्रबंधक (एनआईएम)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -179,7 +179,7 @@
   },
   "realtimeCollaboration": {
     "message": "निम वास्तविक समय सहयोग",
-    "description": "NiM Real-time Collaboration Header Title."
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "वास्तविक समय सहयोग है । ",

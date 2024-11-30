@@ -24,7 +24,7 @@
 		"description": "Title shown on options page."
 	},
 	"devtoolsPanelTitle": {
-		"message": "Node.js V8 --inspector Manager (NiM) - DevTools 面板",
+		"message": "Node Inspector Manager (NIM) - DevTools 面板",
 		"description": "Title shown on the chrome devtools panel."
 	},
 	"defaultTitle": {
@@ -178,8 +178,8 @@
 		"description": "Open the DevTools window."
 	},
 	"realtimeCollaboration": {
-		"message": "NiM 真时合作",
-		"description": "NiM Real-time Collaboration Header Title."
+		"message": "NIM 真时合作",
+		"description": "NIM Real-time Collaboration Header Title."
 	},
 	"optionsRealtimeCollaboration": {
 		"message": "真时合作",
@@ -197,7 +197,7 @@
 		"message": "小组风格的窗口。",
 		"description": "Panel style window"
 	},
-	"optionsNiMSVSCode": {
+	"optionsNIMSVSCode": {
 		"message": "VSCode一体化。",
 		"description": "Options page label for VSCode Integration."
 	},

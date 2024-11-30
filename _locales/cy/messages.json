@@ -8,11 +8,11 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --arolygydd Rheolwr (NiM)",
+    "message": "Node arolygydd Rheolwr (NIM)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
-    "message": "NiM",
+    "message": "NIM",
     "description": "The short title."
   },
   "appDescription": {
@@ -20,15 +20,15 @@
     "description": "A description of the extension displayed in the web store."
   },
   "pageOptionsTitle": {
-    "message": "Node.js V8 --arolygydd Rheolwr (NiM) - Tudalen Dewisiadau",
+    "message": "Node arolygydd Rheolwr (NIM) - Tudalen Dewisiadau",
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --arolygydd Rheolwr (NiM) - DevTools Panel",
+    "message": "Node arolygydd Rheolwr (NIM) - DevTools Panel",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
-    "message": "Node.js V8 --arolygydd Rheolwr (NiM)",
+    "message": "Node arolygydd Rheolwr (NIM)",
     "description": "Title shown in tooltip."
   },
   "errMsg1": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "NiM Real-amser ar y Cyd",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "NIM Real-amser ar y Cyd",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Real-amser yn Cydweithio.",
@@ -197,7 +197,7 @@
     "message": "Panel arddull ffenestr.",
     "description": "Panel style window"
   },
-  "optionsNiMSVSCode": {
+  "optionsNIMSVSCode": {
     "message": "VSCode Integreiddio.",
     "description": "Options page label for VSCode Integration."
   },

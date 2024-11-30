@@ -8,7 +8,7 @@
     "description": "Message to display when there are no notifications."
   },
   "appName": {
-    "message": "Node.js V8 --inspektur Manager (NiM)",
+    "message": "Node inspektur Manager (NIM)",
     "description": "The title of the extension displayed in the web store."
   },
   "appShortName": {
@@ -24,7 +24,7 @@
     "description": "Title shown on options page."
   },
   "devtoolsPanelTitle": {
-    "message": "Node.js V8 --Manpector Manager (NiM) - DevTools Panel",
+    "message": "Node Manpector Manager (NIM) - DevTools Panel",
     "description": "Title shown on the chrome devtools panel."
   },
   "defaultTitle": {
@@ -178,8 +178,8 @@
     "description": "Open the DevTools window."
   },
   "realtimeCollaboration": {
-    "message": "Kolaborasi Real-time NiM",
-    "description": "NiM Real-time Collaboration Header Title."
+    "message": "Kolaborasi Real-time NIM",
+    "description": "NIM Real-time Collaboration Header Title."
   },
   "optionsRealtimeCollaboration": {
     "message": "Kolaborasi Real-time.",
