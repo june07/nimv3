@@ -18,21 +18,21 @@ import { registerPlugins } from '@/plugins'
 
 // 3rd Party
 import VueSocialSharing from 'vue-social-sharing'
-import { createAuth0 } from "@auth0/auth0-vue";
+import { createAuth0 } from "@auth0/auth0-vue"
 
-const id = chrome?.runtime?.id || import.meta.env.VITE_EXTENSION_ID;
+const id = chrome?.runtime?.id || import.meta.env.VITE_EXTENSION_ID
 const app = createApp(App)
 
 const $auth = createAuth0({
     domain: import.meta.env.VITE_AUTH0_DOMAIN,
     client_id: import.meta.env.VITE_AUTH0_CLIENTID,
     audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-});
+})
 
-app.use($auth);
+app.use($auth)
 app.use(VueSocialSharing)
 
-let settings = ref({});
+let settings = ref({})
 async function updateSetting(name, value) {
     // send update via messages
     chrome.runtime.sendMessage(
@@ -45,41 +45,41 @@ async function updateSetting(name, value) {
             value: typeof value === 'string' && value.match(/true|false/i) ? !!value : value
         },
         (response) => {
-            settings.value = { ...settings.value, ...response };
+            settings.value = { ...settings.value, ...response }
         }
-    );
+    )
 }
 if (!chrome?.i18n?.getMessage) {
     (async () => {
-        const i18n = await import('/_locales/en/messages.json');
+        const i18n = await import('/_locales/en/messages.json')
 
-        app.provide('i18nString', (key) => i18n[key]?.message);
+        app.provide('i18nString', (key) => i18n[key]?.message)
 
-        completeSetup();
-    })();
+        completeSetup()
+    })()
 } else {
-    app.provide('i18nString', (key) => chrome.i18n.getMessage(key));
+    app.provide('i18nString', (key) => chrome.i18n.getMessage(key))
 
-    completeSetup();
+    completeSetup()
 }
 
 async function copy(text, tooltipId = text) {
-    if (this.debounce.value) return;
-    this.debounce.value = true;
-    this.tooltips[tooltipId] = true;
+    if (this.debounce.value) return
+    this.debounce.value = true
+    this.tooltips[tooltipId] = true
     try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(text)
     } catch (error) {
-        console.error(error);
-        this.debounce.value = false;
-        this.tooltips[tooltipId] = false;
+        console.error(error)
+        this.debounce.value = false
+        this.tooltips[tooltipId] = false
     }
     setTimeout(() => {
-        this.debounce.value = false;
-    }, 100);
+        this.debounce.value = false
+    }, 100)
     setTimeout(() => {
-        this.tooltips[tooltipId] = false;
-    }, 1500);
+        this.tooltips[tooltipId] = false
+    }, 1500)
 }
 app.provide('clipboard', {
     copy,
@@ -88,9 +88,9 @@ app.provide('clipboard', {
 })
 
 async function completeSetup() {
-    settings.value = await new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response)));
-    app.provide('settings', settings);
-    app.provide('updateSetting', updateSetting);
+    settings.value = await new Promise((resolve) => chrome.runtime.sendMessage(id, { command: "getSettings" }, (response) => resolve(response)))
+    app.provide('settings', settings)
+    app.provide('updateSetting', updateSetting)
 
     registerPlugins(app)
 

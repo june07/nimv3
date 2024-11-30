@@ -39,10 +39,10 @@ const props = defineProps({
 });
 const data = {
     sharing: {
-        title: "Node.js V8 --inspector Manager (NiM) is a great developer tool!",
-        description: `Streamline your Node.js debugging workflow with Chromium (Chrome, Edge, More) DevTools.`,
+        title: "Node Inspector Manager (NiM) is a great developer tool!",
+        description: `Streamline your JavaScript debugging workflow with Chromium (Chrome, Edge, More) DevTools.`,
         quote: `NiM > about://inspect.`,
-        hashtags: "node, extension, debug, chromium, inspect, devtool, vscode",
+        hashtags: "node.js, deno, bun, javascript, extension, debug, chromium, inspect, devtool, vscode",
         twitterUser: "june07",
     },
     networks: [
