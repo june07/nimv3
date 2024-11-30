@@ -31,7 +31,7 @@
                                     </template>
                                 </v-switch>
                             </div>
-                            <v-btn name="auto" class="mx-4 text-h6" :color="inputs.auto ? '' : 'green'" :disabled="inputs.auto" @click="devtoolsButtonHandler">{{ i18nString('openDevtools') }}</v-btn>
+                            <v-btn name="auto" class="mx-4 text-h6" :color="inputs.auto ? '' : 'green'" :disabled="inputs.auto" @click="$event => devtoolsButtonHandler()">{{ i18nString('openDevtools') }}</v-btn>
                             <div class="mr-auto ml-2">
                                 <v-switch name="autoResumeInspectBrk" hide-details v-model="inputs.autoResumeInspectBrk" :color="inputs.autoResumeInspectBrk ? 'green' : ''" id="autoResumeInspectBrk" class="text-no-wrap" @change="update">
                                     <template v-slot:label>
@@ -54,88 +54,111 @@
                     </h1>
                 </div>
                 <v-container v-else>
-                    <v-row v-for="(session, id) in getSessions(sessions)" :key="id" class="d-flex align-center">
-                        <v-col class="d-flex align-center py-0 text-no-wrap text-truncate">
-                            <div class="mr-2">
-                                <v-img width="16" height="16" :src="sessionIcon(session.info)" />
-                            </div>
-                            <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
-                                <template v-slot:activator="{ props }">
-                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
-                                        <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
-                                        <span class="ml-2">({{ session.info?.infoURL?.match(/https?:\/\/([^:]*:[0-9]+)/)?.[1] }})</span>
-                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id }}</span>
-                                    </div>
-                                </template>
-                                <v-container v-click-outside="() => tooltips[`${id}`] = 0">
-                                    <v-row>
-                                        <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
-                                        <v-col class="pa-0">{{ session.info?.infoURL }}</v-col>
-                                    </v-row>
-                                    <v-row>
-                                        <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
-                                        <v-col class="pa-0">{{ session.url }}</v-col>
-                                    </v-row>
-                                </v-container>
-                            </v-tooltip>
-                        </v-col>
-                        <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch small hide-details color="green" :id="`auto-localhost-${id}`" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-localhost-${id}`, session.tabId, id)">
-                                <template v-slot:label>
-                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
-                                </template>
-                            </v-switch>
-                            <v-btn size="x-small" :id="`devtools-localhost-${id}`" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn size="x-small" :id="`remove-localhost-${id}`" color="red" @click="clickHandlerSessionUpdate(`remove-localhost-${id}`, session.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
-                        </v-col>
-                    </v-row>
+                    <v-expansion-panels flat v-for="(session, id) in getSessions(sessions)" :key="id">
+                        <!-- node type panel begin
+                            <v-expansion-panel v-if="session.targets?.length" v-for="target of session.targets" :key="target">
+                                <v-expansion-panel-title class="text-body-1">{{ id }}</v-expansion-panel-title>
+                                <v-expansion-panel-text>
+                                    <v-col class="d-flex align-center py-0 text-no-wrap text-truncate">
+                                        <div class="mr-2">
+                                            <v-img width="16" height="16" :src="sessionIcon(target.info)" />
+                                        </div>
+                                        <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
+                                            <template v-slot:activator="{ props }">
+                                                <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
+                                                    <span class="mr-auto text-h6">{{ target?.info?.title }}</span>
+                                                    <span class="ml-2">({{ target.info?.infoURL?.match(/https?:\/\/([^:]*:[0-9]+)/)?.[1] }})</span>
+                                                    <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id }}</span>
+                                                </div>
+                                            </template>
+                                            <v-container v-click-outside="() => tooltips[`${id}`] = 0">
+                                                <v-row>
+                                                    <v-col class="pa-0 font-weight-bold" cols="2">source</v-col>
+                                                    <v-col class="pa-0">{{ target.info?.infoURL }}</v-col>
+                                                </v-row>
+                                                <v-row>
+                                                    <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
+                                                    <v-col class="pa-0">{{ target.url }}</v-col>
+                                                </v-row>
+                                            </v-container>
+                                        </v-tooltip>
+                                    </v-col>
+                                    <v-col cols="4" class="d-flex align-center py-0">
+                                        <v-switch small hide-details color="green" :id="`auto-localhost-${id}`" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-localhost-${id}`, target.tabId, id)">
+                                            <template v-slot:label>
+                                                <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
+                                            </template>
+                                        </v-switch>
+                                        <v-btn size="x-small" :id="`devtools-localhost-${id}`" color="green" @click="devtoolsButtonHandler(target)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                                        <v-btn size="x-small" :id="`remove-localhost-${id}`" color="red" @click="clickHandlerSessionUpdate(`remove-localhost-${id}`, target.tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                                    </v-col>
+                                </v-expansion-panel-text>
+                            </v-expansion-panel>
+                            <v-expansion-panel v-else>
+                                <v-expansion-panel-title class="text-body-1">{{ id }}</v-expansion-panel-title>
+                                <v-expansion-panel-text>No debug targets detected.</v-expansion-panel-text>
+                            </v-expansion-panel> -->
+                        <!-- page type panel -->
+                        <ni-expansion-panel v-if="session.infoArr?.length" v-for="info of session.infoArr" :key="info.id" :info="info" :inputs="inputs" :session="session"
+                            @update:inputs:session:auto="inputUpdateHandler"
+                            @clickHandlerSessionUpdate="clickHandlerSessionUpdate"
+                            @devtoolsButtonHandler="devtoolsButtonHandler" />
+                        <v-expansion-panel v-else>
+                            <v-expansion-panel-title class="text-body-1">{{ id }}</v-expansion-panel-title>
+                            <v-expansion-panel-text>No debug targets detected.</v-expansion-panel-text>
+                        </v-expansion-panel>
+                    </v-expansion-panels>
                 </v-container>
             </v-window-item>
 
             <v-window-item v-for="tab in tabs.filter((tab) => !tab.id.match(/home|localhost/))" :key="tab.id" :value="tab.id">
                 <v-container>
                     <v-row v-for="(session, id) in getSessions(sessions, tab.id)" :key="id" class="d-flex align-center">
-                        <v-col class="d-flex align-center py-0 text-no-wrap text-truncate" v-if="session.tunnelSocket">
-                            <div class="mr-2">
-                                <v-img width="16" height="16" :src="sessionIcon(session.info)" />
-                            </div>
-                            <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
-                                <template v-slot:activator="{ props }">
-                                    <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
-                                        <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
-                                        <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id.split(':')[1] }}</span>
+                        <v-expansion-panels>
+                            <v-expansion-panel v-for="target of session.targets" :key="target.id">
+                                <v-col class="d-flex align-center py-0 text-no-wrap text-truncate" v-if="session.tunnelSocket">
+                                    <div class="mr-2">
+                                        <v-img width="16" height="16" :src="sessionIcon(session.info)" />
                                     </div>
-                                </template>
-                                <v-container v-click-outside="() => tooltips[`${id}`] = 0">
-                                    <v-row v-if="session.url">
-                                        <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
-                                        <v-col class="pa-0">{{ session.url }}</v-col>
-                                    </v-row>
-                                    <v-row v-if="session.info">
-                                        <v-col class="pa-0">
-                                            <ni-info :info="session.info" :expanded="!session.url"></ni-info>
-                                        </v-col>
-                                    </v-row>
-                                </v-container>
-                            </v-tooltip>
-                        </v-col>
-                        <v-col v-else cols="6" class="d-flex">
-                            <div>
-                                ({{ session.connection.pid }})
-                            </div>
-                            <div class="ml-2 text-no-wrap text-truncate">
-                                {{ session.connection.cmd }}
-                            </div>
-                        </v-col>
-                        <v-col cols="4" class="d-flex align-center py-0">
-                            <v-switch :disabled="!session.tunnelSocket" name="auto" :id="`auto-remote-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, sessions[session.tabSession]?.tabId, id)">
-                                <template v-slot:label>
-                                    <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
-                                </template>
-                            </v-switch>
-                            <v-btn :id="`devtools-remote-${id}`" :disabled="!session.tabId && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                            <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
-                        </v-col>
+                                    <v-tooltip :close-delay="tooltips[`${id}`]" location="top">
+                                        <template v-slot:activator="{ props }">
+                                            <div v-bind="props" @dblclick="tooltips[`${id}`] = 60000" class="text-no-wrap">
+                                                <span class="mr-auto text-h6">{{ session?.info?.title }}</span>
+                                                <span class="ml-2" v-if="VITE_ENV !== 'production'">{{ id.split(':')[1] }}</span>
+                                            </div>
+                                        </template>
+                                        <v-container v-click-outside="() => tooltips[`${id}`] = 0">
+                                            <v-row v-if="session.url">
+                                                <v-col class="pa-0 font-weight-bold" cols="2">debug url</v-col>
+                                                <v-col class="pa-0">{{ session.url }}</v-col>
+                                            </v-row>
+                                            <v-row v-if="session.info">
+                                                <v-col class="pa-0">
+                                                    <ni-info :info="session.info" :expanded="!session.url"></ni-info>
+                                                </v-col>
+                                            </v-row>
+                                        </v-container>
+                                    </v-tooltip>
+                                </v-col>
+                                <v-col v-else cols="6" class="d-flex">
+                                    <div>
+                                        ({{ session.connection.pid }})
+                                    </div>
+                                    <div class="ml-2 text-no-wrap text-truncate">
+                                        {{ session.connection.cmd }}
+                                    </div>
+                                </v-col>
+                                <v-col cols="4" class="d-flex align-center py-0">
+                                    <v-switch :disabled="!session.tunnelSocket" name="auto" :id="`auto-remote-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, sessions[session.tabSession]?.tabId, id)">
+                                        <template v-slot:label>
+                                            <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
+                                        </template>
+                                    </v-switch>
+                                    <v-btn :id="`devtools-remote-${id}`" :disabled="!session.tabId && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
+                                    <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                                </v-col>
+                            </v-expansion-panel>
+                        </v-expansion-panels>
                     </v-row>
                 </v-container>
             </v-window-item>
@@ -163,6 +186,13 @@
     width: -webkit-fill-available !important;
     opacity: 0.90 !important;
 }
+
+:deep() .v-expansion-panel-title,
+:deep() .v-expansion-panel-title--active {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    min-height: unset !important;
+}
 </style>
 <script setup>
 import { until } from "async"
@@ -174,8 +204,12 @@ import iconNiM from "/icon/icon128@3x.png"
 import iconDeno from "/deno-favicon.ico"
 import iconNode from "/node-favicon.ico"
 import iconBun from '/bun.svg'
+import testData from '../data/sample-debug-targets.json'
 
-const { VITE_ENV } = import.meta.env
+import NiExpansionPanel from "./NiExpansionPanel.vue"
+
+console.log(testData)
+const { VITE_ENV, MODE } = import.meta.env
 const updateSetting = inject("updateSetting")
 const i18nString = inject("i18nString")
 const extensionId = inject("extensionId")
@@ -458,7 +492,7 @@ function initConnectionErrorMessage() {
 }
 async function devtoolsButtonHandler(session) {
     const { host, port } = settings.value
-    const remoteMetadata = session.remote
+    const remoteMetadata = session?.remote
         ? {
             cid: session.tunnelSocket.cid,
             uuid: session.uuid,
@@ -468,11 +502,16 @@ async function devtoolsButtonHandler(session) {
         command: "openDevtools",
         host: remoteMetadata || host,
         port,
+        session,
         manual: true,
     })
     // console.log(response);
 }
 
+function inputUpdateHandler(id, value) {
+    inputs.value.session.auto[id] = value
+    console.log('...............model update: ', value, inputs.value.session.auto)
+}
 function clickHandlerSessionUpdate(action, tabId, sessionId) {
     const re = new RegExp(
         `https?:\/\/${settings.value.host}:${settings.value.port}`
@@ -574,7 +613,7 @@ function getSessions(
         ...entries.filter((kv) => kv[1].tunnelSocket).sort(sort),
         ...entries.filter((kv) => !kv[1].tunnelSocket).sort(sort),
     ]
-    return !UITabId
+    const _sessions = !UITabId
         ? entries.reduce(
             (localSessions, kv) =>
                 !kv[1].remote && !kv[1]?.socket?.host?.cid // local sessions will have a string host value
@@ -589,6 +628,29 @@ function getSessions(
                     : remoteSessions,
             {}
         )
+    console.log('_sessions: ',_sessions)
+    const sessionsPerSocket = Object.entries(_sessions)
+        .sort((a, b) => a[0].includes(':') ? -1 : 0)
+        .map((kv) => { console.log(kv); return kv })
+        .reduce((sessionsPerSocket, [key, value]) => {
+            if (key.includes(':')) {
+                return { ...sessionsPerSocket, [key]: value }
+            } else if (value.socket) {
+                const socket = `${value.socket.host}:${value.socket.port}`
+
+                return {
+                    ...sessionsPerSocket,
+                    [socket]: {
+                        ...sessionsPerSocket[socket],
+                        browserTabs: sessionsPerSocket[socket].browserTabs ? [...sessionsPerSocket[socket].browserTabs, { tabId: key, ...value }] : [{ tabId: key, ...value }]
+                    }
+                }
+            } else {
+                return sessionsPerSocket
+            }
+        }, {})
+    console.log('sessionsPerSocket: ', sessionsPerSocket)
+    return sessionsPerSocket
 }
 function sessionIcon(sessionInfo) {
     if (/bun/.test(sessionInfo.faviconUrl)) {
