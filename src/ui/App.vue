@@ -33,7 +33,7 @@
         </v-main>
         <v-footer :color="theme === 'light' ? 'grey-lighten-4' : undefined" app class="pa-4 d-flex align-center">
             <a id="site-href" target="_blank" rel="noopener" style="text-decoration: none" href="https://june07.com">
-                <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2024 June07</div>
+                <div class="text-h6 text-green-darken-4 ml-2"><span style="font-family: sans-serif; font-size: smaller">©</span> 2016-2025 June07</div>
             </a>
             <v-spacer></v-spacer>
             <v-fade-transition @after-leave="updateTransitioning = false">
