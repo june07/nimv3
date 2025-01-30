@@ -204,11 +204,11 @@ import iconNiM from "/icon/icon128@3x.png"
 import iconDeno from "/deno-favicon.ico"
 import iconNode from "/node-favicon.ico"
 import iconBun from '/bun.svg'
-import testData from '../data/sample-debug-targets.json'
+// import testData from '../data/sample-debug-targets.json'
 
 import NiExpansionPanel from "./NiExpansionPanel.vue"
 
-console.log(testData)
+// console.log(testData)
 const { VITE_ENV, MODE } = import.meta.env
 const updateSetting = inject("updateSetting")
 const i18nString = inject("i18nString")
