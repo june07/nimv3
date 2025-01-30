@@ -15,30 +15,35 @@
     }
     scripting.saveAsWebp = (options) => {
         const { srcUrl, quality } = options
-        const img = document.querySelector(`img[src="${srcUrl}"]`)
+        const img = new Image()
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
-        // Set canvas size to match image
-        canvas.width = img.naturalWidth
-        canvas.height = img.naturalHeight
+        img.onload = () => {
+            // Set canvas size to match image
+            canvas.width = img.naturalWidth
+            canvas.height = img.naturalHeight
 
-        // Draw the image onto the canvas
-        ctx.drawImage(img, 0, 0)
+            // Draw the image onto the canvas
+            ctx.drawImage(img, 0, 0)
 
-        // Convert to WebP data URL
-        const webpDataUrl = canvas.toDataURL('image/webp', quality/100)
+            // Convert to WebP data URL
+            const webpDataUrl = canvas.toDataURL('image/webp', quality / 100)
 
-        let filename = new URL(srcUrl).pathname.split('/').pop()
-        const extension = filename.split('.').pop()
-        filename = filename ? filename.replace(`.${extension}`, '.webp') : 'image.webp'
+            let filename = new URL(srcUrl).pathname.split('/').pop()
+            const extension = filename.split('.').pop()
+            filename = filename ? filename.replace(`.${extension}`, '.webp') : 'image.webp'
 
-        // Create a download link and trigger download
-        const link = document.createElement('a')
-        link.href = webpDataUrl
-        link.download = filename
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+            // Create a download link and trigger download
+            const link = document.createElement('a')
+            link.href = webpDataUrl
+            link.download = filename
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        }
+
+        img.crossOrigin = 'anonymous'
+        img.src = srcUrl
     }
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.scripting = self.scripting || {}))
