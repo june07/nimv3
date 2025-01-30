@@ -40,6 +40,10 @@
     utilities.rotate270 = (info, tab) => utilities.rotate(270, info, tab)
 
     chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({ title: 'Image SaveAs (webp q=1)', id: 'saveas-webp-100', contexts: ['image'] }, () => { })
+        chrome.contextMenus.create({ title: 'Image SaveAs (webp q=0.9)', id: 'saveas-webp-90', contexts: ['image'] }, () => { })
+        chrome.contextMenus.create({ title: 'Image SaveAs (webp q=0.5)', id: 'saveas-webp-50', contexts: ['image'] }, () => { })
+
         chrome.contextMenus.create({ title: 'Image Rotate (0deg)', id: 'rotate-0', contexts: ['image'] }, () => { })
         chrome.contextMenus.create({ title: 'Image Rotate (90deg)', id: 'rotate-90', contexts: ['image'] }, () => { })
         chrome.contextMenus.create({ title: 'Image Rotate (180deg)', id: 'rotate-180', contexts: ['image'] }, () => { })
@@ -62,6 +66,24 @@
             chrome.windows.update(tab.windowId, { width, height }, () => {
                 googleAnalytics.fireEvent('Window Resize', { 'size': `${width}x${height}` })
             })
+        } else if (/saveas-/.test(menuItemId)) {
+            const quality = Number(menuItemId.replace(/saveas-[^-]*-/, ''))
+            const type = menuItemId.match(/saveas-([^-]*)-.*/)[1]
+
+            chrome.scripting.executeScript(
+                {
+                    target: { tabId: tab.id, allFrames: true },
+                    func: scripting.saveAsWebp,
+                    args: [{ type, quality, ...info }]
+                },
+                (injectionResults) => {
+                    if (!injectionResults) return
+                    for (const frameResult of injectionResults) {
+                        if (settings.debugVerbosity >= 7) {
+                            console.log('Utilities:saveAs:InjectionResult: ' + frameResult)
+                        }
+                    }
+                })
         } else {
             chrome.scripting.executeScript(
                 {
@@ -73,7 +95,7 @@
                     if (!injectionResults) return
                     for (const frameResult of injectionResults) {
                         if (settings.debugVerbosity >= 7) {
-                            console.log('Utilities:InjectionResult: ' + frameResult)
+                            console.log('Utilities:rotate:InjectionResult: ' + frameResult)
                         }
                     }
                 })

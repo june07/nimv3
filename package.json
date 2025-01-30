@@ -1,6 +1,6 @@
 {
   "name": "nimv3",
-  "version": "3.11.1",
+  "version": "3.12.0",
   "scripts": {
     "dev": "vite --host",
     "dev:extension": "npm-run-all --parallel build:dev watch:rollup:deps",
@@ -25,6 +25,7 @@
     "async": "^3.2.6",
     "jwt-decode": "^4.0.0",
     "nanoid": "^5.0.8",
+    "posthog-js": "^1.187.1",
     "socket.io-client": "^4.8.1",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",

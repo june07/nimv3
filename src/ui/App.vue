@@ -12,9 +12,10 @@
             <v-avatar v-if="isAuthenticated" size="x-small">
                 <v-img :src="user?.picture" :alt="user?.name"></v-img>
             </v-avatar>
+            <!--
             <v-btn variant="plain" icon density="compact" @click="login" :loading="loading.login">
                 <span class="material-icons">{{ isAuthenticated ? 'logout' : 'login' }}</span>
-            </v-btn>
+            </v-btn> -->
             <v-btn v-if="notifications && Object.keys(notifications).length" variant="plain" icon density="compact" @click="overlayHandler('messages', true)">
                 <span class="material-icons">notifications</span>
             </v-btn>
