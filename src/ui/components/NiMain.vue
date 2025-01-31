@@ -642,7 +642,7 @@ function getSessions(
                     ...sessionsPerSocket,
                     [socket]: {
                         ...sessionsPerSocket[socket],
-                        browserTabs: sessionsPerSocket[socket].browserTabs ? [...sessionsPerSocket[socket].browserTabs, { tabId: key, ...value }] : [{ tabId: key, ...value }]
+                        browserTabs: sessionsPerSocket[socket]?.browserTabs ? [...sessionsPerSocket[socket].browserTabs, { tabId: key, ...value }] : [{ tabId: key, ...value }]
                     }
                 }
             } else {

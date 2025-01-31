@@ -5,6 +5,7 @@ importScripts(
     '../dist/async.min.js',
     '../dist/socket.io.min.js',
     '../dist/nanoid.min.js',
+    '../dist/posthog.min.js',
     './utils.js',
     './settings.js',
     './brakecode.js',
@@ -30,6 +31,7 @@ const SOCKET_PATTERN = /((([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}
 const reDevtoolsURL = /(devtools|chrome-devtools|https?:\/\/localhost|chrome-devtools-frontend(\.(appspot|june07|brakecode)\.com)).*\/(inspector.html|js_app.html|devtools_app.html|node_app.html|ndb_app.html)/
 const reTabGroupTitle = new RegExp(/NiM/)
 const reSocket = new RegExp(/^((?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}|localhost|(?:\d{1,3}\.){3}\d{1,3}|(\[(?:[A-Fa-f0-9:]+)\]))+(:\d{1,5})?)|^\d{1,5}$/)
+const ph = posthog.posthog
 
 const HIGH_WATER_MARK_MAX = 3
 const DRAIN_INTERVAL = 5000
@@ -64,8 +66,13 @@ let state = {
     isCheckingLicense: false,
 }
 
+ph.init('phc_U0nrCJpom983ioh7ZVNmFrHGMrR588Mwj9K2feSv851', { api_host: 'https://us.i.posthog.com', persistence: 'localStorage' })
+
 async function importForeignTabs() {
-    return await queryForDevtoolTabs()
+    const tabs = await queryForDevtoolTabs()
+    console.log('foreign tabs: ', tabs)
+
+    return tabs
 }
 async function hydrateState() {
     /** this function will generally not be useful during testing because the session is restarted every time a reload is done
@@ -73,9 +80,12 @@ async function hydrateState() {
      */
     if (ENV !== 'production') {
         const foreignTabSessions = await importForeignTabs()
+
         await chrome.tabs.remove(foreignTabSessions.map((tab) => tab.id))
-        foreignTabSessions.forEach((foreignTabSessions) => {
-            openTab(foreignTabSessions.socket.host, foreignTabSessions.socket.port)
+        foreignTabSessions.forEach((foreignTabSession) => {
+            const { socket: { host, port }, targetId } = foreignTabSession.metadata
+
+            openTab(host, port, targetId)
         })
     }
     const sessions = (await chrome.storage.session.get('sessions'))?.sessions
@@ -89,7 +99,7 @@ async function hydrateState() {
     // console.log('serviceworker state:', state);
 }
 (async function init() {
-    cache.ip = await (await fetch('https://ip-cfworkers.brakecode.com', { method: 'head' })).headers.get('cf-connecting-ip')
+    cache.ip = await (await fetch('https://ip-cfworkers.june07.com', { method: 'head' })).headers.get('cf-connecting-ip')
     await async.until(
         (cb) => cb(null, settings.DEVTOOLS_SCHEME),
         (next) => setTimeout(next, 500)
@@ -99,42 +109,34 @@ async function hydrateState() {
         let home,
             openedRemoteTabSessions = {}
 
-        // first handle tab sessions
-        const tabSessions = Object.entries(state.sessions).filter(kv => !kv[0].match(':')).map((kv) => {
-            const tabSession = kv[1]
-
-            if (tabSession.auto && tabSession.socket) {
-                const { host, port } = tabSession.socket
+        Object.values(state.sessions).forEach((session) => {
+            if (session.auto && session.socket) {
+                const { host, port, targetId, uuid } = session.socket
 
                 if (host === settings.host && port === settings.port) {
                     home = true
                 }
                 // if it's a remote session then track it for the next loop
-                if (tabSession.socket?.uuid) {
-                    openedRemoteTabSessions[tabSession.socket.uuid] = tabSession
+                if (targetId) {
+                    openTab(host, port, targetId)
+                } else if (uuid) {
+                    openedRemoteTabSessions[session.socket.uuid] = session
                 }
-                openTab(host, port)
             }
-            return kv[1]
         })
         // then handle remote sessions that have not yet been opened thus there is no tab session
-        Object.entries(state.sessions).filter(kv => kv[0].match(':') &&
-            !tabSessions.find((tabSession) => tabSession.info.id.match(kv[1].info.id))).forEach((kv) => {
-
-                const remoteSessionId = kv[0],
-                    remoteSession = kv[1]
-
-                if (!openedRemoteTabSessions[remoteSessionId.split(':')[0]] && remoteSession.auto && remoteSession?.tunnelSocket?.socket) {
-                    const remoteMetadata = {
-                        cid: remoteSession.tunnelSocket.cid,
-                        uuid: remoteSession.uuid,
-                    }
-                    openTab(remoteMetadata)
+        Object.entries(state.sessions).filter(([_, remoteSession]) => remoteSession.socket?.uuid).forEach(([remoteSessionId, remoteSession]) => {
+            if (!openedRemoteTabSessions[remoteSessionId.split(':')[0]] && remoteSession.auto && remoteSession?.tunnelSocket?.socket) {
+                const remoteMetadata = {
+                    cid: remoteSession.tunnelSocket.cid,
+                    uuid: remoteSession.uuid,
                 }
-            })
+                openTab(remoteMetadata)
+            }
+        })
         // if the home tab socket hasn't been added to the sessions yet
         if (!home && settings.auto) {
-            openTab(settings.host, settings.port)
+            openTab()
         }
         // failsafe interval of 60 seconds because the runaway problem can be real!!!
     }, {
@@ -171,10 +173,15 @@ async function getInfo(host, port) {
         // console.log('response status: ', response.status);
         if (!`${response.status}`.match(/2[0-9]{2}/)) return
         const info = await response.json()
-        // Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
+        /** Will there ever be a reason to use an index other than 0? Not sure why an array is returned from Node.js?!
+         * And today 11/28/2024 it was time to find out why, more than one debugging target per socket obviously!
+         * */
         cache.info[cacheId] = {
             infoURL: url,
-            ...browserAgnosticFix(info[0])
+            infoArr: info.map(info => browserAgnosticFix(info))
+        }
+        if (settings.debugVerbosity >= 7) {
+            console.log(cache.info)
         }
         return cache.info[cacheId]
     } catch (error) {
@@ -190,7 +197,7 @@ async function getInfoCache(remoteMetadata) {
     }
     return await getInfo(remoteMetadata)
 }
-async function queryForDevtoolTabs(host, port) {
+async function queryForDevtoolTabs(host = settings.host, port = settings.port, targetId) {
     const remoteMetadata = typeof host === 'object' ? host : {}
     let devtoolsLocalPatterns = [],
         devtoolsRemotePatterns = [],
@@ -251,13 +258,37 @@ async function queryForDevtoolTabs(host, port) {
         }
         url = devtoolsRemotePatterns
     }
+
     const tabs = await chrome.tabs.query({ url })
-    return tabs.map(tab => ({ ...tab, socket: { host, port } }))
+
+    return !targetId ? tabs.map(tab => ({
+        ...tab,
+        metadata: {
+            socket: { host, port },
+            targetId: targetFromDevtoolsUrl(tab.url)
+        }
+    })) : tabs.filter(tab => tab.url.includes(targetId)).map(tab => ({
+        ...tab,
+        metadata: {
+            socket: { host, port },
+            targetId
+        }
+    }))
+}
+function targetFromDevtoolsUrl(url) {
+    let target = url.match(/wss?=[^/]*\/devtools\/[^/]+\/([^/]+)/i)?.[1]
+
+    if (!target) {
+        target = url.match(/wss?=[^/]*\/([^/]+)/i)?.[1]
+    }
+
+    return target
 }
 async function openWindow(focus = 'repl') {
     googleAnalytics.fireEvent('openWindow', { focus })
     const { toolsWindow: toolsLastWindow } = await chrome.storage.local.get(['toolsWindow'])
-    const info = await getInfo(NODEJS_INSPECT_HOST)
+    const { infoArr } = await getInfo(NODEJS_INSPECT_HOST)
+    const info = infoArr?.[0]
     const devtoolsUrl = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
     let urls = ['https://nim.june07.com/docs']
 
@@ -302,12 +333,22 @@ async function openWindow(focus = 'repl') {
     })
     await chrome.storage.local.set({ toolsWindow })
 }
-async function openTab(host = 'localhost', port = 9229, manual) {
+async function openTab(host = settings.host, port = settings.port, targetId, manual) {
     checkLicenseStatus()
     const remoteMetadata = typeof host === 'object' ? host : undefined
-    const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || `${host}:${port}`)
+    const { infoArr } = !targetId ? await getInfo(remoteMetadata || host, port) : {}
+    const info = infoArr?.[0]
+    const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || getSessionId({ host, port }, targetId || info.id))
     let devtoolsURL
 
+    if (!state.sockets?.[`${host}:${port}`]) {
+        state.sockets = {
+            ...(state.sockets || {}),
+            [`${host}:${port}`]: { host, port, info: infoArr }
+        }
+    } else {
+        state.sockets[`${host}:${port}`].info = infoArr
+    }
     if (!cache.tabs[cacheId]) {
         if (settings.debugVerbosity >= 9) {
             console.log('resetting cache.tabs')
@@ -318,7 +359,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
         }
     };
     if (settings.debugVerbosity >= 9) {
-        console.log('cache.tabs[cacheId]: ', cache.tabs[cacheId])
+        console.log(`cache.tabs[cacheId], cacheId: ${cacheId}, `, cache.tabs[cacheId])
     }
     try {
         // settings.DEVTOOLS_SCHEME can be null on initial startup
@@ -326,7 +367,7 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].hits += 1
             return
         }
-        const tabs = await queryForDevtoolTabs(host, port)
+        const tabs = await queryForDevtoolTabs(host, port, targetId || info.id)
         // close autoClose sessions if they are dead
         const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => Object.values(state.sessions)?.length && !state.sessions[tab.id]?.socket?.host?.cid).map(tab => {
             const sessionForTab = state.sessions[tab.id]
@@ -359,11 +400,11 @@ async function openTab(host = 'localhost', port = 9229, manual) {
             cache.tabs[cacheId].hits += 1
             return
         }
-        const info = await getInfo(remoteMetadata || host, port)
+
         if (!info) {
-            cache.tabs[cacheId].hits += 1
             return
         }
+
         if (info.type !== 'bun') {
             setDevtoolsURL(info)
             if (remoteMetadata) {
@@ -381,9 +422,13 @@ async function openTab(host = 'localhost', port = 9229, manual) {
                     .replace(inspectIP + ":9229", host + ":" + port) // In the event that remote debugging is being used and the infoURL port (by default 80) is not forwarded take a chance and pick the default.
                     .replace(inspectIP + ":" + inspectPORT, host + ":" + port) // A check for just the port change must be made.
             }
+            // if the origin is not present as in the case of chrome being the debugging host vs node.js for example, then we need to add it
+            if (!new RegExp(`^${reDevtoolsURL.source}`).test(devtoolsURL)) {
+                devtoolsURL = `${host}:${port}${devtoolsURL}`
+            }
             // custom devtools
             if ((settings.localDevtools || settings.devToolsCompat) && settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url.match(reDevtoolsURL)) {
-                devtoolsURL = devtoolsURL.replace(reDevtoolsURL, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
+                devtoolsURL = devtoolsURL.replace(/[^?]*/, settings.localDevtoolsOptions[settings.localDevtoolsOptionsSelectedIndex].url)
             }
             // legacy fix
             if (devtoolsURL.match(/chrome-devtools:\/\//)) {
@@ -603,26 +648,35 @@ function updateTabUI(tabId, title) {
             }
         })
 }
-async function saveSession(params) {
-    const { url, tabId, windowId, info, dtpSocket, socket } = params
-    const existingSessions = Object.values(state.sessions).filter((session) => session.info.infoURL === info.infoURL)
+function getSessionId(socket, info) {
+    const socketId = Object.values(socket).join(':')
+    const targetId = typeof info === 'object' ? info.id : info
 
-    const session = {
+    return `${socketId} ${targetId}`
+}
+async function saveSession(params) {
+    const { socket, infoArr, info, url, tabId, windowId, dtpSocket } = params
+    const sessionId = getSessionId(socket, info || infoArr[0])
+    const existingSession = Object.values(state.sessions).find((session) => sessionId === session.sessionId)
+    const newSession = Object.fromEntries(Object.entries({
         url,
-        auto: existingSessions[0]?.auto || settings.auto,
-        autoClose: existingSessions[0]?.autoClose || settings.autoClose,
-        newWindow: existingSessions[0]?.newWindow || settings.newWindow,
+        auto: existingSession?.auto || settings.auto,
+        autoClose: existingSession?.autoClose || settings.autoClose,
+        newWindow: existingSession?.newWindow || settings.newWindow,
         tabId,
         windowId,
         info,
+        infoArr,
         dtpSocket,
-        socket
-    }
-    state.sessions[tabId] = session
+        socket,
+        targetId: info.id
+    }).filter(([_key, value]) => value !== undefined))
 
+    state.sessions[sessionId] = newSession
     chrome.storage.session.set({ sessions: state.sessions })
     // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it. 
-    existingSessions.map((session) => delete state.sessions[session.tabId])
+
+    console.log(state.sessions)
 }
 function encryptMessage(message, publicKeyBase64Encoded) {
     const clientPrivateKey = nacl.randomBytes(32),
@@ -667,21 +721,23 @@ function messageHandler(request, sender, reply) {
             openWindow('docs')
             break
         case 'openDevtools':
-            const { host, port, manual } = request
+            const { host, port, targetId, manual } = request
             const remoteMetadata = typeof host === 'object' ? host : undefined
             const cacheId = remoteMetadata?.cid || `${host}:${port}`
 
             if (cache[cacheId]) return
             try {
                 cache[cacheId] = Date.now()
-                openTab(host, port, manual)
+                openTab(host, port, targetId, manual)
             } catch (error) {
                 console.log(error)
             } finally {
                 delete cache[cacheId]
+                reply(state.sessions)
             }
             break
         case 'getSettings': settings.get().then(reply); break
+        case 'getSockets': reply(state.sockets); break
         case 'getSessions': reply(state.sessions); break
         case 'getRemotes':
             chrome.storage.session.get('remotes').then((response) => reply(response?.remotes || {}))
@@ -709,8 +765,8 @@ function messageHandler(request, sender, reply) {
                     // delete state[obj][key];
                     // tabId key must always be first and is only needed for this cache because it's only for tabs
                     // must turn these off immediately since the sessions themselves may linger.
-                    state.sessions[tabId].auto = false
-                    state.sessions[remoteSessionId].auto = false
+                    if (state.sessions[tabId]?.auto) state.sessions[tabId].auto = false
+                    if (state.sessions[remoteSessionId]?.auto) state.sessions[remoteSessionId].auto = false
                     cache.forceRemoveSession[tabId] = true
                     chrome.tabs.remove(tabId).then(() => {
                         async.until(
@@ -830,7 +886,9 @@ chrome.tabs.onCreated.addListener(async function chromeTabsCreatedEvent(tab) {
         const updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
         await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
     }
-    googleAnalytics.fireEvent('toolsWindowCreated')
+    if (toolsWindow) {
+        googleAnalytics.fireEvent('toolsWindowCreated')
+    }
 })
 chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, { isWindowClosing, windowId }) {
     const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
@@ -861,7 +919,7 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     googleAnalytics.fireEvent('tabRemoved')
 })
 chrome.tabs.onActivated.addListener(function chromeTabsActivatedEvent() {
-    googleAnalytics.fireEvent('tabActivated')
+    // googleAnalytics.fireEvent('tabActivated') // this is way too verbose so it's disabled
 })
 chrome.tabs.onAttached.addListener(async function chromeTabsAttachedEvent(tabId, { newPosition, newWindowId }) {
     cache.tabMovedEvents[tabId] = cache.tabMovedEvents[tabId] ? { ...cache.tabMovedEvents[tabId], attached: Date.now(), newWindowId } : { attached: Date.now(), newWindowId }

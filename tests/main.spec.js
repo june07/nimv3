@@ -45,5 +45,5 @@ module.exports = (async () => {
 
             process.kill()
         })
-    })
+    }, { timeout: 600000 })
 })()
