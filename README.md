@@ -62,6 +62,10 @@ Besides being the [OG solution to the problem of copy/paste DevTools URL's or co
 - **🔍 Debugging Efficiency**
   - Resume debugging at the *first breakpoint* when using `--inspect-brk`.
   - Capture **debugging statistics** to analyze and optimize your debugging process.
+- **🧰 Utilities**
+  - Image rotation
+  - Window Resizing - https://blog.june07.com/nim-window-resize-feature-v3-11-1/
+  - Image SaveAs .webp different quality levels - https://blog.june07.com/nim-saveas-webp-feature-v3-12-0/
 
 
 
