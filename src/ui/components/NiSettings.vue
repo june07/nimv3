@@ -57,7 +57,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center mt-0" v-if="!inputs.newWindow">
+                    <v-row class="d-flex align-center mt-0 highlighted-row" v-if="!inputs.newWindow">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('makeInspectorTabActive') }}
                         </v-col>
@@ -81,7 +81,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center mt-0">
+                    <v-row class="d-flex align-center mt-0 highlighted-row">
                         <v-col class="py-0 text-body-1">
                             {{ i18nString('autoCloseInspector') }}
                         </v-col>
@@ -105,7 +105,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center mt-0">
+                    <v-row class="d-flex align-center mt-0 highlighted-row">
                         <v-col class="pt-0 text-body-1 text-capitalize">
                             {{ i18nString('themeOverride') }}
                         </v-col>
@@ -146,7 +146,7 @@
                             </v-switch>
                         </v-col>
                     </v-row>
-                    <v-row class="d-flex align-center mt-0">
+                    <v-row class="d-flex align-center mt-0 highlighted-row">
                         <v-col class="py-0 text-body-1">
                             DevTools Compat
                         </v-col>
@@ -262,6 +262,9 @@
     </v-container>
 </template>
 <style scoped>
+.highlighted-row {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #E8F5E9 40%, #E8F5E9 60%, rgba(255, 255, 255, 0) 100%)
+}
 :deep(.localDevToolsSelect .v-field__input) {
     padding: 0;
 }

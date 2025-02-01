@@ -38,12 +38,14 @@
             <v-spacer></v-spacer>
             <v-fade-transition @after-leave="updateTransitioning = false">
                 <div v-if="updates.length && !updateTransitioning" :key="updatesIndex" class="d-flex align-center text-body-1" style="max-width: 300px">
-                    <v-tooltip location="top">
+                    <v-tooltip location="top" :close-delay="tooltipCloseDelay">
                         <template v-slot:activator="{ props }">
-                            <div v-bind="props" class="text-no-wrap text-truncate mr-2">{{ updates[updatesIndex].title }}</div>
+                            <div v-bind="props" style="pointer-events: all; cursor: pointer;" @click="tooltipCloseDelay = 60000" class="px-4 text-no-wrap text-truncate mr-2">{{ updates[updatesIndex].title }}</div>
                         </template>
-                        <v-card-title>{{ updates[updatesIndex].title }}</v-card-title>
-                        <v-card-subtitle v-html="updates[updatesIndex].description" />
+                        <v-container style="pointer-events: all" v-click-outside="tooltipCloseDelay = 0">
+                            <v-card-title>{{ updates[updatesIndex].title }}</v-card-title>
+                            <v-card-subtitle class="update-info font-weight-bold text-wrap" v-html="updates[updatesIndex].description" />
+                        </v-container>
                     </v-tooltip>
                     <v-btn text="blog" variant="plain" size="small" :href="updates[updatesIndex].link" target="_blank" rel="noopener" />
                 </div>
@@ -78,6 +80,12 @@
 .small-icon {
     font-size: 16px;
 }
+
+.update-info a {
+    text-decoration: none !important;
+    color: inherit !important;
+    /* Optional: Force link color to blend with text */
+}
 </style>
 <script setup>
 const { MODE, VITE_ENV, VITE_EXTENSION_ID } = import.meta.env
@@ -93,6 +101,7 @@ import NiSettings from "./components/NiSettings.vue"
 import NiDonationOverlay from "./components/NiDonationOverlay.vue"
 import NiMessagesOverlay from "./components/NiMessagesOverlay.vue"
 
+const tooltipCloseDelay = ref(0)
 const extensionId = chrome?.runtime?.id || VITE_EXTENSION_ID
 const i18nString = inject("i18nString")
 const settings = inject("settings")
@@ -278,7 +287,8 @@ async function getUpdates() {
         setInterval(() => {
             updateTransitioning.value = true
             updatesIndex.value = (updatesIndex.value + 1) % updates.value.length
-        }, MODE === 'production' ? 15000 : 5000)
+            tooltipCloseDelay.value = 0
+        }, MODE === 'production' ? 15000 : 15000)
     } catch (error) {
         console.error(error)
     }

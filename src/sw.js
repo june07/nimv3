@@ -690,10 +690,12 @@ async function saveSession(params) {
     chrome.storage.session.set({ sessions: state.sessions })
     // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it.
     if (existingSession?.socket) {
-        const oldSessionId = getSessionId(existingSession.socket, existingSession.target.id)
-        delete state.sessions[oldSessionId]
+        const oldSessionId = getSessionId(existingSession.socket, existingSession.id)
+
+        if (oldSessionId !== sessionId) {
+            delete state.sessions[oldSessionId]
+        }
     }
-    console.log(state.sessions)
 }
 function encryptMessage(message, publicKeyBase64Encoded) {
     const clientPrivateKey = nacl.randomBytes(32),
