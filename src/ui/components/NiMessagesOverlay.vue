@@ -39,7 +39,7 @@
     </v-overlay>
 </template>
 <style scoped>
-:deep .v-expansion-panel-title {
+:deep(.v-expansion-panel-title) {
     min-height: unset;
     padding-top: 4px;
     padding-bottom: 4px;

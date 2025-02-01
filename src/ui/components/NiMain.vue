@@ -45,7 +45,7 @@
             </v-window-item>
 
             <v-window-item value="localhost">
-                <div class="row no-connections-detected pt-16" v-if="!Object.values(getSessions(sessions)).length">
+                <div class="row no-connections-detected pt-16" v-if="!Object.values(computedSessions).length">
                     <h1 ref="ml11" class="ml11">
                         <span class="text-wrapper">
                             <span class="line line1"></span>
@@ -54,7 +54,7 @@
                     </h1>
                 </div>
                 <v-container v-else>
-                    <v-expansion-panels flat v-for="(session, id) in getSessions(sessions)" :key="id">
+                    <v-expansion-panels flat v-for="(session, id) in computedSessions" :key="id" :model-value="Object.keys(computedSessions)">
                         <!-- node type panel begin
                             <v-expansion-panel v-if="session.targets?.length" v-for="target of session.targets" :key="target">
                                 <v-expansion-panel-title class="text-body-1">{{ id }}</v-expansion-panel-title>
@@ -99,7 +99,7 @@
                                 <v-expansion-panel-text>No debug targets detected.</v-expansion-panel-text>
                             </v-expansion-panel> -->
                         <!-- page type panel -->
-                        <ni-expansion-panel v-if="session.infoArr?.length" v-for="info of session.infoArr" :key="info.id" :info="info" :inputs="inputs" :session="session"
+                        <ni-expansion-panel v-if="session.id" :key="session.id" :info="session" :inputs="inputs" :session="session" :value="id"
                             @update:inputs:session:auto="inputUpdateHandler"
                             @clickHandlerSessionUpdate="clickHandlerSessionUpdate"
                             @devtoolsButtonHandler="devtoolsButtonHandler" />
@@ -149,13 +149,13 @@
                                     </div>
                                 </v-col>
                                 <v-col cols="4" class="d-flex align-center py-0">
-                                    <v-switch :disabled="!session.tunnelSocket" name="auto" :id="`auto-remote-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, sessions[session.tabSession]?.tabId, id)">
+                                    <v-switch :disabled="!session.tunnelSocket" name="auto" :id="`auto-remote-${id}`" small hide-details color="green" inset v-model="inputs.session.auto[`${id}`]" density="compact" class="ml-auto shrink small-switch" @change="clickHandlerSessionUpdate(`auto-remote-${id}`, id)">
                                         <template v-slot:label>
                                             <div class="text-no-wrap" style="width: 40px">{{ inputs.auto ? `${i18nString('auto')}` : `${i18nString('manual')}` }}</div>
                                         </template>
                                     </v-switch>
                                     <v-btn :id="`devtools-remote-${id}`" :disabled="!session.tabId && !session.tunnelSocket" size="x-small" color="green" @click="devtoolsButtonHandler(session)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                                    <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, sessions[session.tabSession].tabId, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                                    <v-btn :id="`remove-remote-${id}`" :disabled="!session?.tabSession" size="x-small" color="red" @click="clickHandlerSessionUpdate(`remove-remote-${id}`, id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                                 </v-col>
                             </v-expansion-panel>
                         </v-expansion-panels>
@@ -170,13 +170,13 @@
     font-size: x-large;
 }
 
-:deep() input#host,
-:deep() input#port,
-:deep() .v-input__details {
+:deep(input#host),
+:deep(input#port),
+:deep(.v-input__details) {
     text-align: center;
 }
 
-:deep() .v-overlay__content {
+:deep(.v-overlay__content) {
     pointer-events: all !important;
     background-color: white !important;
     border: 1px solid green;
@@ -187,8 +187,8 @@
     opacity: 0.90 !important;
 }
 
-:deep() .v-expansion-panel-title,
-:deep() .v-expansion-panel-title--active {
+:deep(.v-expansion-panel-title),
+:deep(.v-expansion-panel-title--active) {
     padding-top: 6px;
     padding-bottom: 6px;
     min-height: unset !important;
@@ -196,7 +196,7 @@
 </style>
 <script setup>
 import { until } from "async"
-import { ref, inject, watch } from "vue"
+import { ref, inject, watch, computed } from "vue"
 import { useAsyncState } from "@vueuse/core"
 import anime from "animejs/lib/anime.es.js"
 import NiInfo from "./NiInfo.vue"
@@ -512,7 +512,7 @@ function inputUpdateHandler(id, value) {
     inputs.value.session.auto[id] = value
     console.log('...............model update: ', value, inputs.value.session.auto)
 }
-function clickHandlerSessionUpdate(action, tabId, sessionId) {
+function clickHandlerSessionUpdate(action, sessionId) {
     const re = new RegExp(
         `https?:\/\/${settings.value.host}:${settings.value.port}`
     )
@@ -525,38 +525,34 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
      *  !sessionId to ensure it's only for local sessions.
      */
     const match = action.match(/(auto)(-.*)?|(remove)(-.*)?/)
-    if (tabId && match && re.test(sessions.value[tabId]?.info?.infoURL)) {
+    
+    if (match && re.test(sessions.value[sessionId]?.info?.infoURL)) {
         // update auto session and setting in localhost tab
         if (match[1] === "auto") {
             values = {
-                [tabId]: {
-                    ...sessions.value[tabId],
-                    [match[1]]: inputs.value.session.auto[sessionId],
+                [sessionId]: {
+                    ...sessions.value[sessionId],
+                    [match[1]]: !inputs.value.session.auto[sessionId],
                 },
             }
             updateSetting("auto", inputs.value.session.auto[sessionId])
         } else {
-            cache.remove[tabId] = true
             cache.remove[sessionId] = true
             updateSetting("auto", false)
         }
     } else {
         // update auto session and setting in remote tabs
-        if (tabId && action.match(/remove/)) {
-            cache.remove[tabId] = true
+        if (sessionId && action.match(/remove/)) {
+            if (true /** do a test here to see if the current socket is the same that is configured at home, otherwise it's fine to leave auto alone */) {
+                updateSetting("auto", false)
+            }
             cache.remove[sessionId] = true
         } else if (action.match(/auto/)) {
             values = {
                 [sessionId]: {
-                    ...sessions.value[tabId || sessionId],
-                    [match[1]]: inputs.value.session[match[1]][sessionId],
-                },
-            }
-            if (tabId) {
-                values[tabId] = {
                     ...sessions.value[sessionId],
-                    [match[1]]: inputs.value.session[match[1]][sessionId],
-                }
+                    [match[1]]: !inputs.value.session[match[1]][sessionId],
+                },
             }
         }
     }
@@ -566,13 +562,11 @@ function clickHandlerSessionUpdate(action, tabId, sessionId) {
             command: "commit",
             store: "session", // chrome storage type (i.e. local, session, sync)
             obj: "sessions",
-            keys: [tabId, sessionId].filter((i) => i),
+            keys: [sessionId].filter((i) => i),
             values,
         },
         (responses) => {
             if (!values?.length && !responses?.length) {
-                delete sessions.value[tabId]
-                delete cache.remove[tabId]
                 delete cache.remove[sessionId]
                 // console.log(sessions.value);
             } else {
@@ -598,6 +592,7 @@ function update(event) {
         updateSetting(id, inputs.value[id])
     }
 }
+const computedSessions = computed(() => getSessions(sessions.value))
 function getSessions(
     sessions,
     UITabId,

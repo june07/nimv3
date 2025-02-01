@@ -29,6 +29,11 @@ const deps = [
     {
         input: 'node_modules/socket.io-client/dist/socket.io.min.js',
         watch: `${watchDir}/socket.io.min.js`,
+    },
+    {
+        input: 'node_modules/posthog-js/dist/module.full.no-external.js',
+        watch: `${watchDir}/module.full.no-external.js`,
+        name: 'posthog'
     }
 ]
 const watchFiles = deps.map(dep => dep.watch)
@@ -69,6 +74,7 @@ async function build() {
                         format: 'iife',
                         file: dep.watch,
                         name: dep.name,
+                        exports: 'named'
                     })
                     fs.writeFileSync(dep.watch, output[0].code)
                 } catch (error) {

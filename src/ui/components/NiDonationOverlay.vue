@@ -84,7 +84,7 @@
     border-radius: 12px;
 }
 
-:deep() #bitcoin.v-field__input {
+:deep(#bitcoin.v-field__input) {
     padding-top: 0;
     padding-bottom: 0;
 }

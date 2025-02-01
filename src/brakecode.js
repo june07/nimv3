@@ -125,7 +125,7 @@
                 return
             }
 
-            const namespace = uuidv5(apikey, namespaceUUID)
+            const namespace = uuidv5.default(apikey, namespaceUUID)
             const publicKey = await lookup(PUBLIC_KEY_NAME)
             const encryptedMessage = await encryptMessage(apikey, publicKey)
             brakecode.io = io(`https://${BRAKECODE_HOST}/${namespace}`, { transports: ['websocket'], path: '/nim', query: { apikey: encryptedMessage } })

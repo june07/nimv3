@@ -28,10 +28,13 @@ module.exports = (async () => {
             await test.step('LOCALHOST switch should be disabled', async () => {
                 await (await page.locator(ids.tab.localhost)).click()
                 await (await page.locator(ids.switches.localhost)).first().setChecked(false)
+
                 expect(await (await page.locator(ids.switches.localhost)).isChecked()).toBe(false)
             })
             await test.step('HOME switch should be disabled', async () => {
                 await (await page.locator(ids.tab.home)).click()
+                await (await page.locator(ids.switches.home)).first().setChecked(false)
+
                 expect(await (await page.locator(ids.switches.home)).isChecked()).toBe(false)
             })
             await test.step('devtools tab should be removed', async () => {

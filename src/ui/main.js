@@ -34,20 +34,28 @@ app.use(VueSocialSharing)
 
 let settings = ref({})
 async function updateSetting(name, value) {
-    // send update via messages
-    chrome.runtime.sendMessage(
-        id,
-        {
-            command: "commit",
-            store: "local", // chrome storage type (i.e. local, session, sync)
-            obj: "settings",
-            key: name,
-            value: typeof value === 'string' && value.match(/true|false/i) ? !!value : value
-        },
-        (response) => {
-            settings.value = { ...settings.value, ...response }
+    return new Promise((resolve, reject) => {
+        try {
+            // send update via messages
+            chrome.runtime.sendMessage(
+                id,
+                {
+                    command: "commit",
+                    store: "local", // chrome storage type (i.e. local, session, sync)
+                    obj: "settings",
+                    key: name,
+                    value: typeof value === 'string' && value.match(/true|false/i) ? !!value : value
+                },
+                (response) => {
+                    settings.value = { ...settings.value, ...response }
+                    resolve()
+                }
+            )
+        } catch (error) {
+            console.error(error)
+            reject()
         }
-    )
+    })
 }
 if (!chrome?.i18n?.getMessage) {
     (async () => {

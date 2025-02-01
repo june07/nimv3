@@ -16,7 +16,7 @@
     </v-expansion-panels>
 </template>
 <style scoped>
-:deep .v-expansion-panel-title {
+:deep(.v-expansion-panel-title) {
     min-height: unset;
 }
 </style>

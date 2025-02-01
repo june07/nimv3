@@ -42,24 +42,26 @@
                 </v-col>
                 <v-col cols="4" class="py-0">
                     <div v-if="!!browserSession" class="d-flex align-center">
-                        <v-switch small hide-details color="green" :id="`auto-localhost-${info.id}`" inset v-model="switchModel" density="compact" class="ml-auto shrink small-switch" @change="$emit('clickHandlerSessionUpdate', `auto-localhost-${info.id}`, browserSession.tabId, info.id)" @update:model-value="value => $emit('update:inputs:session:auto', browserSession.tabId, value)">
+                        <v-switch small hide-details color="green" :id="`auto-localhost-${info.id}`" inset density="compact" class="ml-auto shrink small-switch" 
+                            @click="$emit('update:inputs:session:auto', !info.auto)">
                             <template v-slot:label>
-                                <div class="text-no-wrap" style="width: 40px">{{ switchModel ? i18nString('auto') : i18nString('manual') }}</div>
+                                <div class="text-no-wrap" style="width: 40px">{{ info.auto ? i18nString('auto') : i18nString('manual') }}</div>
                             </template>
                         </v-switch>
                         <v-btn size="x-small" :id="`devtools-localhost-${info.id}`" color="green" @click="$emit('devtoolsButtonHandler', browserSession)" class="mx-1 text-uppercase font-weight-bold">devtools</v-btn>
-                        <v-btn size="x-small" :id="`remove-localhost-${info.id}`" color="red" @click="$emit('clickHandlerSessionUpdate', `remove-localhost-${info.id}`, browserSession.tabId, info.id)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
+                        <v-btn size="x-small" :id="`remove-localhost-${info.id}`" color="red" @click="$emit('clickHandlerSessionUpdate', `remove-localhost-${info.id}`, info.sessionId)" class="mx-1 text-uppercase font-weight-bold">remove</v-btn>
                         <span style="position: absolute; right: 0; color: green" class="material-symbols-rounded">check_circle</span>
                     </div>
                     <div v-else class="d-flex align-center">
-                        <v-switch small hide-details color="green" :id="`auto-localhost-${info.id}`" inset v-model="switchModel" density="compact" class="ml-auto shrink small-switch" @change="$emit('clickHandlerSessionUpdate', `auto-localhost-${info.id}`, undefined, info.id)" @update:model-value="value => $emit('update:inputs:session:auto', info.id, value)">
+                        <v-switch small hide-details color="green" :id="`auto-localhost-${info.id}`" inset :model-value="info.auto" density="compact" class="ml-auto shrink small-switch"
+                            @click="$emit('clickHandlerSessionUpdate', `auto-localhost-${info.id}`, info.sessionId)">
                             <template v-slot:label>
-                                <div class="text-no-wrap" style="width: 40px">{{ switchModel ? i18nString('auto') : i18nString('manual') }}</div>
+                                <div class="text-no-wrap" style="width: 40px">{{ info.auto ? i18nString('auto') : i18nString('manual') }}</div>
                             </template>
                         </v-switch>
                         <v-btn size="x-small" :id="`devtools-localhost-${info.id}`" variant="tonal" color="green" @click="$emit('devtoolsButtonHandler', info)" class="mx-1 text-uppercase font-weight-bold" text="devtools" />
-                        <v-btn size="x-small" :id="`remove-localhost-${info.id}`" variant="tonal" color="grey" readonly class="mx-1 text-uppercase font-weight-bold" text="remove" />
-                        <span style="position: absolute; right: 0; color: grey" class="material-symbols-rounded">cancel</span>
+                        <v-btn size="x-small" :id="`remove-localhost-${info.id}`" variant="tonal" color="red" @click="$emit('clickHandlerSessionUpdate', `remove-localhost-${info.id}`, info.sessionId)" class="mx-1 text-uppercase font-weight-bold" text="remove" :disabled="info.closed" />
+                        <span style="position: absolute; right: 0" :style="info.closed ? 'color: grey' : 'color: green'" class="material-symbols-rounded">{{ !info.closed ? 'check_circle' : 'cancel' }}</span>
                     </div>
                 </v-col>
                 {{ console.log(inputs.session.auto) }}
@@ -72,13 +74,13 @@
     font-size: x-large;
 }
 
-:deep() input#host,
-:deep() input#port,
-:deep() .v-input__details {
+:deep(input#host),
+:deep(input#port),
+:deep(.v-input__details) {
     text-align: center;
 }
 
-:deep() .v-overlay__content {
+:deep(.v-overlay__content) {
     pointer-events: all !important;
     background-color: white !important;
     border: 1px solid green;
@@ -89,15 +91,15 @@
     opacity: 0.90 !important;
 }
 
-:deep() .v-expansion-panel-title,
-:deep() .v-expansion-panel-title--active {
+:deep(.v-expansion-panel-title),
+:deep(.v-expansion-panel-title--active) {
     padding-top: 6px;
     padding-bottom: 6px;
     min-height: unset !important;
 }
 </style>
 <script setup>
-import { ref, computed, inject, watch } from "vue"
+import { ref, computed, inject } from "vue"
 import iconNiM from "/icon/icon128@3x.png"
 import iconDeno from "/deno-favicon.ico"
 import iconNode from "/node-favicon.ico"
@@ -109,8 +111,6 @@ const props = defineProps({
     inputs: Object,
 })
 const i18nString = inject("i18nString")
-const { VITE_ENV } = import.meta.env
-const switchModel = ref(props.info?.id && props.inputs.session.auto?.[props.info.id] ? true : false)
 const browserSession = computed(() => props.info && props.session.browserTabs?.find((tab) => tab.socket && tab.socket.target === props.info.id))
 /** Primary Target Types
     page

@@ -63,13 +63,13 @@
     </v-app>
 </template>
 <style scoped>
-:deep() .small-switch .v-switch__track {
+:deep(.small-switch .v-switch__track) {
     height: 20px;
     width: 40px;
     min-width: unset;
 }
 
-:deep() .small-switch .v-switch__thumb {
+:deep(.small-switch .v-switch__thumb) {
     height: 16px;
     width: 16px;
 }

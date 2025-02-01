@@ -5,7 +5,7 @@ importScripts(
     '../dist/async.min.js',
     '../dist/socket.io.min.js',
     '../dist/nanoid.min.js',
-    '../dist/posthog.min.js',
+    '../dist/module.full.no-external.js',
     './utils.js',
     './settings.js',
     './brakecode.js',
@@ -111,14 +111,14 @@ async function hydrateState() {
 
         Object.values(state.sessions).forEach((session) => {
             if (session.auto && session.socket) {
-                const { host, port, targetId, uuid } = session.socket
+                const { id, socket: { host, port, uuid } } = session
 
                 if (host === settings.host && port === settings.port) {
                     home = true
                 }
                 // if it's a remote session then track it for the next loop
-                if (targetId) {
-                    openTab(host, port, targetId)
+                if (id) {
+                    openTab(host, port, id)
                 } else if (uuid) {
                     openedRemoteTabSessions[session.socket.uuid] = session
                 }
@@ -148,6 +148,7 @@ async function getInfo(host, port) {
     const remoteMetadata = typeof host === 'object' ? host : undefined
     const cacheId = remoteMetadata?.cid || `${host}:${port}`
     let url
+
     if (/nodejs\.june07\.com/.test(host)) {
         url = `https://${host}/json`
     } else if (remoteMetadata?.cid) {
@@ -168,6 +169,7 @@ async function getInfo(host, port) {
             'authorization': 'Bearer ' + state.token
         },
     } : defaultOptions
+
     try {
         const response = await fetch(url, options)
         // console.log('response status: ', response.status);
@@ -177,8 +179,8 @@ async function getInfo(host, port) {
          * And today 11/28/2024 it was time to find out why, more than one debugging target per socket obviously!
          * */
         cache.info[cacheId] = {
-            infoURL: url,
-            infoArr: info.map(info => browserAgnosticFix(info))
+            url,
+            arr: info.map(info => browserAgnosticFix(info))
         }
         if (settings.debugVerbosity >= 7) {
             console.log(cache.info)
@@ -287,8 +289,8 @@ function targetFromDevtoolsUrl(url) {
 async function openWindow(focus = 'repl') {
     googleAnalytics.fireEvent('openWindow', { focus })
     const { toolsWindow: toolsLastWindow } = await chrome.storage.local.get(['toolsWindow'])
-    const { infoArr } = await getInfo(NODEJS_INSPECT_HOST)
-    const info = infoArr?.[0]
+    const { arr } = await getInfo(NODEJS_INSPECT_HOST)
+    const info = arr?.[0]
     const devtoolsUrl = info?.devtoolsFrontendUrl.replace(/wss?=([^/]*)/, `wss=${NODEJS_INSPECT_HOST}`)
     let urls = ['https://nim.june07.com/docs']
 
@@ -336,18 +338,21 @@ async function openWindow(focus = 'repl') {
 async function openTab(host = settings.host, port = settings.port, targetId, manual) {
     checkLicenseStatus()
     const remoteMetadata = typeof host === 'object' ? host : undefined
-    const { infoArr } = !targetId ? await getInfo(remoteMetadata || host, port) : {}
-    const info = infoArr?.[0]
-    const cacheId = (manual ? '(manual) ' : '') + (remoteMetadata?.cid || getSessionId({ host, port }, targetId || info.id))
+    const info = await getInfo(remoteMetadata || host, port)
+
+    if (!info?.arr?.length) return
+
+    const target = info.arr[0]
+    const cacheId = target?.id ? (manual ? '(manual) ' : '') + (remoteMetadata?.cid || getSessionId({ host, port }, target.id)) : targetId
     let devtoolsURL
 
     if (!state.sockets?.[`${host}:${port}`]) {
         state.sockets = {
             ...(state.sockets || {}),
-            [`${host}:${port}`]: { host, port, info: infoArr }
+            [`${host}:${port}`]: { host, port, target }
         }
     } else {
-        state.sockets[`${host}:${port}`].info = infoArr
+        state.sockets[`${host}:${port}`] = { host, port, target }
     }
     if (!cache.tabs[cacheId]) {
         if (settings.debugVerbosity >= 9) {
@@ -367,7 +372,7 @@ async function openTab(host = settings.host, port = settings.port, targetId, man
             cache.tabs[cacheId].hits += 1
             return
         }
-        const tabs = await queryForDevtoolTabs(host, port, targetId || info.id)
+        const tabs = await queryForDevtoolTabs(host, port, target.id)
         // close autoClose sessions if they are dead
         const sessionsWithClosedDebuggerProtocolSockets = tabs.filter(tab => Object.values(state.sessions)?.length && !state.sessions[tab.id]?.socket?.host?.cid).map(tab => {
             const sessionForTab = state.sessions[tab.id]
@@ -381,10 +386,10 @@ async function openTab(host = settings.host, port = settings.port, targetId, man
                 return await chrome.tabs.remove(session.tabId)
             } else if (host === session.socket.host && port == session.socket.port) {
                 // here we need to replace or otherwise keep the current tab in place otherwise the window will close if it's the only/last tab
-                if (!cache.deadSocketSessions[session.info.id]) {
+                if (!cache.deadSocketSessions[session.info[0].id]) {
                     const deadURL = session.url.replace(host, 'invalid')
                     await chrome.tabs.update(session.tabId, { url: deadURL })
-                    cache.deadSocketSessions[session.info.id] = session
+                    cache.deadSocketSessions[session.info[0].id] = session
                 }
             }
         }))
@@ -401,21 +406,21 @@ async function openTab(host = settings.host, port = settings.port, targetId, man
             return
         }
 
-        if (!info) {
+        if (!target) {
             return
         }
 
-        if (info.type !== 'bun') {
-            setDevtoolsURL(info)
+        if (target.type !== 'bun') {
+            setDevtoolsURL(target)
             if (remoteMetadata) {
-                // fix deno info
-                if (JSON.stringify(info).match(/[\W](deno)[\W]/)) {
-                    info.type = 'deno'
+                // fix deno target
+                if (JSON.stringify(target).match(/[\W](deno)[\W]/)) {
+                    target.type = 'deno'
                 }
-                devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${getRemoteWebSocketDebuggerUrl(remoteMetadata, info)}`)
-                info.remoteWebSocketDebuggerUrl = () => `wss://${getRemoteWebSocketDebuggerUrl(remoteMetadata, info, { encode: false })}`
+                devtoolsURL = target.devtoolsFrontendUrl.replace(/wss?=([^&]*)/, `wss=${getRemoteWebSocketDebuggerUrl(remoteMetadata, target)}`)
+                target.remoteWebSocketDebuggerUrl = () => `wss://${getRemoteWebSocketDebuggerUrl(remoteMetadata, target, { encode: false })}`
             } else {
-                devtoolsURL = info.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1')
+                devtoolsURL = target.devtoolsFrontendUrl.replace(/wss?=localhost/, 'ws=127.0.0.1')
                 var inspectIP = devtoolsURL.match(SOCKET_PATTERN)[1]
                 var inspectPORT = devtoolsURL.match(SOCKET_PATTERN)[5]
                 devtoolsURL = devtoolsURL
@@ -435,11 +440,11 @@ async function openTab(host = settings.host, port = settings.port, targetId, man
                 devtoolsURL = devtoolsURL.replace(/chrome-devtools:\/\//, 'devtools://')
             }
         } else {
-            devtoolsURL = info.devtoolsFrontendUrl
+            devtoolsURL = target.devtoolsFrontendUrl
         }
 
         if (!cache.tabs[cacheId].promise) {
-            cache.tabs[cacheId].promise = createTabOrWindow(devtoolsURL, info, { host, port })
+            cache.tabs[cacheId].promise = createTabOrWindow(devtoolsURL, target, { host, port })
             cache.tabs[cacheId].tabId = await cache.tabs[cacheId].promise
             // wait for the new tab to fully load
             await async.until(
@@ -449,7 +454,7 @@ async function openTab(host = settings.host, port = settings.port, targetId, man
             // should be able to cleanup the dead sockets here since the new tab is created
             await Promise.all(Object.values(cache.deadSocketSessions)?.forEach(async (session) => {
                 await chrome.tabs.remove(session.tabId)
-                delete cache.deadSocketSessions[session.info.id]
+                delete cache.deadSocketSessions[session.target.id]
                 delete state.sessions[session.tabId]
             }) || [])
         } else {
@@ -542,9 +547,9 @@ function getRemoteWebSocketDebuggerUrl(remoteMetadata, info, options = { encode:
     const wsQuery = encode ? encodeURIComponent(uriString) : uriString
     return `${brakecode.PADS_HOST}/ws/${remoteMetadata.cid}/${info.id}?${wsQuery}`
 }
-function createTabOrWindow(url, info, socket) {
+function createTabOrWindow(url, target, socket) {
     return new Promise(async function (resolve) {
-        const dtpSocketPromise = devtoolsProtocolClient.setSocket(info, {
+        const dtpSocketPromise = devtoolsProtocolClient.setSocket(target, {
             autoResume: settings.autoResumeInspectBrk,
             focusOnBreakpoint: settings.focusOnBreakpoint
         })
@@ -564,7 +569,7 @@ function createTabOrWindow(url, info, socket) {
             // updateTabUI(tabId, url)
             const dtpSocket = await dtpSocketPromise
             devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tabId)
-            saveSession({ url, tabId, windowId: window.id, info, dtpSocket, socket })
+            saveSession({ url, tabId, windowId: window.id, target, dtpSocket, socket })
             // group tabs
             if (settings.group) {
                 group(tabId)
@@ -583,7 +588,7 @@ function createTabOrWindow(url, info, socket) {
             // updateTabUI(tab.id, url)
             const dtpSocket = await dtpSocketPromise
             devtoolsProtocolClient.addEventListeners(dtpSocket, settings.autoClose, tab.id)
-            saveSession({ url, tabId: tab.id, info, dtpSocket, socket })
+            saveSession({ url, tabId: tab.id, target, dtpSocket, socket })
             // group tabs
             if (settings.group) {
                 group(tab.id, settings.tabActive)
@@ -654,9 +659,19 @@ function getSessionId(socket, info) {
 
     return `${socketId} ${targetId}`
 }
+function getSessionIdFromTabId(tabId) {
+    const session = Object.values(state.sessions).find((session) => session.tabId === tabId)
+
+    if (!session) return
+
+    const socketId = Object.values(session.socket).join(':')
+    const targetId = session.id
+
+    return `${socketId} ${targetId}`
+}
 async function saveSession(params) {
-    const { socket, infoArr, info, url, tabId, windowId, dtpSocket } = params
-    const sessionId = getSessionId(socket, info || infoArr[0])
+    const { socket, target, url, tabId, windowId, dtpSocket } = params
+    const sessionId = getSessionId(socket, target)
     const existingSession = Object.values(state.sessions).find((session) => sessionId === session.sessionId)
     const newSession = Object.fromEntries(Object.entries({
         url,
@@ -665,17 +680,19 @@ async function saveSession(params) {
         newWindow: existingSession?.newWindow || settings.newWindow,
         tabId,
         windowId,
-        info,
-        infoArr,
         dtpSocket,
         socket,
-        targetId: info.id
+        sessionId: getSessionId(socket, target),
+        ...target
     }).filter(([_key, value]) => value !== undefined))
 
     state.sessions[sessionId] = newSession
     chrome.storage.session.set({ sessions: state.sessions })
-    // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it. 
-
+    // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it.
+    if (existingSession?.socket) {
+        const oldSessionId = getSessionId(existingSession.socket, existingSession.target.id)
+        delete state.sessions[oldSessionId]
+    }
     console.log(state.sessions)
 }
 function encryptMessage(message, publicKeyBase64Encoded) {
@@ -760,14 +777,16 @@ function messageHandler(request, sender, reply) {
                     }))
                     : undefined
                 if (!updates) {
-                    const tabId = keys[0],
+                    const sessionId = keys[0],
                         remoteSessionId = keys[1]
+                    const tabId = state.sessions[sessionId]?.tabId
+
                     // delete state[obj][key];
                     // tabId key must always be first and is only needed for this cache because it's only for tabs
                     // must turn these off immediately since the sessions themselves may linger.
-                    if (state.sessions[tabId]?.auto) state.sessions[tabId].auto = false
+                    if (state.sessions[sessionId]?.auto) state.sessions[sessionId].auto = false
                     if (state.sessions[remoteSessionId]?.auto) state.sessions[remoteSessionId].auto = false
-                    cache.forceRemoveSession[tabId] = true
+                    cache.forceRemoveSession[sessionId] = true
                     chrome.tabs.remove(tabId).then(() => {
                         async.until(
                             (cb) => cb(null, cache.removed[tabId]),
@@ -894,6 +913,7 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
     cache.removed[tabId] = Date.now()
     const tabCacheEntry = Object.entries(cache.tabs).find((kv) => kv[1]?.tabId === tabId)
+    const sessionId = getSessionIdFromTabId(tabId)
 
     if (toolsWindow?.id && toolsWindow.id === windowId && !isWindowClosing) {
         let updatedToolsWindow = await chrome.windows.get(toolsWindow.id, { populate: true })
@@ -905,16 +925,16 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
         delete cache.tabs[tabCacheEntry[0]]
     }
     if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
-        // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession;
+        // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession
         // set this so the close button knows the state
-        if (state.sessions[tabId]) {
-            state.sessions[tabId].dtpSocket.ws.close()
-            state.sessions[tabId].closed = true
+        if (state.sessions[sessionId]) {
+            state.sessions[sessionId].dtpSocket.ws.close()
+            state.sessions[sessionId].closed = true
         }
         return
     }
-    delete cache.forceRemoveSession[tabId]
-    delete state.sessions[tabId]
+    delete cache.forceRemoveSession[sessionId]
+    delete state.sessions[sessionId]
     await chrome.storage.session.set({ sessions: state.sessions })
     googleAnalytics.fireEvent('tabRemoved')
 })

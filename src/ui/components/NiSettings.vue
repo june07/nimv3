@@ -262,16 +262,16 @@
     </v-container>
 </template>
 <style scoped>
-:deep() .localDevToolsSelect .v-field__input {
+:deep(.localDevToolsSelect .v-field__input) {
     padding: 0;
 }
 
-:deep() .rounded-xl .v-field--variant-solo,
-:deep() .rounded-xl input[name=customDevtoolsURL] {
+:deep(.rounded-xl .v-field--variant-solo),
+:deep(.rounded-xl input[name=customDevtoolsURL]) {
     border-radius: 24px;
 }
 
-:deep() .localDevToolsSelect .v-select__selection:first-child {
+:deep(.localDevToolsSelect .v-select__selection:first-child) {
     margin-left: auto;
 }
 </style>
