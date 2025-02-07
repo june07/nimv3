@@ -689,7 +689,7 @@ async function saveSession(params) {
     state.sessions[sessionId] = newSession
     // clean old sessions
     Object.keys(state.sessions)
-        .filter(sessionId => sessionId.includes(newSession.sessionId.split(/\s/)[0]))
+        .filter(sessionId => sessionId !== newSession.sessionId && sessionId.includes(newSession.sessionId.split(/\s/)[0]))
         .forEach(sessionId => delete state.sessions[sessionId])
     chrome.storage.session.set({ sessions: state.sessions })
     // if removeSessionOnTabRemoved is set to false then the session is saved until this point, now delete it.
