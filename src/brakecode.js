@@ -1,7 +1,7 @@
 (async function (brakecode) {
-    const NAMESPACE_APIKEY_NAME = settings.ENV !== 'production' ? 'namespace-apikey-dev.brakecode.com' : 'namespace-apikey.brakecode.com'
-    const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.com' : 'publickey.brakecode.com'
-    const BRAKECODE_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.com' : 'pads.brakecode.com'
+    const NAMESPACE_APIKEY_NAME = settings.ENV !== 'production' ? 'namespace-apikey-dev.brakecode.june07.com' : 'namespace-apikey.brakecode.june07.com'
+    const PUBLIC_KEY_NAME = settings.ENV !== 'production' ? 'publickey-dev.brakecode.june07.com' : 'publickey.brakecode.june07.com'
+    const BRAKECODE_HOST = settings.ENV !== 'production' ? 'pads-dev.brakecode.june07.com' : 'pads.brakecode.june07.com'
     const REGEXPS = {
         INSPECTOR_WS_URL: new RegExp(/wss=.*\/ws\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)\/(\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/)
     }
@@ -31,7 +31,7 @@
 
         switch (record) {
             default:
-                cache.dns[record] = data.Answer[0].data.replace(/"/g, '')
+                cache.dns[record] = data.Answer?.[0].data.replace(/"/g, '')
                 return cache.dns[record]
         }
     }
