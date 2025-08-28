@@ -1,16 +1,17 @@
 const os = require('os')
 const fs = require('fs')
-const { join, basename } = require('path')
+const { join, basename, resolve } = require('path')
 const { test, expect, chromium } = require('@playwright/test')
+
+const pathToExtension = resolve(process.env.PATH_TO_EXTENSION || process.cwd())
 
 module.exports = {
     expect,
-    appName: JSON.parse(fs.readFileSync(join(process.cwd(), '_locales/en/messages.json'), 'utf-8')).appName.message,
-    appVersion: JSON.parse(fs.readFileSync(join(process.cwd(), 'package.json'), 'utf-8')).version,
+    appName: JSON.parse(fs.readFileSync(join(pathToExtension, '_locales/en/messages.json'), 'utf-8')).appName.message,
+    appVersion: JSON.parse(fs.readFileSync(join(pathToExtension, 'package.json'), 'utf-8')).version,
     basename,
     test: test.extend({
         context: async ({ }, use, testInfo) => {
-            const pathToExtension = process.env?.PATH_TO_EXTENSION || process.cwd()
             // very important to separate userDataDir between tests!
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title.replaceAll(' ', '_')}-${testInfo.project.name}-${Date.now()}`
             const context = await chromium.launchPersistentContext(userDataDir, {
@@ -21,20 +22,22 @@ module.exports = {
                     '--no-sandbox'
                 ],
                 devtools: true,
-                screen: {
-                    width: 800,
-                    height: 600
-                },
                 viewport: {
                     width: 800,
                     height: 600
                 },
             })
+
+            console.log("Extension path:", pathToExtension)
+            console.log("Manifest exists:", fs.existsSync(join(pathToExtension, "manifest.json")))
+
+            console.log("Background pages:", context.backgroundPages().map(p => p.url()))
+            console.log("Service workers:", context.serviceWorkers().map(sw => sw.url()))
+
             await use(context)
             await context.close()
         },
         offlineContext: async ({ }, use, testInfo) => {
-            const pathToExtension = process.env?.PATH_TO_EXTENSION || process.cwd()
             // very important to separate userDataDir between tests!
             const userDataDir = `${os.tmpdir()}/test-user-data-dir/${testInfo.title.replaceAll(' ', '_')}-${testInfo.project.name}-${Date.now()}`
             const context = await chromium.launchPersistentContext(userDataDir, {
@@ -48,21 +51,21 @@ module.exports = {
                     '--proxy-bypass-list="<local>;"'
                 ],
                 devtools: true,
-                screen: {
-                    width: 800,
-                    height: 600
-                },
                 viewport: {
                     width: 800,
                     height: 600
                 },
             })
+
             await use(context)
             await context.close()
         },
         serviceWorker: async ({ context }, use) => {
             let [background] = context.serviceWorkers()
             if (!background) {
+                // force background to start by accessing an extension URL
+                const [page] = context.pages()
+                await page.goto('about:blank') // safe placeholder
                 background = await context.waitForEvent('serviceworker')
             }
 
