@@ -8,7 +8,9 @@ const pathToExtension = resolve(process.env.PATH_TO_EXTENSION || process.cwd())
 module.exports = {
     expect,
     appName: JSON.parse(fs.readFileSync(join(pathToExtension, '_locales/en/messages.json'), 'utf-8')).appName.message,
-    appVersion: JSON.parse(fs.readFileSync(join(pathToExtension, 'package.json'), 'utf-8')).version,
+    appVersion: JSON.parse(fs.existsSync(join(pathToExtension, 'package.json'))
+        ? fs.readFileSync(join(pathToExtension, 'package.json'), 'utf-8')
+        : fs.readFileSync(join(pathToExtension, 'manifest.json'), 'utf-8')).version,
     basename,
     test: test.extend({
         context: async ({ }, use, testInfo) => {
