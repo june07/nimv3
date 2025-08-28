@@ -50,6 +50,7 @@ let cache = {
     deadSocketSessions: {},
     lastWindow: {},
     tabMovedEvents: {},
+    incognitoTabs: new Set()
 }
 let state = {
     hydrated: false,
@@ -95,6 +96,10 @@ async function hydrateState() {
         chrome.storage.local.get('apikey').then((obj) => state.apikey = obj.apikey),
         chrome.storage.local.get('subscriptionNotificationOn').then(({ subscriptionNotificationOn }) => state.subscriptionNotificationOn = subscriptionNotificationOn)
     ])
+    // restore incognito tab cache
+    const incognitoTabs = (await chrome.tabs.query({}))?.filter(tab => tab.incognito)
+    incognitoTabs?.forEach((tab) => cache.incognitoTabs.add(tab.id))
+    console.log(`restored ${incognitoTabs.length} incognito tabs: ${[...cache.incognitoTabs].join(', ')}`)
     state.hydrated = true
     // console.log('serviceworker state:', state);
 }
@@ -898,6 +903,15 @@ chrome.tabs.onUpdated.addListener(async function chromeTabsChangedEvent(tabId, {
         }
         await chrome.storage.local.set({ 'toolsWindow': updatedToolsWindow })
     }
+
+    // if the tab is incognito update the incognito state
+    if (tab.incognito && status === 'complete') {
+        if (settings.debugVerbosity >= 9) {
+            console.log(`saving incognito tab ${tab.id} from onUpdated listener`)
+        }
+        cache.incognitoTabs.add(tab.id)
+        utilities.saveIncognito()
+    }
 })
 chrome.tabs.onCreated.addListener(async function chromeTabsCreatedEvent(tab) {
     const { toolsWindow } = await chrome.storage.local.get(['toolsWindow'])
@@ -929,6 +943,14 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     if (tabCacheEntry) {
         // console.log(`deleting cache.tabs[${tabCacheEntry[0]}]`)
         delete cache.tabs[tabCacheEntry[0]]
+    }
+    // if the tab is incognito update the incognito state
+    if (cache.incognitoTabs.has(tabId)) {
+        if (settings.debugVerbosity >= 9) {
+            console.log(`saving incognito tab ${tab.id} from onRemoved listener`)
+        }
+        cache.incognitoTabs.delete(tabId)
+        utilities.saveIncognito()
     }
     if (!settings.removeSessionOnTabRemoved && !cache.forceRemoveSession[tabId]) {
         // delete state.sessions[getRemoteSessionIdFromTabSessionId(tabId)].tabSession

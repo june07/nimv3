@@ -40,7 +40,7 @@
     utilities.rotate270 = (info, tab) => utilities.rotate(270, info, tab)
 
     utilities.saveIncognito = () => {
-        chrome.tabs.query({}, (tabs) => {
+        chrome.tabs.query({}, tabs => {
             const tabsToSave = tabs
                 .filter(tab =>
                     tab.url &&
@@ -61,18 +61,28 @@
                     chrome.storage.local.get('savedIncognitoTabs'),
                     ...tabsToSaveWithGroupsPromises
                 ])
-                    .then(([savedIncognitoTabs, ...tabsToSaveWithGroups]) => {
+                    .then(([{ savedIncognitoTabs }, ...tabsToSaveWithGroups]) => {
+                        const currentSaved = Object.keys(savedIncognitoTabs)
+                            .filter(key => new Date(Number(key)) > new Date(264322800000))
+                            .sort((a, b) => new Date(Number(b)) - new Date(Number(a)))
+                            .slice(0, 9)
+                            .reduce((acc, key) => {
+                                acc[key] = savedIncognitoTabs[key]
+                                return acc
+                            }, {})
+
+                        console.log('current saved incognito tabs', currentSaved)
+                        const update = {
+                            ...currentSaved,
+                            [timestamp]: [
+                                ...tabsWithoutGroups,
+                                ...tabsToSaveWithGroups
+                            ]
+                        }
+
+                        console.log('updated saved incognito tabs', update)
                         chrome.storage.local.set({
-                            savedIncognitoTabs: {
-                                ...Object.keys(savedIncognitoTabs)
-                                    .sort((a, b) => new Date(b) - new Date(a))
-                                    .slice(0, 9)
-                                    .map((key) => ({ [key]: savedIncognitoTabs[key] })),
-                                [timestamp]: [
-                                    ...tabsWithoutGroups,
-                                    ...tabsToSaveWithGroups
-                                ]
-                            }
+                            savedIncognitoTabs: update
                         })
 
                         rebuildContextMenu()
@@ -241,4 +251,5 @@
                 })
         }
     })
+    chrome.on
 })(typeof module !== 'undefined' && module.exports ? module.exports : (self.utilities = self.utilities || {}))
