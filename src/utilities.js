@@ -40,6 +40,8 @@
     utilities.rotate270 = (info, tab) => utilities.rotate(270, info, tab)
 
     utilities.saveIncognito = () => {
+        const GRANULARITY = 60 * 1000 // ms
+
         chrome.tabs.query({}, tabs => {
             const tabsToSave = tabs
                 .filter(tab =>
@@ -52,7 +54,9 @@
 
             if (tabsToSave.length) {
                 console.log('saving incognito tabs', tabsToSave)
-                const timestamp = Date.now()
+                const now = Date.now()
+                const timestamp = Math.floor(now / GRANULARITY) * GRANULARITY
+
 
                 const tabsWithoutGroups = tabsToSave.filter(tab => !tab.groupId || tab.groupId === -1)
                 const tabsToSaveWithGroupsPromises = tabsToSave.filter(tab => tab.groupId !== -1).map(tab => chrome.tabGroups.get(tab.groupId).then(groupInfo => ({ ...tab, groupInfo })))
@@ -166,8 +170,8 @@
             }
             chrome.contextMenus.create({ title: 'Restore Incognito', id: 'restore-incognito', contexts: ['all'] })
             Object.keys(savedIncognitoTabs)
-                .sort((a, b) => new Date(a) - new Date(b))
-                .forEach((key) => {
+                .sort((a, b) => new Date(Number(b)) - new Date(Number(a)))
+                .map((key) => {
                     chrome.contextMenus.create({
                         title: `Restore ${new Date(Number(key)).toLocaleString()}`,
                         id: `restore-incognito-${key}`,
