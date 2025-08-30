@@ -166,7 +166,7 @@
             }
             chrome.contextMenus.create({ title: 'Restore Incognito', id: 'restore-incognito', contexts: ['all'] })
             Object.keys(savedIncognitoTabs)
-                .sort((a, b) => new Date(b) - new Date(a))
+                .sort((a, b) => new Date(a) - new Date(b))
                 .forEach((key) => {
                     chrome.contextMenus.create({
                         title: `Restore ${new Date(Number(key)).toLocaleString()}`,
