@@ -1,5 +1,6 @@
 (async function (utilities) {
     const pinned = {}
+    let rebuildMenuTimeout
 
     utilities.rotate = (angle, info, tab) => {
         if (info.mediaType && info.mediaType === 'image') {
@@ -53,19 +54,42 @@
                 )
 
             if (tabsToSave.length) {
-                console.log('saving incognito tabs', tabsToSave)
+                if (settings.debugVerbosity >= 7) {
+                    console.log('saving incognito tabs', tabsToSave)
+                }
                 const now = Date.now()
                 const timestamp = Math.floor(now / GRANULARITY) * GRANULARITY
 
-
                 const tabsWithoutGroups = tabsToSave.filter(tab => !tab.groupId || tab.groupId === -1)
                 const tabsToSaveWithGroupsPromises = tabsToSave.filter(tab => tab.groupId !== -1).map(tab => chrome.tabGroups.get(tab.groupId).then(groupInfo => ({ ...tab, groupInfo })))
+                // grab window metadata
+                const windowIds = [...new Set(tabsToSave.map(t => t.windowId))]
+                const windowPromises = windowIds.map(id =>
+                    chrome.windows.get(id).then(w => ({
+                        id: w.id,
+                        state: w.state,
+                        left: w.left,
+                        top: w.top,
+                        width: w.width,
+                        height: w.height,
+                        focused: w.focused,
+                        type: w.type,
+                    })).catch(() => null)
+                )
 
                 return Promise.all([
                     chrome.storage.local.get('savedIncognitoTabs'),
-                    ...tabsToSaveWithGroupsPromises
+                    ...tabsToSaveWithGroupsPromises,
+                    Promise.all(windowPromises)
                 ])
-                    .then(([{ savedIncognitoTabs }, ...tabsToSaveWithGroups]) => {
+                    .then(([{ savedIncognitoTabs }, ...rest]) => {
+                        const tabsWithGroups = rest.slice(0, -1)
+                        const windowsMeta = rest[rest.length - 1]
+                            .filter(Boolean)
+                            .reduce((acc, win) => {
+                                acc[win.id] = win
+                                return acc
+                            }, {})
                         const currentSaved = Object.keys(savedIncognitoTabs)
                             .filter(key => new Date(Number(key)) > new Date(264322800000))
                             .sort((a, b) => new Date(Number(b)) - new Date(Number(a)))
@@ -75,32 +99,52 @@
                                 return acc
                             }, {})
 
-                        console.log('current saved incognito tabs', currentSaved)
+                        if (settings.debugVerbosity >= 7) {
+                            console.log('current saved incognito tabs', currentSaved)
+                        }
                         const update = {
                             ...currentSaved,
-                            [timestamp]: [
-                                ...tabsWithoutGroups,
-                                ...tabsToSaveWithGroups
-                            ]
+                            [timestamp]: {
+                                tabs: [
+                                    ...tabsWithoutGroups,
+                                    ...tabsWithGroups
+                                ],
+                                windowMetadata: windowsMeta
+                            }
                         }
 
-                        console.log('updated saved incognito tabs', update)
+                        if (settings.debugVerbosity >= 7) {
+                            console.log('updated saved incognito tabs', update)
+                        }
                         chrome.storage.local.set({
                             savedIncognitoTabs: update
                         })
 
-                        rebuildContextMenu()
+                        if (rebuildMenuTimeout) clearTimeout(rebuildMenuTimeout)
+                        rebuildMenuTimeout = setTimeout(rebuildContextMenu, 5000)
                     })
             }
         })
     }
     utilities.restoreIncognito = (restoreKey) => {
         chrome.storage.local.get('savedIncognitoTabs').then(({ savedIncognitoTabs: allSavedIncognitoTabs }) => {
-            const savedIncognitoTabs = allSavedIncognitoTabs?.[restoreKey]
+            const savedIncognitoSession = allSavedIncognitoTabs?.[restoreKey]
 
-            if (!savedIncognitoTabs) {
+            if (!savedIncognitoSession) {
                 console.log('No saved incognito tabs found for key', restoreKey)
                 return
+            }
+
+            let savedIncognitoTabs, windowMetadata
+
+            if (Array.isArray(savedIncognitoSession)) {
+                // old schema
+                savedIncognitoTabs = savedIncognitoSession
+                windowMetadata = {}
+            } else {
+                // new schema
+                savedIncognitoTabs = savedIncognitoSession.tabs || []
+                windowMetadata = savedIncognitoSession.windowMetadata || {}
             }
 
             const windowsMap = new Map()
@@ -114,10 +158,22 @@
                 windowsMap.get(winId).push(tab)
             })
 
-            windowsMap.forEach((tabs) => {
+            windowsMap.forEach((tabs, winId) => {
                 const [firstTab, ...rest] = tabs
 
-                chrome.windows.create({ url: firstTab.url, incognito: true }, (createdWindow) => {
+                const meta = windowMetadata?.[winId] || {}
+
+                const windowCreateOptions = {
+                    url: firstTab.url,
+                    incognito: true,
+                    left: meta.left,
+                    top: meta.top,
+                    width: meta.width,
+                    height: meta.height,
+                    state: meta.state
+                }
+
+                chrome.windows.create(windowCreateOptions, (createdWindow) => {
                     const tabIdToGroupInfo = {}
                     const tabCreationPromises = []
 
@@ -146,13 +202,15 @@
                         // Group tabs by their group title+color key
                         for (const [tabId, { title, color }] of Object.entries(tabIdToGroupInfo)) {
                             const key = `${title}::${color}`
+
                             if (!groupMap.has(key)) groupMap.set(key, [])
                             groupMap.get(key).push(parseInt(tabId, 10))
                         }
 
                         groupMap.forEach((tabIds, key) => {
                             const [title, color] = key.split('::')
-                            chrome.tabs.group({ tabIds }, (groupId) => {
+
+                            chrome.tabs.group({ tabIds, windowId: createdWindow.id }, (groupId) => {
                                 chrome.tabGroups.update(groupId, { title, color })
                             })
                         })
@@ -161,7 +219,6 @@
             })
         })
     }
-
 
     function createRestoreMenuItems() {
         chrome.storage.local.get('savedIncognitoTabs').then(({ savedIncognitoTabs }) => {

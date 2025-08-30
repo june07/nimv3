@@ -71,7 +71,10 @@ ph.init('phc_U0nrCJpom983ioh7ZVNmFrHGMrR588Mwj9K2feSv851', { api_host: 'https://
 
 async function importForeignTabs() {
     const tabs = await queryForDevtoolTabs()
-    console.log('foreign tabs: ', tabs)
+
+    if (settings.debugVerbosity >= 7) {
+        console.log('foreign tabs: ', tabs)
+    }
 
     return tabs
 }
@@ -98,13 +101,19 @@ async function hydrateState() {
     ])
     // restore incognito tab cache
     const incognitoTabs = (await chrome.tabs.query({}))?.filter(tab => tab.incognito)
+
     incognitoTabs?.forEach((tab) => cache.incognitoTabs.add(tab.id))
-    console.log(`restored ${incognitoTabs.length} incognito tabs: ${[...cache.incognitoTabs].join(', ')}`)
+
+    if (settings.debugVerbosity >= 7) {
+        console.log(`restored ${incognitoTabs.length} incognito tabs cache: ${[...cache.incognitoTabs].join(', ')}`)
+    }
+
     state.hydrated = true
     // console.log('serviceworker state:', state);
 }
 (async function init() {
     cache.ip = await (await fetch('https://ip-cfworkers.june07.com', { method: 'head' })).headers.get('cf-connecting-ip')
+    
     await async.until(
         (cb) => cb(null, settings.DEVTOOLS_SCHEME),
         (next) => setTimeout(next, 500)
@@ -947,7 +956,7 @@ chrome.tabs.onRemoved.addListener(async function chromeTabsRemovedEvent(tabId, {
     // if the tab is incognito update the incognito state
     if (cache.incognitoTabs.has(tabId)) {
         if (settings.debugVerbosity >= 9) {
-            console.log(`saving incognito tab ${tab.id} from onRemoved listener`)
+            console.log(`saving incognito tab ${tabId} from onRemoved listener`)
         }
         cache.incognitoTabs.delete(tabId)
         utilities.saveIncognito()
