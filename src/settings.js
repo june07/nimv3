@@ -40,7 +40,7 @@
             enabled: true
         },
         devToolsCompat: true,
-        localDevtoolsOptionsSelectedIndex: 0,
+        localDevtoolsOptionsSelectedIndex: 1,
         windowStateMaximized: false,
         diagnosticReports: {
             enabled: true,
@@ -55,7 +55,7 @@
             *  Todo: write a failsafe to prevent that condition too!
             */
             { id: 0, name: 'default', url: `${DEVTOOLS_SCHEME}devtools/bundled/inspector.html` },
-            { id: 1, name: 'appspot', url: 'https://chrome-devtools-frontend.brakecode.com/inspector.html' },
+            { id: 1, name: 'redirect', url: 'https://devtools-redirect.june07.com/inspector.html' },
             { id: 2, name: 'june07', url: 'https://chrome-devtools-frontend.june07.com/front_end/inspector.html' },
             { id: 3, name: 'custom', url: '' },
         ],

@@ -879,6 +879,10 @@ function sendMessage(message) {
 
 chrome.runtime.onInstalled.addListener(details => {
     if (details.reason === 'install') {
+        settings.update({ 'localDevtoolsOptionsSelectedIndex': 1 }).then(() => {
+            analytics.push({ event: 'fix-470115241' })
+            googleAnalytics.fireEvent('fix-470115241')
+        })
         chrome.tabs.create({ url: INSTALL_URL })
     }
     analytics.push({ event: 'install', onInstalledReason: details.reason })
